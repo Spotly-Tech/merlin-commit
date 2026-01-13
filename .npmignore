@@ -1,0 +1,24 @@
+# Source files
+src/
+
+# Tests
+test/
+*.test.ts
+*.spec.ts
+coverage/
+
+# Development
+.github/
+.vscode/
+.idea/
+
+# Config
+tsconfig.json
+.eslintrc.json
+.prettierrc
+.gitignore
+.env
+
+# Documentation
+docs/
+CONTRIBUTING.md

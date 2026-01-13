@@ -1,0 +1,76 @@
+{
+    "name": "@spotly/merlin-commit",
+    "version": "0.0.0",
+    "description": "🧙‍♂️ Magical, interactive CLI for creating conventional commits",
+    "type": "module",
+    "main": "./dist/cli.js",
+    "types": "./dist/cli.d.ts",
+    "bin": {
+        "merlin": "./bin/merlin.js"
+    },
+    "exports": {
+        ".": {
+            "import": "./dist/cli.js",
+            "types": "./dist/cli.d.ts"
+        }
+    },
+    "files": [
+        "dist",
+        "bin",
+        "README.md",
+        "LICENSE"
+    ],
+    "scripts": {
+        "build": "tsc",
+        "dev": "tsc --watch",
+        "prepublishOnly": "npm run build",
+        "test": "node --test"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Spotly-Tech/merlin-commit.git"
+    },
+    "keywords": [
+        "git",
+        "commit",
+        "conventional-commits",
+        "cli",
+        "interactive",
+        "commitlint",
+        "husky",
+        "spotly",
+        "typescript"
+    ],
+    "author": "Spotly Tech",
+    "license": "MIT",
+    "engines": {
+        "node": ">=18"
+    },
+    "dependencies": {
+        "@inquirer/prompts": "^8.2.0",
+        "chalk": "^5.6.2",
+        "commander": "^14.0.2",
+        "execa": "^9.6.1",
+        "ora": "^9.0.0"
+    },
+    "devDependencies": {
+        "@types/node": "^25.0.7",
+        "typescript": "^5.9.3"
+    },
+    "peerDependencies": {
+        "@commitlint/config-conventional": ">=19.0.0",
+        "husky": ">=9.0.0"
+    },
+    "peerDependenciesMeta": {
+        "@commitlint/config-conventional": {
+            "optional": true
+        },
+        "husky": {
+            "optional": true
+        }
+    },
+    "bugs": {
+        "url": "https://github.com/Spotly-Tech/merlin-commit/issues"
+    },
+    "homepage": "https://github.com/Spotly-Tech/merlin-commit#readme"
+}
