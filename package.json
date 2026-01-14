@@ -23,8 +23,11 @@
     "scripts": {
         "build": "tsc",
         "dev": "tsc --watch",
-        "prepublishOnly": "npm run build",
-        "test": "node --test"
+        "clean": "rimraf dist",
+        "lint": "eslint src/**/*.ts",
+        "format": "prettier --write \"src/**/*.ts\"",
+        "type-check": "tsc --noEmit",
+        "prepublishOnly": "npm run build"
     },
     "repository": {
         "type": "git",
@@ -55,7 +58,12 @@
     },
     "devDependencies": {
         "@types/node": "^25.0.7",
-        "typescript": "^5.9.3"
+        "@typescript-eslint/eslint-plugin": "^8.53.0",
+        "@typescript-eslint/parser": "^8.53.0",
+        "eslint": "^9.39.2",
+        "prettier": "^3.7.4",
+        "typescript": "^5.9.3",
+        "rimraf": "^6.1.2"
     },
     "peerDependencies": {
         "@commitlint/config-conventional": ">=19.0.0",
