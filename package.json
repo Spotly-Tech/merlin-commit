@@ -27,7 +27,8 @@
         "lint": "eslint src/**/*.ts",
         "format": "prettier --write \"src/**/*.ts\"",
         "type-check": "tsc --noEmit",
-        "prepublishOnly": "npm run build"
+        "prepublishOnly": "npm run build",
+        "prepare": "husky"
     },
     "repository": {
         "type": "git",
@@ -57,13 +58,15 @@
         "ora": "^9.0.0"
     },
     "devDependencies": {
+        "@commitlint/cli": "^20.3.1",
+        "@commitlint/config-conventional": "^20.3.1",
         "@types/node": "^25.0.7",
         "@typescript-eslint/eslint-plugin": "^8.53.0",
         "@typescript-eslint/parser": "^8.53.0",
         "eslint": "^9.39.2",
         "prettier": "^3.7.4",
-        "typescript": "^5.9.3",
-        "rimraf": "^6.1.2"
+        "rimraf": "^6.1.2",
+        "typescript": "^5.9.3"
     },
     "peerDependencies": {
         "@commitlint/config-conventional": ">=19.0.0",
