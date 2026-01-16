@@ -88,3 +88,57 @@ export async function getUnstagedFiles(): Promise<string[]> {
 export async function addFiles(files: string[]): Promise<void> {
     await execa("git", ["add", ...files]);
 }
+
+/**
+ * Creates a git commit with the specified message.
+ *
+ * Executes `git commit` with the provided message. Optionally bypasses
+ * pre-commit and commit-msg hooks with the `--no-verify` flag.
+ *
+ * @param message - Commit message text
+ * @param noVerify - If true, bypasses git hooks (default: false)
+ * @throws Error if git commit command fails
+ * @example
+ * ```typescript
+ * // Standard commit
+ * await commit("feat: add new feature");
+ *
+ * // Commit bypassing hooks
+ * await commit("fix: emergency hotfix", true);
+ * ```
+ */
+export async function commit(message: string, noVerify = false): Promise<void> {
+    const args = ["commit", "-m", message];
+    if (noVerify) {
+        args.push("--no-verify");
+    }
+    await execa("git", args, { stdio: "inherit" });
+}
+
+/**
+ * Amends the most recent commit with a new message.
+ *
+ * Replaces the previous commit's message without creating a new commit.
+ * Useful for fixing commit messages or adding forgotten changes.
+ * Optionally bypasses git hooks with the `--no-verify` flag.
+ *
+ * @param message - New commit message to replace the previous one
+ * @param noVerify - If true, bypasses git hooks (default: false)
+ * @throws Error if git commit --amend command fails
+ * @example
+ * ```typescript
+ * // Fix the last commit message
+ * await amendCommit("feat: add feature (fixed typo)");
+ *
+ * // Amend without running hooks
+ * await amendCommit("fix: corrected implementation", true);
+ * ```
+ * @warning This rewrites git history. Avoid amending commits that have been pushed to shared branches.
+ */
+export async function amendCommit(message: string, noVerify = false): Promise<void> {
+    const args = ["commit", "--amend", "-m", message];
+    if (noVerify) {
+        args.push("--no-verify");
+    }
+    await execa("git", args, { stdio: "inherit" });
+}
