@@ -57,3 +57,50 @@ export function buildCommitMessage(answers: CommitAnswers): string {
 
     return message;
 }
+
+/**
+ * Enhances commit message preview with visual indicators and emoji.
+ *
+ * Processes a commit message line-by-line to add contextual icons:
+ * - ⚠️ prefix for breaking change declarations
+ * - 🔗 prefix for issue references (Fixes, Closes, Resolves)
+ *
+ * This improves readability when displaying commit previews in the terminal
+ * before final confirmation.
+ *
+ * @param message - Raw commit message text
+ * @returns Formatted message with visual indicators
+ *
+ * @example
+ * const message = "feat: new feature\n\nBREAKING CHANGE: API changed\n\nFixes #123";
+ * formatPreview(message)
+ * // Returns:
+ * // "feat: new feature
+ * //
+ * // ⚠️ BREAKING CHANGE: API changed
+ * //
+ * // 🔗 Fixes #123"
+ *
+ * @example
+ * const simpleMessage = "fix: correct typo";
+ * formatPreview(simpleMessage)
+ * // Returns: "fix: correct typo" (unchanged, no special indicators needed)
+ */
+export function formatPreview(message: string): string {
+    const lines = message.split("\n");
+    const formattedLines: string[] = [];
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+
+        if (line.startsWith("BREAKING CHANGE:")) {
+            formattedLines.push("⚠️ " + line);
+        } else if (line.match(/^(Fixes|Closes|Resolves) #/)) {
+            formattedLines.push("🔗 " + line);
+        } else {
+            formattedLines.push(line);
+        }
+    }
+
+    return formattedLines.join("\n");
+}
