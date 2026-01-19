@@ -3,7 +3,7 @@ import chalk from "chalk";
 import ora from "ora";
 import { amendCommit, commit, hasStagedChanges, isGitRepo } from "../lib/git";
 import { buildCommitMessage, formatPreview } from "../lib/message";
-import { propmtUser } from "../lib/prompt";
+import { promptUser } from "../lib/prompt";
 import { getMessages } from "../utils/config";
 
 type CommitOptions = {
@@ -37,7 +37,7 @@ export async function commitCommand(options: CommitOptions): Promise<void> {
     spinner.succeed();
 
     // Prompt user for commit details
-    const userAnswers = await propmtUser();
+    const userAnswers = await promptUser();
     const message = buildCommitMessage(userAnswers);
 
     // Show commit preview
