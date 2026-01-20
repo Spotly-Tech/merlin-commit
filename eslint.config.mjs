@@ -17,7 +17,7 @@ const compat = new FlatCompat({
 
 export default defineConfig([
     {
-        ignores: ["*.config.js", "*.config.mjs", "*.config.cjs"],
+        ignores: ["*.config.js", "*.config.mjs", "*.config.cjs", "*.config.ts", "bin/**"],
     },
     {
         extends: compat.extends(
