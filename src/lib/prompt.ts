@@ -2,7 +2,7 @@ import { confirm, editor, input, select } from "@inquirer/prompts";
 import type { CommitAnswers } from "../types";
 import { getMessages, loadConfig } from "../utils/config";
 
-export async function propmtUser(): Promise<CommitAnswers> {
+export async function promptUser(): Promise<CommitAnswers> {
     const config = loadConfig();
     const messages = getMessages();
     const answers: CommitAnswers = {
@@ -80,7 +80,7 @@ export async function propmtUser(): Promise<CommitAnswers> {
     // If user wants to reference issues, open editor to enter them
     if (hasIssues) {
         answers.issues = await editor({
-            message: messages.prompts.issues + " (e.g., Fixes #123, Closes #456",
+            message: messages.prompts.issues + " (e.g., Fixes #123, Closes #456)",
             validate: (text: string) => text.length > 0 || messages.errors.required,
         });
     }

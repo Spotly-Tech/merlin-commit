@@ -1,0 +1,95 @@
+import { confirm } from "@inquirer/prompts";
+import chalk from "chalk";
+import ora from "ora";
+import { amendCommit, commit, hasStagedChanges, isGitRepo } from "../lib/git";
+import { buildCommitMessage, formatPreview } from "../lib/message";
+import { promptUser } from "../lib/prompt";
+import { getMessages } from "../utils/config";
+
+type CommitOptions = {
+    dryRun?: boolean;
+    amend?: boolean;
+    noVerify?: boolean;
+};
+
+export async function commitCommand(options: CommitOptions): Promise<void> {
+    const messages = getMessages();
+    const spinner = ora();
+
+    // Show intro message
+    console.log(chalk.bold.cyan(`\n${messages.intro}`));
+
+    // Check if inside a git repository
+    spinner.start(messages.checking.repo);
+    if (!(await isGitRepo())) {
+        spinner.fail(chalk.red(messages.errors.notRepo));
+        process.exit(1);
+    }
+    spinner.succeed();
+
+    // Check for staged changes
+    spinner.start(messages.checking.staged);
+    if (!(await hasStagedChanges())) {
+        spinner.fail(chalk.red(messages.errors.noStaged));
+        console.log(chalk.yellow(`\n${messages.tips.gitAdd}`));
+        process.exit(1);
+    }
+    spinner.succeed();
+
+    // Prompt user for commit details
+    const userAnswers = await promptUser();
+    const message = buildCommitMessage(userAnswers);
+
+    // Show commit preview
+    console.log();
+    console.log(chalk.bold("📝 Commit Preview:"));
+    console.log(chalk.gray("-".repeat(60)));
+    console.log(formatPreview(message));
+    console.log(chalk.gray("-".repeat(60)));
+    console.log();
+
+    // Dry run mode
+    if (options.dryRun) {
+        console.log(chalk.blue(`\n${messages.success.dryRun}`));
+        console.log(chalk.gray(messages.exit + "\n"));
+        process.exit(0);
+    }
+
+    // Show warning for --no-verify
+    if (options.noVerify) {
+        console.log(chalk.yellow(`⚠️  ${messages.warnings.noVerify}\n`));
+    }
+
+    // Confirm commit
+    const confirmed = await confirm({
+        message: messages.prompts.confirm,
+        default: true,
+    });
+    if (!confirmed) {
+        console.log(chalk.yellow(`\n${messages.warnings.cancel}`));
+        console.log(chalk.gray(messages.exit + "\n"));
+        process.exit(0);
+    }
+
+    // Create or amend commit
+    const commitMessage = options.amend
+        ? messages.checking.unstaged
+        : messages.checking.staged;
+
+    spinner.start(commitMessage);
+
+    try {
+        if (options.amend) {
+            await amendCommit(message, options.noVerify);
+            spinner.succeed(chalk.green(messages.success.amend));
+        } else {
+            await commit(message, options.noVerify);
+            spinner.succeed(chalk.green(messages.success.commit));
+        }
+        console.log(chalk.gray(`\n${messages.exit}\n`));
+    } catch (error) {
+        spinner.fail(chalk.red(messages.errors.commitFailed));
+        console.error(chalk.red("\n" + (error as Error).message + "\n"));
+        process.exit(1);
+    }
+}
