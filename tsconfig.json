@@ -5,7 +5,7 @@
         "lib": ["ES2022"],
         "moduleResolution": "node",
         "outDir": "./dist",
-        "rootDir": "./src",
+        "rootDir": ".",
         "declaration": true,
         "declarationMap": true,
         "sourceMap": true,
@@ -20,6 +20,6 @@
         "noImplicitReturns": true,
         "noFallthroughCasesInSwitch": true
     },
-    "include": ["src/**/*.ts"],
-    "exclude": ["node_modules", "dist", "test"]
+    "include": ["src/**/*.ts", "tests/**/*.ts"],
+    "exclude": ["node_modules", "dist"]
 }
