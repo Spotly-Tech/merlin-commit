@@ -1,6 +1,6 @@
 import { confirm, editor, input, select } from "@inquirer/prompts";
-import type { CommitAnswers } from "../types";
-import { getMessages, loadConfig } from "../utils/config";
+import type { CommitAnswers } from "../types/index.js";
+import { getMessages, loadConfig } from "../utils/config.js";
 
 export async function promptUser(): Promise<CommitAnswers> {
     const config = loadConfig();
