@@ -1,4 +1,4 @@
-import type { CommitType, MerlinConfig, WizardMessages } from "../types";
+import type { CommitType, MerlinConfig, WizardMessages } from "../types/index.js";
 
 export const COMMIT_TYPES: CommitType[] = [
     {
