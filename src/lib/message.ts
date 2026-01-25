@@ -1,4 +1,4 @@
-import type { CommitAnswers } from "../types";
+import type { CommitAnswers } from "../types/index.js";
 
 /**
  * Constructs a conventional commit message from user answers.

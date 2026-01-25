@@ -1,8 +1,8 @@
 import { existsSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { DEFAULT_CONFIG } from "../../src/utils/constants";
 import { getMessages, loadConfig, resetConfig, saveConfig } from "../../src/utils/config";
+import { DEFAULT_CONFIG } from "../../src/utils/constants";
 
 // Mock fs module
 vi.mock("fs", () => ({
@@ -154,9 +154,19 @@ describe("loadConfig", () => {
         vi.mocked(readFileSync).mockReturnValue(
             JSON.stringify({
                 types: [
-                    { value: "custom", name: "Custom", description: "A custom type", emoji: "🎨" },
+                    {
+                        value: "custom",
+                        name: "Custom",
+                        description: "A custom type",
+                        emoji: "🎨",
+                    },
                     { invalid: "type" }, // Should be filtered out
-                    { value: "another", name: "Another", description: "Another type", emoji: "✨" },
+                    {
+                        value: "another",
+                        name: "Another",
+                        description: "Another type",
+                        emoji: "✨",
+                    },
                 ],
             })
         );

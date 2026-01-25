@@ -3,7 +3,8 @@ import { Command } from "commander";
 import { readFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
-import { commitCommand } from "./commands/commit";
+import { commitCommand } from "./commands/commit.js";
+import { configCommand } from "./commands/config.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -25,6 +26,14 @@ program
     .option("--no-verify", "Skip git hooks (commitlint, husky)")
     .option("--amend", "Amend the previous commit")
     .action(commitCommand);
+
+// Config command
+program
+    .command("config")
+    .description("Manage Merlin configuration interactively")
+    .option("--show", "Display current configuration")
+    .option("--reset", "Reset configuration to defaults")
+    .action(configCommand);
 
 // Handle unknown commands
 program.on("command:*", () => {
