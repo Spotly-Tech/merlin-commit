@@ -1,6 +1,10 @@
 import { confirm, editor, input, select } from "@inquirer/prompts";
 import type { CommitAnswers } from "../types/index.js";
 import { getMessages, loadConfig } from "../utils/config.js";
+import {
+    createCharacterCounterTransformer,
+    createOptionalCharacterCounterTransformer,
+} from "./transformers.js";
 
 export async function promptUser(): Promise<CommitAnswers> {
     const config = loadConfig();
@@ -23,6 +27,7 @@ export async function promptUser(): Promise<CommitAnswers> {
     // Validate scope does not exceed max length
     answers.scope = await input({
         message: messages.prompts.scope,
+        transformer: createOptionalCharacterCounterTransformer(config.maxScopeLength),
         validate: (value: string) =>
             value.length <= config.maxScopeLength ||
             `${messages.errors.tooLong} (max ${config.maxScopeLength} characters)`,
@@ -30,8 +35,10 @@ export async function promptUser(): Promise<CommitAnswers> {
 
     // Prompt for commit subject
     // Validate subject is not empty and does not exceed max length
+    // Transformer provides real-time character counter feedback
     answers.subject = await input({
         message: messages.prompts.subject,
+        transformer: createCharacterCounterTransformer(config.maxSubjectLength),
         validate: (value: string) => {
             if (!value) {
                 return messages.errors.required;
