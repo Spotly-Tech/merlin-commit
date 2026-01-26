@@ -118,6 +118,23 @@ export const WIZARD_MESSAGES: WizardMessages = {
         useEditor: "📖 Press Enter to open the magical tome",
         breakingChange: "⚠️  Breaking changes shatter the old ways",
     },
+    init: {
+        intro: "🧙 Merlin will enchant your repository with commit guardians",
+        checkingPackageJson: "📦 Searching for package.json in the realm",
+        installDeps: "📦 Summon husky and commitlint from the ether?",
+        installingDeps: "🔮 Summoning dependencies from the npm realm...",
+        initHusky: "🎣 Awaken the husky guardian?",
+        initializingHusky: "🎣 Awakening the husky guardian...",
+        createHook: "📜 Inscribe the commit-msg protection spell?",
+        creatingHook: "📜 Inscribing the commit-msg guardian...",
+        createCommitlint: "📋 Create the commitlint tome of rules?",
+        creatingCommitlint: "📋 Writing the commitlint scrolls...",
+        setupAlias: "🔗 Bind 'git merlin' to your spellbook?",
+        aliasScope: "🌍 Choose the scope of this binding:",
+        creatingAlias: "🔗 Binding the magical alias...",
+        skipExisting: "⏭️  Skipping existing artifact:",
+        overwrite: "⚠️  This artifact already exists. Overwrite it?",
+    },
 };
 
 export const STANDARD_MESSAGES: WizardMessages = {
@@ -168,6 +185,23 @@ export const STANDARD_MESSAGES: WizardMessages = {
         gitAdd: 'Use "git add <file>" to stage changes',
         useEditor: "Press Enter to open your editor",
         breakingChange: "Breaking changes trigger major version bumps",
+    },
+    init: {
+        intro: "Setting up conventional commits for your repository",
+        checkingPackageJson: "Checking for package.json",
+        installDeps: "Install husky and commitlint dependencies?",
+        installingDeps: "Installing dependencies...",
+        initHusky: "Initialize husky git hooks?",
+        initializingHusky: "Initializing husky...",
+        createHook: "Create commit-msg hook for validation?",
+        creatingHook: "Creating commit-msg hook...",
+        createCommitlint: "Create commitlint configuration?",
+        creatingCommitlint: "Creating commitlint config...",
+        setupAlias: "Setup 'git merlin' alias?",
+        aliasScope: "Select alias scope:",
+        creatingAlias: "Creating git alias...",
+        skipExisting: "Skipping existing file:",
+        overwrite: "File already exists. Overwrite?",
     },
 };
 

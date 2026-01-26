@@ -368,6 +368,116 @@ export type WizardMessages = {
          */
         breakingChange: string;
     };
+
+    /**
+     * Messages for the `merlin init` command that sets up husky and commitlint.
+     */
+    init: {
+        /**
+         * Welcome message when init command starts.
+         * @example "🧙 Merlin will enchant your repository with commit guardians" (wizard)
+         * @example "Setting up conventional commits for your repository" (standard)
+         */
+        intro: string;
+
+        /**
+         * Message while checking for package.json existence.
+         * @example "📦 Searching for package.json in the realm" (wizard)
+         * @example "Checking for package.json" (standard)
+         */
+        checkingPackageJson: string;
+
+        /**
+         * Prompt asking if user wants to install dependencies.
+         * @example "📦 Summon husky and commitlint from the ether?" (wizard)
+         * @example "Install husky and commitlint dependencies?" (standard)
+         */
+        installDeps: string;
+
+        /**
+         * Spinner message during npm install.
+         * @example "🔮 Summoning dependencies from the npm realm..." (wizard)
+         * @example "Installing dependencies..." (standard)
+         */
+        installingDeps: string;
+
+        /**
+         * Prompt asking if user wants to initialize husky.
+         * @example "🎣 Awaken the husky guardian?" (wizard)
+         * @example "Initialize husky git hooks?" (standard)
+         */
+        initHusky: string;
+
+        /**
+         * Spinner message during husky initialization.
+         * @example "🎣 Awakening the husky guardian..." (wizard)
+         * @example "Initializing husky..." (standard)
+         */
+        initializingHusky: string;
+
+        /**
+         * Prompt asking if user wants to create commit-msg hook.
+         * @example "📜 Inscribe the commit-msg protection spell?" (wizard)
+         * @example "Create commit-msg hook for validation?" (standard)
+         */
+        createHook: string;
+
+        /**
+         * Spinner message during hook file creation.
+         * @example "📜 Inscribing the commit-msg guardian..." (wizard)
+         * @example "Creating commit-msg hook..." (standard)
+         */
+        creatingHook: string;
+
+        /**
+         * Prompt asking if user wants to create commitlint config.
+         * @example "📋 Create the commitlint tome of rules?" (wizard)
+         * @example "Create commitlint configuration?" (standard)
+         */
+        createCommitlint: string;
+
+        /**
+         * Spinner message during commitlint config creation.
+         * @example "📋 Writing the commitlint scrolls..." (wizard)
+         * @example "Creating commitlint config..." (standard)
+         */
+        creatingCommitlint: string;
+
+        /**
+         * Prompt asking if user wants to setup git merlin alias.
+         * @example "🔗 Bind 'git merlin' to your spellbook?" (wizard)
+         * @example "Setup 'git merlin' alias?" (standard)
+         */
+        setupAlias: string;
+
+        /**
+         * Prompt for selecting alias scope (global or local).
+         * @example "🌍 Choose the scope of this binding:" (wizard)
+         * @example "Select alias scope:" (standard)
+         */
+        aliasScope: string;
+
+        /**
+         * Spinner message during git alias creation.
+         * @example "🔗 Binding the magical alias..." (wizard)
+         * @example "Creating git alias..." (standard)
+         */
+        creatingAlias: string;
+
+        /**
+         * Message when skipping existing file that won't be overwritten.
+         * @example "⏭️  Skipping existing artifact:" (wizard)
+         * @example "Skipping existing file:" (standard)
+         */
+        skipExisting: string;
+
+        /**
+         * Prompt asking if user wants to overwrite existing file.
+         * @example "⚠️  This artifact already exists. Overwrite it?" (wizard)
+         * @example "File already exists. Overwrite?" (standard)
+         */
+        overwrite: string;
+    };
 };
 
 /**
@@ -375,3 +485,30 @@ export type WizardMessages = {
  * Returns `true` if valid, or an error message string if invalid.
  */
 export type Validator = (input: string) => true | string;
+
+/**
+ * Command-line options for the `merlin init` command.
+ * Controls which parts of the setup process to execute.
+ */
+export type InitOptions = {
+    /**
+     * When true, only setup husky hooks without commitlint configuration.
+     * Useful when commitlint is already configured or not desired.
+     * @default false
+     */
+    huskyOnly?: boolean;
+
+    /**
+     * When true, only setup commitlint configuration without husky hooks.
+     * Useful when husky is already configured or using different hook manager.
+     * @default false
+     */
+    commitlintOnly?: boolean;
+
+    /**
+     * When true, skip npm install of dependencies (husky, commitlint).
+     * Useful when dependencies are already installed or using different package manager.
+     * @default false
+     */
+    noInstall?: boolean;
+};
