@@ -5,6 +5,7 @@ import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { commitCommand } from "./commands/commit.js";
 import { configCommand } from "./commands/config.js";
+import { initCommand } from "./commands/init.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -34,6 +35,14 @@ program
     .option("--show", "Display current configuration")
     .option("--reset", "Reset configuration to defaults")
     .action(configCommand);
+
+program
+    .command("init")
+    .description("Setup husky, commitlint, and project config")
+    .option("--husky-only", "Only setup husky hooks")
+    .option("--commitlint-only", "Only setup commitlint")
+    .option("--no-install", "Skip npm install")
+    .action(initCommand);
 
 // Handle unknown commands
 program.on("command:*", () => {
