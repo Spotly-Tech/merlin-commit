@@ -321,6 +321,42 @@ export type WizardMessages = {
          * @example "❌ The magical editor has vanished"
          */
         editorFailed: string;
+
+        /**
+         * Error when package.json is not found during init.
+         * @example "❌ No package.json scroll found in this realm"
+         */
+        noPackageJson: string;
+
+        /**
+         * Error when npm install fails during init.
+         * @example "❌ Failed to summon dependencies from the npm realm"
+         */
+        installFailed: string;
+
+        /**
+         * Error when husky initialization fails.
+         * @example "❌ The husky guardian refused to awaken"
+         */
+        huskyFailed: string;
+
+        /**
+         * Error when commit-msg hook creation fails.
+         * @example "❌ Failed to inscribe the commit-msg spell"
+         */
+        hookFailed: string;
+
+        /**
+         * Error when commitlint config creation fails.
+         * @example "❌ Failed to create the commitlint tome"
+         */
+        configFailed: string;
+
+        /**
+         * Error when git alias setup fails.
+         * @example "❌ Failed to bind the magical alias"
+         */
+        aliasFailed: string;
     };
 
     /**
@@ -344,6 +380,18 @@ export type WizardMessages = {
          * @example "⚠️  This will erase all of Merlin's learned preferences"
          */
         resetConfig: string;
+
+        /**
+         * Warning when existing setup files are detected during init.
+         * @example "⚠️  Existing enchantments detected:"
+         */
+        existingSetup: string;
+
+        /**
+         * Warning when git merlin alias already exists.
+         * @example "⚠️  A binding for 'git merlin' already exists"
+         */
+        aliasExists: string;
     };
 
     /**
@@ -367,6 +415,30 @@ export type WizardMessages = {
          * @example "⚠️  Breaking changes alter the fabric of reality"
          */
         breakingChange: string;
+
+        /**
+         * Tip to run git init when not in a repository.
+         * @example '💡 Invoke "git init" to create a sacred repository'
+         */
+        runGitInit: string;
+
+        /**
+         * Tip to run npm init when package.json is missing.
+         * @example '💡 Invoke "npm init" to create a package.json scroll'
+         */
+        runNpmInit: string;
+
+        /**
+         * Tip for manual dependency installation when npm install fails.
+         * @example "💡 Try summoning manually: npm install -D"
+         */
+        manualInstall: string;
+
+        /**
+         * Next steps guidance after successful init.
+         * @example "🌟 Your enchantment is ready! Next steps:"
+         */
+        nextSteps: string;
     };
 
     /**
@@ -477,6 +549,20 @@ export type WizardMessages = {
          * @example "File already exists. Overwrite?" (standard)
          */
         overwrite: string;
+
+        /**
+         * Label for global alias scope option.
+         * @example "🌍 Global (all repositories)" (wizard)
+         * @example "Global (all repositories)" (standard)
+         */
+        aliasScopeGlobal: string;
+
+        /**
+         * Label for local alias scope option.
+         * @example "📁 Local (this repository only)" (wizard)
+         * @example "Local (this repository only)" (standard)
+         */
+        aliasScopeLocal: string;
     };
 };
 
