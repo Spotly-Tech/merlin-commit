@@ -563,6 +563,20 @@ export type WizardMessages = {
          * @example "Local (this repository only)" (standard)
          */
         aliasScopeLocal: string;
+
+        /**
+         * Prompt asking if user wants to create project-level .merlinrc.json.
+         * @example "📜 Create a project config for team sharing?" (wizard)
+         * @example "Create project config (.merlinrc.json) for team sharing?" (standard)
+         */
+        createProjectConfig: string;
+
+        /**
+         * Spinner message during project config creation.
+         * @example "📜 Inscribing project enchantments..." (wizard)
+         * @example "Creating project config..." (standard)
+         */
+        creatingProjectConfig: string;
     };
 };
 

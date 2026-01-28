@@ -148,6 +148,8 @@ export const WIZARD_MESSAGES: WizardMessages = {
         overwrite: "⚠️  This artifact already exists. Overwrite it?",
         aliasScopeGlobal: "🌍 Global (all repositories)",
         aliasScopeLocal: "📁 Local (this repository only)",
+        createProjectConfig: "📜 Create a project config for team sharing?",
+        creatingProjectConfig: "📜 Inscribing project enchantments...",
     },
 };
 
@@ -230,6 +232,8 @@ export const STANDARD_MESSAGES: WizardMessages = {
         overwrite: "File already exists. Overwrite?",
         aliasScopeGlobal: "Global (all repositories)",
         aliasScopeLocal: "Local (this repository only)",
+        createProjectConfig: "Create project config (.merlinrc.json) for team sharing?",
+        creatingProjectConfig: "Creating project config...",
     },
 };
 

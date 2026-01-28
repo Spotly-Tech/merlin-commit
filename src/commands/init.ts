@@ -6,6 +6,7 @@ import {
     checkGitAlias,
     createCommitlintConfig,
     createCommitMsgHook,
+    createProjectConfig,
     detectExistingSetup,
     hasPackageJson,
     INIT_DEPENDENCIES,
@@ -28,6 +29,7 @@ import { getMessages } from "../utils/config.js";
  * 5. Creates commitlint configuration
  * 6. Creates commit-msg hook
  * 7. Optionally sets up git merlin alias
+ * 8. Optionally creates project-level .merlinrc.json for team sharing
  *
  * @param options - Command line options
  * @param options.huskyOnly - Only setup husky hooks, skip commitlint config
@@ -252,6 +254,42 @@ export async function initCommand(options: InitOptions): Promise<void> {
             }
         }
 
+        // Create project config (optional)
+        let projectConfigCreated = false;
+        const wantsProjectConfig = await confirm({
+            message: messages.init.createProjectConfig,
+            default: !existing.merlinConfig,
+        });
+
+        if (wantsProjectConfig) {
+            let shouldCreate = true;
+
+            if (existing.merlinConfig) {
+                shouldCreate = await confirm({
+                    message: `${messages.init.overwrite} (.merlinrc.json)`,
+                    default: false,
+                });
+                if (!shouldCreate) {
+                    console.log(
+                        chalk.gray(`  ${messages.init.skipExisting} .merlinrc.json`)
+                    );
+                }
+            }
+
+            if (shouldCreate) {
+                spinner.start(messages.init.creatingProjectConfig);
+                try {
+                    await createProjectConfig();
+                    spinner.succeed();
+                    projectConfigCreated = true;
+                } catch (error) {
+                    spinner.fail(chalk.red(messages.errors.configFailed));
+                    console.error(chalk.gray(`\n${(error as Error).message}`));
+                    // Non-fatal: continue to success summary
+                }
+            }
+        }
+
         // Success summary
         console.log(chalk.green(`\n✨ ${messages.success.init}`));
         console.log(chalk.gray("\nCreated/updated:"));
@@ -265,6 +303,9 @@ export async function initCommand(options: InitOptions): Promise<void> {
         console.log(chalk.gray("  • .husky/commit-msg hook"));
         if (aliasCreated) {
             console.log(chalk.gray("  • git merlin alias"));
+        }
+        if (projectConfigCreated) {
+            console.log(chalk.gray("  • .merlinrc.json (project config)"));
         }
 
         console.log(chalk.cyan(`\n${messages.tips.nextSteps}`));
