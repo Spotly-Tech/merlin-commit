@@ -36,6 +36,7 @@ program
     .option("--reset", "Reset configuration to defaults")
     .action(configCommand);
 
+// Init command
 program
     .command("init")
     .description("Setup husky, commitlint, and project config")
