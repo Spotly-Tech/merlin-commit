@@ -20,7 +20,7 @@ export async function commitCommand(options: CommitOptions): Promise<void> {
 
     try {
         // Show intro message
-        console.log(chalk.bold.cyan(`\n${messages.intro}`));
+        console.log(chalk.bold.cyan(`\n${messages.commit.intro}`));
 
         // Check if inside a git repository
         spinner.start(messages.checking.repo);
@@ -54,7 +54,7 @@ export async function commitCommand(options: CommitOptions): Promise<void> {
         // Dry run mode
         if (options.dryRun) {
             console.log(chalk.blue(`\n${messages.success.dryRun}`));
-            console.log(chalk.gray(messages.exit + "\n"));
+            console.log(chalk.gray(messages.commit.exit + "\n"));
             process.exit(0);
         }
 
@@ -70,7 +70,7 @@ export async function commitCommand(options: CommitOptions): Promise<void> {
         });
         if (!confirmed) {
             console.log(chalk.yellow(`\n${messages.warnings.cancel}`));
-            console.log(chalk.gray(messages.exit + "\n"));
+            console.log(chalk.gray(messages.commit.exit + "\n"));
             process.exit(0);
         }
 
@@ -88,7 +88,7 @@ export async function commitCommand(options: CommitOptions): Promise<void> {
             await commit(message, options.noVerify);
             spinner.succeed(chalk.green(messages.success.commit));
         }
-        console.log(chalk.gray(`\n${messages.exit}\n`));
+        console.log(chalk.gray(`\n${messages.commit.exit}\n`));
     } catch (error) {
         // Handle ExitPromptError (thrown by Inquirer on Ctrl+C)
         if ((error as Error).name === "ExitPromptError") {
