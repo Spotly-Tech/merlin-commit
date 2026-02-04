@@ -21,6 +21,8 @@ export async function promptUser(): Promise<CommitAnswers> {
             value: type.value,
             name: type.name,
         })),
+        pageSize: config.types.length,
+        loop: true,
     });
 
     // Prompt for optional scope

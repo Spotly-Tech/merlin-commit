@@ -84,7 +84,7 @@ describe("formatPreview", () => {
 
     it("adds warning emoji to BREAKING CHANGE", () => {
         const result = formatPreview("feat: change api\n\nBREAKING CHANGE: removed old endpoint");
-        expect(result).toBe("feat: change api\n\n⚠️ BREAKING CHANGE: removed old endpoint");
+        expect(result).toBe("feat: change api\n\n⚠️  BREAKING CHANGE: removed old endpoint");
     });
 
     it("adds link emoji to issue references (Fixes)", () => {
@@ -127,7 +127,7 @@ describe("formatPreview", () => {
             "feat(api): add auth\n\nImplements OAuth\n\nBREAKING CHANGE: new flow\n\nCloses #100";
         const result = formatPreview(message);
         expect(result).toBe(
-            "feat(api): add auth\n\nImplements OAuth\n\n⚠️ BREAKING CHANGE: new flow\n\n🔗 Closes #100"
+            "feat(api): add auth\n\nImplements OAuth\n\n⚠️  BREAKING CHANGE: new flow\n\n🔗 Closes #100"
         );
     });
 });
