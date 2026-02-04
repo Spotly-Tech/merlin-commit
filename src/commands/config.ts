@@ -213,7 +213,7 @@ async function resetConfigWithConfirmation(messages: WizardMessages): Promise<vo
  * Displays all options with current values and processes user selections.
  */
 async function interactiveConfigMenu(messages: WizardMessages): Promise<void> {
-    console.log(chalk.bold.cyan(`\n${messages.intro}`));
+    console.log(chalk.bold.cyan(`\n${messages.config.intro}`));
     console.log(chalk.gray("Configure Merlin's settings\n"));
 
     let running = true;
@@ -252,6 +252,7 @@ async function interactiveConfigMenu(messages: WizardMessages): Promise<void> {
                 break;
             case "exit":
                 running = false;
+                console.log(chalk.gray(`\n${messages.config.exit}\n`));
                 break;
         }
 

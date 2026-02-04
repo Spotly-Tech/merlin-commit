@@ -70,7 +70,14 @@ export const COMMIT_TYPES: CommitType[] = [
 ];
 
 export const WIZARD_MESSAGES: WizardMessages = {
-    intro: "🧙 Merlin is ready to guide your commit",
+    commit: {
+        intro: "🧙 Merlin is ready to guide your commit",
+        exit: "🔮 Your spell is woven into history.",
+    },
+    config: {
+        intro: "🧙 Merlin opens the tome of settings",
+        exit: "📜 Merlin's tome of secrets has been closed.",
+    },
     checking: {
         repo: "🔮 Verifying the sacred repository",
         staged: "📜 Examining the staged scrolls",
@@ -111,11 +118,17 @@ export const WIZARD_MESSAGES: WizardMessages = {
         useEditor: "📖 Press Enter to open the magical tome",
         breakingChange: "⚠️  Breaking changes shatter the old ways",
     },
-    exit: "🔮 Your spell is woven into history.",
 };
 
 export const STANDARD_MESSAGES: WizardMessages = {
-    intro: "Ready to create a commit",
+    commit: {
+        intro: "Ready to create a commit",
+        exit: "Commit complete",
+    },
+    config: {
+        intro: "Configuration settings",
+        exit: "Configuration closed",
+    },
     checking: {
         repo: "Checking git repository",
         staged: "Checking staged changes",
@@ -156,7 +169,6 @@ export const STANDARD_MESSAGES: WizardMessages = {
         useEditor: "Press Enter to open your editor",
         breakingChange: "Breaking changes trigger major version bumps",
     },
-    exit: "Commit complete",
 };
 
 export const DEFAULT_CONFIG: Required<MerlinConfig> = {

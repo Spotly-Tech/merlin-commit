@@ -134,10 +134,42 @@ export type MerlinConfig = {
  */
 export type WizardMessages = {
     /**
-     * Welcome message displayed when wizard starts.
-     * @example "🧙 Merlin is ready to guide your commit"
+     * Messages specific to the commit command.
      */
-    intro: string;
+    commit: {
+        /**
+         * Welcome message displayed when commit wizard starts.
+         * @example "🧙 Merlin is ready to guide your commit" (wizard)
+         * @example "Ready to create a commit" (standard)
+         */
+        intro: string;
+
+        /**
+         * Farewell message when commit completes or exits.
+         * @example "🔮 Your spell is woven into history." (wizard)
+         * @example "Commit complete" (standard)
+         */
+        exit: string;
+    };
+
+    /**
+     * Messages specific to the config command.
+     */
+    config: {
+        /**
+         * Welcome message displayed when config menu starts.
+         * @example "🧙 Merlin opens the tome of settings" (wizard)
+         * @example "Configuration settings" (standard)
+         */
+        intro: string;
+
+        /**
+         * Farewell message when config menu exits.
+         * @example "📜 Merlin's tome of secrets has been closed." (wizard)
+         * @example "Configuration closed" (standard)
+         */
+        exit: string;
+    };
 
     /**
      * Status messages during pre-flight validation checks.
@@ -336,12 +368,6 @@ export type WizardMessages = {
          */
         breakingChange: string;
     };
-
-    /**
-     * Farewell message when wizard exits or completes.
-     * @example "🔮 Spell complete. Your history is preserved."
-     */
-    exit: string;
 };
 
 /**
