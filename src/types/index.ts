@@ -321,6 +321,42 @@ export type WizardMessages = {
          * @example "❌ The magical editor has vanished"
          */
         editorFailed: string;
+
+        /**
+         * Error when package.json is not found during init.
+         * @example "❌ No package.json scroll found in this realm"
+         */
+        noPackageJson: string;
+
+        /**
+         * Error when npm install fails during init.
+         * @example "❌ Failed to summon dependencies from the npm realm"
+         */
+        installFailed: string;
+
+        /**
+         * Error when husky initialization fails.
+         * @example "❌ The husky guardian refused to awaken"
+         */
+        huskyFailed: string;
+
+        /**
+         * Error when commit-msg hook creation fails.
+         * @example "❌ Failed to inscribe the commit-msg spell"
+         */
+        hookFailed: string;
+
+        /**
+         * Error when commitlint config creation fails.
+         * @example "❌ Failed to create the commitlint tome"
+         */
+        configFailed: string;
+
+        /**
+         * Error when git alias setup fails.
+         * @example "❌ Failed to bind the magical alias"
+         */
+        aliasFailed: string;
     };
 
     /**
@@ -344,6 +380,18 @@ export type WizardMessages = {
          * @example "⚠️  This will erase all of Merlin's learned preferences"
          */
         resetConfig: string;
+
+        /**
+         * Warning when existing setup files are detected during init.
+         * @example "⚠️  Existing enchantments detected:"
+         */
+        existingSetup: string;
+
+        /**
+         * Warning when git merlin alias already exists.
+         * @example "⚠️  A binding for 'git merlin' already exists"
+         */
+        aliasExists: string;
     };
 
     /**
@@ -367,6 +415,168 @@ export type WizardMessages = {
          * @example "⚠️  Breaking changes alter the fabric of reality"
          */
         breakingChange: string;
+
+        /**
+         * Tip to run git init when not in a repository.
+         * @example '💡 Invoke "git init" to create a sacred repository'
+         */
+        runGitInit: string;
+
+        /**
+         * Tip to run npm init when package.json is missing.
+         * @example '💡 Invoke "npm init" to create a package.json scroll'
+         */
+        runNpmInit: string;
+
+        /**
+         * Tip for manual dependency installation when npm install fails.
+         * @example "💡 Try summoning manually: npm install -D"
+         */
+        manualInstall: string;
+
+        /**
+         * Next steps guidance after successful init.
+         * @example "🌟 Your enchantment is ready! Next steps:"
+         */
+        nextSteps: string;
+    };
+
+    /**
+     * Messages for the `merlin init` command that sets up husky and commitlint.
+     */
+    init: {
+        /**
+         * Welcome message when init command starts.
+         * @example "🧙 Merlin will enchant your repository with commit guardians" (wizard)
+         * @example "Setting up conventional commits for your repository" (standard)
+         */
+        intro: string;
+
+        /**
+         * Message while checking for package.json existence.
+         * @example "📦 Searching for package.json in the realm" (wizard)
+         * @example "Checking for package.json" (standard)
+         */
+        checkingPackageJson: string;
+
+        /**
+         * Prompt asking if user wants to install dependencies.
+         * @example "📦 Summon husky and commitlint from the ether?" (wizard)
+         * @example "Install husky and commitlint dependencies?" (standard)
+         */
+        installDeps: string;
+
+        /**
+         * Spinner message during npm install.
+         * @example "🔮 Summoning dependencies from the npm realm..." (wizard)
+         * @example "Installing dependencies..." (standard)
+         */
+        installingDeps: string;
+
+        /**
+         * Prompt asking if user wants to initialize husky.
+         * @example "🎣 Awaken the husky guardian?" (wizard)
+         * @example "Initialize husky git hooks?" (standard)
+         */
+        initHusky: string;
+
+        /**
+         * Spinner message during husky initialization.
+         * @example "🎣 Awakening the husky guardian..." (wizard)
+         * @example "Initializing husky..." (standard)
+         */
+        initializingHusky: string;
+
+        /**
+         * Prompt asking if user wants to create commit-msg hook.
+         * @example "📜 Inscribe the commit-msg protection spell?" (wizard)
+         * @example "Create commit-msg hook for validation?" (standard)
+         */
+        createHook: string;
+
+        /**
+         * Spinner message during hook file creation.
+         * @example "📜 Inscribing the commit-msg guardian..." (wizard)
+         * @example "Creating commit-msg hook..." (standard)
+         */
+        creatingHook: string;
+
+        /**
+         * Prompt asking if user wants to create commitlint config.
+         * @example "📋 Create the commitlint tome of rules?" (wizard)
+         * @example "Create commitlint configuration?" (standard)
+         */
+        createCommitlint: string;
+
+        /**
+         * Spinner message during commitlint config creation.
+         * @example "📋 Writing the commitlint scrolls..." (wizard)
+         * @example "Creating commitlint config..." (standard)
+         */
+        creatingCommitlint: string;
+
+        /**
+         * Prompt asking if user wants to setup git merlin alias.
+         * @example "🔗 Bind 'git merlin' to your spellbook?" (wizard)
+         * @example "Setup 'git merlin' alias?" (standard)
+         */
+        setupAlias: string;
+
+        /**
+         * Prompt for selecting alias scope (global or local).
+         * @example "🌍 Choose the scope of this binding:" (wizard)
+         * @example "Select alias scope:" (standard)
+         */
+        aliasScope: string;
+
+        /**
+         * Spinner message during git alias creation.
+         * @example "🔗 Binding the magical alias..." (wizard)
+         * @example "Creating git alias..." (standard)
+         */
+        creatingAlias: string;
+
+        /**
+         * Message when skipping existing file that won't be overwritten.
+         * @example "⏭️  Skipping existing artifact:" (wizard)
+         * @example "Skipping existing file:" (standard)
+         */
+        skipExisting: string;
+
+        /**
+         * Prompt asking if user wants to overwrite existing file.
+         * @example "⚠️  This artifact already exists. Overwrite it?" (wizard)
+         * @example "File already exists. Overwrite?" (standard)
+         */
+        overwrite: string;
+
+        /**
+         * Label for global alias scope option.
+         * @example "🌍 Global (all repositories)" (wizard)
+         * @example "Global (all repositories)" (standard)
+         */
+        aliasScopeGlobal: string;
+
+        /**
+         * Label for local alias scope option.
+         * @example "📁 Local (this repository only)" (wizard)
+         * @example "Local (this repository only)" (standard)
+         */
+        aliasScopeLocal: string;
+
+        /**
+         * Prompt asking if user wants to create project-level .merlinrc.json.
+         * @example "📜 Create a project config for team sharing?" (wizard)
+         * @example "Create project config (.merlinrc.json) for team sharing?" (standard)
+         */
+        createProjectConfig: string;
+
+        /**
+         * Spinner message during project config creation.
+         * @example "📜 Inscribing project enchantments..." (wizard)
+         * @example "Creating project config..." (standard)
+         */
+        creatingProjectConfig: string;
     };
 };
 
@@ -375,3 +585,30 @@ export type WizardMessages = {
  * Returns `true` if valid, or an error message string if invalid.
  */
 export type Validator = (input: string) => true | string;
+
+/**
+ * Command-line options for the `merlin init` command.
+ * Controls which parts of the setup process to execute.
+ */
+export type InitOptions = {
+    /**
+     * When true, only setup husky hooks without commitlint configuration.
+     * Useful when commitlint is already configured or not desired.
+     * @default false
+     */
+    huskyOnly?: boolean;
+
+    /**
+     * When true, only setup commitlint configuration without husky hooks.
+     * Useful when husky is already configured or using different hook manager.
+     * @default false
+     */
+    commitlintOnly?: boolean;
+
+    /**
+     * When true, skip npm install of dependencies (husky, commitlint).
+     * Useful when dependencies are already installed or using different package manager.
+     * @default false
+     */
+    noInstall?: boolean;
+};
