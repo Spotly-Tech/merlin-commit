@@ -435,7 +435,11 @@ describe("configCommand", () => {
             expect(select).toHaveBeenCalledTimes(1);
             // Should not show commit-related exit message
             expect(consoleSpy.log).not.toHaveBeenCalledWith(
-                expect.stringContaining(WIZARD_MESSAGES.exit)
+                expect.stringContaining(WIZARD_MESSAGES.commit.exit)
+            );
+            // Should show config-specific exit message
+            expect(consoleSpy.log).toHaveBeenCalledWith(
+                expect.stringContaining(WIZARD_MESSAGES.config.exit)
             );
         });
     });

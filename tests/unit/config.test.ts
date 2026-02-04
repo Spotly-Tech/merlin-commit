@@ -219,7 +219,7 @@ describe("getMessages", () => {
 
         const messages = getMessages();
 
-        expect(messages.intro).toContain("Merlin");
+        expect(messages.commit.intro).toContain("Merlin");
     });
 
     it("returns standard messages for standard theme", () => {
@@ -228,7 +228,7 @@ describe("getMessages", () => {
 
         const messages = getMessages();
 
-        expect(messages.intro).toBe("Ready to create a commit");
+        expect(messages.commit.intro).toBe("Ready to create a commit");
     });
 });
 
