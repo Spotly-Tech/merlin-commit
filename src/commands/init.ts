@@ -54,6 +54,11 @@ export async function initCommand(options: InitOptions): Promise<void> {
     const removeSigintHandler = setupSigintHandler(messages, () => spinner.stop());
 
     try {
+        // Track which setup steps actually completed
+        let huskyInitialized = false;
+        let commitlintCreated = false;
+        let hookCreated = false;
+
         // Show intro
         console.log(chalk.bold.cyan(`\n${messages.init.intro}\n`));
 
@@ -142,6 +147,7 @@ export async function initCommand(options: InitOptions): Promise<void> {
                 try {
                     await initializeHusky();
                     spinner.succeed();
+                    huskyInitialized = true;
                 } catch (error) {
                     spinner.fail(chalk.red(messages.errors.huskyFailed));
                     console.error(chalk.gray(`\n${(error as Error).message}\n`));
@@ -171,6 +177,7 @@ export async function initCommand(options: InitOptions): Promise<void> {
                 try {
                     await createCommitlintConfig();
                     spinner.succeed();
+                    commitlintCreated = true;
                 } catch (error) {
                     spinner.fail(chalk.red(messages.errors.configFailed));
                     console.error(chalk.gray(`\n${(error as Error).message}\n`));
@@ -200,6 +207,7 @@ export async function initCommand(options: InitOptions): Promise<void> {
                 try {
                     await createCommitMsgHook();
                     spinner.succeed();
+                    hookCreated = true;
                 } catch (error) {
                     spinner.fail(chalk.red(messages.errors.hookFailed));
                     console.error(chalk.gray(`\n${(error as Error).message}\n`));
@@ -294,13 +302,15 @@ export async function initCommand(options: InitOptions): Promise<void> {
         console.log(chalk.green(`\n✨ ${messages.success.init}`));
         console.log(chalk.gray("\nCreated/updated:"));
 
-        if (!options.commitlintOnly) {
+        if (huskyInitialized) {
             console.log(chalk.gray("  • .husky/ directory"));
         }
-        if (!options.huskyOnly) {
+        if (commitlintCreated) {
             console.log(chalk.gray("  • commitlint.config.js"));
         }
-        console.log(chalk.gray("  • .husky/commit-msg hook"));
+        if (hookCreated) {
+            console.log(chalk.gray("  • .husky/commit-msg hook"));
+        }
         if (aliasCreated) {
             console.log(chalk.gray("  • git merlin alias"));
         }

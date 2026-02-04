@@ -788,6 +788,148 @@ describe("initCommand", () => {
         });
     });
 
+    describe("success summary", () => {
+        /**
+         * Extracts summary item strings from console.log calls
+         * that appear after the "Created/updated:" header line.
+         * This isolates summary output from the existing-file detection output.
+         */
+        function extractSummaryItems(): string[] {
+            const calls = consoleSpy.log.mock.calls;
+            const createdIndex = calls.findIndex((call) =>
+                String(call[0]).includes("Created/updated:")
+            );
+            if (createdIndex === -1) return [];
+
+            const summaryItems: string[] = [];
+            for (let i = createdIndex + 1; i < calls.length; i++) {
+                const text = String(calls[i][0]);
+                if (text.includes("•")) {
+                    summaryItems.push(text);
+                } else {
+                    break;
+                }
+            }
+            return summaryItems;
+        }
+
+        it("shows all items in summary on full happy path", async () => {
+            setupHappyPath();
+
+            await initCommand({});
+
+            expect(consoleSpy.log).toHaveBeenCalledWith(
+                expect.stringContaining(".husky/ directory")
+            );
+            expect(consoleSpy.log).toHaveBeenCalledWith(
+                expect.stringContaining("commitlint.config.js")
+            );
+            expect(consoleSpy.log).toHaveBeenCalledWith(
+                expect.stringContaining(".husky/commit-msg hook")
+            );
+            expect(consoleSpy.log).toHaveBeenCalledWith(
+                expect.stringContaining("git merlin alias")
+            );
+            expect(consoleSpy.log).toHaveBeenCalledWith(
+                expect.stringContaining(".merlinrc.json (project config)")
+            );
+        });
+
+        it("omits husky from summary when user declines overwrite", async () => {
+            setupHappyPath();
+            vi.mocked(detectExistingSetup).mockResolvedValue({
+                ...NO_EXISTING,
+                husky: true,
+            });
+            vi.mocked(confirm).mockReset();
+            vi.mocked(confirm)
+                .mockResolvedValueOnce(true)    // install deps
+                .mockResolvedValueOnce(false)   // decline husky overwrite
+                .mockResolvedValueOnce(true)    // alias
+                .mockResolvedValueOnce(true);   // project config
+            vi.mocked(select).mockResolvedValueOnce("global");
+
+            await initCommand({});
+
+            const summaryItems = extractSummaryItems();
+            expect(summaryItems.some((item) => item.includes(".husky/ directory"))).toBe(false);
+        });
+
+        it("omits commitlint from summary when user declines overwrite", async () => {
+            setupHappyPath();
+            vi.mocked(detectExistingSetup).mockResolvedValue({
+                ...NO_EXISTING,
+                commitlintConfig: true,
+            });
+            vi.mocked(confirm).mockReset();
+            vi.mocked(confirm)
+                .mockResolvedValueOnce(true)    // install deps
+                .mockResolvedValueOnce(false)   // decline commitlint overwrite
+                .mockResolvedValueOnce(true)    // alias
+                .mockResolvedValueOnce(true);   // project config
+            vi.mocked(select).mockResolvedValueOnce("global");
+
+            await initCommand({});
+
+            const summaryItems = extractSummaryItems();
+            expect(summaryItems.some((item) => item.includes("commitlint.config.js"))).toBe(false);
+        });
+
+        it("omits commit-msg hook from summary when user declines overwrite", async () => {
+            setupHappyPath();
+            vi.mocked(detectExistingSetup).mockResolvedValue({
+                ...NO_EXISTING,
+                commitMsgHook: true,
+            });
+            vi.mocked(confirm).mockReset();
+            vi.mocked(confirm)
+                .mockResolvedValueOnce(true)    // install deps
+                .mockResolvedValueOnce(false)   // decline hook overwrite
+                .mockResolvedValueOnce(true)    // alias
+                .mockResolvedValueOnce(true);   // project config
+            vi.mocked(select).mockResolvedValueOnce("global");
+
+            await initCommand({});
+
+            const summaryItems = extractSummaryItems();
+            expect(summaryItems.some((item) => item.includes(".husky/commit-msg hook"))).toBe(false);
+        });
+
+        it("omits husky items when --commitlint-only is used", async () => {
+            setupHappyPath();
+            vi.mocked(confirm).mockReset();
+            vi.mocked(confirm)
+                .mockResolvedValueOnce(true)    // install deps
+                .mockResolvedValueOnce(true)    // alias
+                .mockResolvedValueOnce(true);   // project config
+            vi.mocked(select).mockResolvedValueOnce("global");
+
+            await initCommand({ commitlintOnly: true });
+
+            expect(consoleSpy.log).not.toHaveBeenCalledWith(
+                expect.stringContaining(".husky/ directory")
+            );
+            expect(initializeHusky).not.toHaveBeenCalled();
+        });
+
+        it("omits commitlint items when --husky-only is used", async () => {
+            setupHappyPath();
+            vi.mocked(confirm).mockReset();
+            vi.mocked(confirm)
+                .mockResolvedValueOnce(true)    // install deps
+                .mockResolvedValueOnce(true)    // alias
+                .mockResolvedValueOnce(true);   // project config
+            vi.mocked(select).mockResolvedValueOnce("global");
+
+            await initCommand({ huskyOnly: true });
+
+            expect(consoleSpy.log).not.toHaveBeenCalledWith(
+                expect.stringContaining("commitlint.config.js")
+            );
+            expect(createCommitlintConfig).not.toHaveBeenCalled();
+        });
+    });
+
     describe("combined flags", () => {
         it("--husky-only --no-install skips install and commitlint", async () => {
             setupHappyPath();
