@@ -321,7 +321,7 @@ export async function initCommand(options: InitOptions): Promise<void> {
         console.log(chalk.cyan(`\n${messages.tips.nextSteps}`));
         console.log(chalk.gray("  1. Stage your changes: git add ."));
         console.log(chalk.gray("  2. Create a commit: merlin (or git merlin)"));
-        console.log(chalk.gray(`\n${messages.exit}\n`));
+        console.log(chalk.gray(`\n${messages.commit.exit}\n`));
 
         process.exit(0);
     } catch (error) {
