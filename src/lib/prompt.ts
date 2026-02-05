@@ -1,6 +1,8 @@
-import { confirm, editor, input, select } from "@inquirer/prompts";
+import { confirm, input, select } from "@inquirer/prompts";
 import type { CommitAnswers } from "../types/index.js";
 import { getMessages, loadConfig } from "../utils/config.js";
+import { editorWithConfig, editWithGitCommitMessage } from "./editor-wrapper.js";
+import { getStagedFilesWithStatus } from "./git.js";
 import {
     createCharacterCounterTransformer,
     createOptionalCharacterCounterTransformer,
@@ -57,13 +59,19 @@ export async function promptUser(): Promise<CommitAnswers> {
         message: messages.prompts.body,
         default: false,
     });
-    // If user wants detailed body, open external editor to enter it
+    // If user wants detailed body, open editor with git commit context
     if (wantsDetailedBody) {
         console.log(`\n${messages.tips.useEditor}`);
-        answers.body = await editor({
-            message: messages.prompts.body,
-            waitForUserInput: false,
-        });
+        const stagedFiles = await getStagedFilesWithStatus();
+        answers.body = await editWithGitCommitMessage(
+            {
+                type: answers.type,
+                scope: answers.scope,
+                subject: answers.subject,
+                stagedFiles,
+            },
+            config.editor
+        );
     }
 
     // Prompt for optional breaking changes using external editor
@@ -74,11 +82,14 @@ export async function promptUser(): Promise<CommitAnswers> {
     // If user indicates breaking changes, show tip and open editor to enter details
     if (hasBreakingChanges) {
         console.log(messages.tips.breakingChange);
-        answers.breaking = await editor({
-            message: messages.prompts.breaking,
-            waitForUserInput: false,
-            default: "BREAKING CHANGE: Describe what changed and why",
-        });
+        answers.breaking = await editorWithConfig(
+            {
+                message: messages.prompts.breaking,
+                waitForUserInput: false,
+                default: "BREAKING CHANGE: Describe what changed and why",
+            },
+            config.editor
+        );
     }
 
     // Prompt for optional issue references
@@ -88,10 +99,13 @@ export async function promptUser(): Promise<CommitAnswers> {
     });
     // If user wants to reference issues, open editor to enter them
     if (hasIssues) {
-        answers.issues = await editor({
-            message: messages.prompts.issues + " (e.g., Fixes #123, Closes #456)",
-            validate: (text: string) => text.length > 0 || messages.errors.required,
-        });
+        answers.issues = await editorWithConfig(
+            {
+                message: messages.prompts.issues + " (e.g., Fixes #123, Closes #456)",
+                validate: (text: string) => text.length > 0 || messages.errors.required,
+            },
+            config.editor
+        );
     }
 
     return answers;
