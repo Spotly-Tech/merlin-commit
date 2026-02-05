@@ -1,7 +1,8 @@
 import { confirm, input, select } from "@inquirer/prompts";
 import type { CommitAnswers } from "../types/index.js";
 import { getMessages, loadConfig } from "../utils/config.js";
-import { editorWithConfig } from "./editor-wrapper.js";
+import { editorWithConfig, editWithGitCommitMessage } from "./editor-wrapper.js";
+import { getStagedFilesWithStatus } from "./git.js";
 import {
     createCharacterCounterTransformer,
     createOptionalCharacterCounterTransformer,
@@ -58,13 +59,16 @@ export async function promptUser(): Promise<CommitAnswers> {
         message: messages.prompts.body,
         default: false,
     });
-    // If user wants detailed body, open external editor to enter it
+    // If user wants detailed body, open editor with git commit context
     if (wantsDetailedBody) {
         console.log(`\n${messages.tips.useEditor}`);
-        answers.body = await editorWithConfig(
+        const stagedFiles = await getStagedFilesWithStatus();
+        answers.body = await editWithGitCommitMessage(
             {
-                message: messages.prompts.body,
-                waitForUserInput: false,
+                type: answers.type,
+                scope: answers.scope,
+                subject: answers.subject,
+                stagedFiles,
             },
             config.editor
         );
