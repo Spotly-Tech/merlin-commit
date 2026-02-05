@@ -1,0 +1,242 @@
+import { editor } from "@inquirer/prompts";
+import { spawnSync } from "child_process";
+import { readFileSync, writeFileSync } from "fs";
+import path from "path";
+import { getGitDirectory, type StagedFile } from "./git.js";
+
+/**
+ * Options for the editor prompt, matching @inquirer/prompts editor() signature.
+ */
+type EditorOptions = {
+    message: string;
+    default?: string;
+    validate?: (text: string) => boolean | string | Promise<boolean | string>;
+    waitForUserInput?: boolean;
+};
+
+/**
+ * Prepares an editor command for Windows compatibility.
+ *
+ * On Windows, the @inquirer/external-editor package spawns the editor without
+ * `shell: true`, which means .cmd/.bat files (like VS Code's `code.cmd`) won't
+ * be found. This function wraps the command with `cmd /c` to ensure proper
+ * shell resolution.
+ *
+ * @param editorCommand - The original editor command (e.g., "code --wait")
+ * @returns The Windows-compatible command (e.g., "cmd /c code --wait")
+ */
+function prepareEditorForWindows(editorCommand: string): string {
+    // Already using cmd, no need to wrap
+    if (editorCommand.toLowerCase().startsWith("cmd ")) {
+        return editorCommand;
+    }
+
+    // Wrap with cmd /c for proper shell resolution
+    return `cmd /c ${editorCommand}`;
+}
+
+/**
+ * Wrapper around @inquirer/prompts editor() that respects the user's configured editor.
+ *
+ * The @inquirer/editor package uses environment variables ($VISUAL or $EDITOR) to
+ * determine which editor to launch. This wrapper temporarily sets process.env.VISUAL
+ * to the user's configured editor before calling editor(), then restores the original
+ * environment variables afterward.
+ *
+ * On Windows, editor commands are automatically wrapped with `cmd /c` to ensure
+ * proper resolution of .cmd/.bat files (required for VS Code, etc.).
+ *
+ * @param options - Standard @inquirer/prompts editor options
+ * @param customEditor - Path to editor command from config (e.g., "code --wait", "vim")
+ * @returns Promise resolving to the text entered in the editor
+ *
+ * @example
+ * const config = loadConfig();
+ * const body = await editorWithConfig(
+ *     { message: "Enter description:", waitForUserInput: false },
+ *     config.editor
+ * );
+ */
+export async function editorWithConfig(
+    options: EditorOptions,
+    customEditor?: string
+): Promise<string> {
+    const originalVisual = process.env.VISUAL;
+    const originalEditor = process.env.EDITOR;
+
+    try {
+        if (customEditor) {
+            // On Windows, wrap with cmd /c for proper shell resolution of .cmd files
+            const editorCommand =
+                process.platform === "win32"
+                    ? prepareEditorForWindows(customEditor)
+                    : customEditor;
+
+            // Set VISUAL (takes precedence over EDITOR in most systems)
+            process.env.VISUAL = editorCommand;
+        }
+
+        const result = await editor(options);
+        return result;
+    } finally {
+        // Always restore original environment variables to avoid side effects
+        if (originalVisual !== undefined) {
+            process.env.VISUAL = originalVisual;
+        } else {
+            delete process.env.VISUAL;
+        }
+
+        if (originalEditor !== undefined) {
+            process.env.EDITOR = originalEditor;
+        } else {
+            delete process.env.EDITOR;
+        }
+    }
+}
+
+/**
+ * Context for the git commit message editor template.
+ */
+export type CommitEditorContext = {
+    type: string;
+    scope?: string;
+    subject: string;
+    stagedFiles: StagedFile[];
+};
+
+/**
+ * Parses an editor command string into binary and arguments.
+ *
+ * Handles space-separated arguments and respects escaped spaces.
+ *
+ * @param editorCommand - The editor command (e.g., "code --wait --new-window")
+ * @returns Object with bin (executable) and args (array of arguments)
+ */
+function parseEditorCommand(editorCommand: string): { bin: string; args: string[] } {
+    const parts: string[] = [];
+    let current = "";
+
+    for (let i = 0; i < editorCommand.length; i++) {
+        const char = editorCommand[i];
+        if (char === " " && editorCommand[i - 1] !== "\\" && current.length > 0) {
+            parts.push(current);
+            current = "";
+        } else {
+            current += char;
+        }
+    }
+    if (current.length > 0) {
+        parts.push(current);
+    }
+
+    const bin = parts[0] || "vim";
+    const args = parts.slice(1).map((arg) => arg.replace(/\\ /g, " "));
+    return { bin, args };
+}
+
+/**
+ * Builds the template content for COMMIT_EDITMSG with helpful comments.
+ *
+ * @param context - Commit context including type, scope, subject, and staged files
+ * @returns Template string with comments in git style
+ */
+function buildCommitMessageTemplate(context: CommitEditorContext): string {
+    const lines: string[] = [];
+
+    // Empty line at top for user to type
+    lines.push("");
+    lines.push("# Enter your commit body above this line.");
+    lines.push("# ─────────────────────────────────────────────────────────────");
+
+    // Show commit context
+    const scopePart = context.scope ? ` | Scope: ${context.scope}` : "";
+    lines.push(`# Type: ${context.type}${scopePart}`);
+    lines.push(`# Subject: ${context.subject}`);
+    lines.push("#");
+
+    // Show staged files
+    if (context.stagedFiles.length > 0) {
+        lines.push("# Changes to be committed:");
+        for (const file of context.stagedFiles) {
+            lines.push(`#   ${file.status.padEnd(12)} ${file.path}`);
+        }
+        lines.push("#");
+    }
+
+    lines.push("# Lines starting with '#' will be ignored.");
+    lines.push("# Save and close the file when done.");
+
+    return lines.join("\n");
+}
+
+/**
+ * Strips comment lines (starting with #) from the editor content.
+ *
+ * @param content - Raw content from the editor
+ * @returns Content with comment lines removed
+ */
+function stripCommentLines(content: string): string {
+    return content
+        .split("\n")
+        .filter((line) => !line.startsWith("#"))
+        .join("\n")
+        .trim();
+}
+
+/**
+ * Opens the user's editor with .git/COMMIT_EDITMSG for writing commit body.
+ *
+ * This provides a native git experience with:
+ * - Automatic syntax highlighting in editors that recognize COMMIT_EDITMSG
+ * - Git-style comments showing commit context and staged files
+ * - Comment lines are stripped from the final result
+ *
+ * @param context - Commit context for the template
+ * @param editorCommand - Editor command from config (e.g., "code --wait")
+ * @returns Promise resolving to the text entered (comments stripped)
+ *
+ * @example
+ * ```typescript
+ * const body = await editWithGitCommitMessage(
+ *     { type: "feat", scope: "auth", subject: "add login", stagedFiles },
+ *     "code --wait"
+ * );
+ * ```
+ */
+export async function editWithGitCommitMessage(
+    context: CommitEditorContext,
+    editorCommand: string
+): Promise<string> {
+    // Get the git directory and construct COMMIT_EDITMSG path
+    const gitDir = await getGitDirectory();
+    const commitMsgPath = path.resolve(gitDir, "COMMIT_EDITMSG");
+
+    // Write template with context comments
+    const template = buildCommitMessageTemplate(context);
+    writeFileSync(commitMsgPath, template, "utf8");
+
+    // Parse editor command
+    const { bin, args } = parseEditorCommand(editorCommand);
+
+    // On Windows, we need to use shell for .cmd files
+    const isWindows = process.platform === "win32";
+    const spawnOptions = {
+        stdio: "inherit" as const,
+        shell: isWindows,
+    };
+
+    // Build final command - on Windows with shell:true, we pass the full command
+    const finalBin = isWindows ? `${bin} ${args.join(" ")} "${commitMsgPath}"` : bin;
+    const finalArgs = isWindows ? [] : [...args, commitMsgPath];
+
+    // Spawn editor and wait for it to close
+    const result = spawnSync(finalBin, finalArgs, spawnOptions);
+
+    if (result.error) {
+        throw new Error(`Failed to launch editor: ${result.error.message}`);
+    }
+
+    // Read the file content and strip comments
+    const content = readFileSync(commitMsgPath, "utf8");
+    return stripCommentLines(content);
+}

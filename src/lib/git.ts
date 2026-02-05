@@ -142,3 +142,78 @@ export async function amendCommit(message: string, noVerify = false): Promise<vo
     }
     await execa("git", args, { stdio: "inherit" });
 }
+
+/**
+ * Gets the path to the .git directory for the current repository.
+ *
+ * This works correctly for both regular repositories and worktrees.
+ * The returned path can be used to locate git-specific files like
+ * COMMIT_EDITMSG.
+ *
+ * @returns Absolute path to the .git directory
+ * @throws Error if not in a git repository
+ * @example
+ * ```typescript
+ * const gitDir = await getGitDirectory();
+ * // => "C:/projects/myrepo/.git" or "/home/user/myrepo/.git"
+ * ```
+ */
+export async function getGitDirectory(): Promise<string> {
+    const { stdout } = await execa("git", ["rev-parse", "--git-dir"]);
+    return stdout.trim();
+}
+
+/**
+ * Represents a staged file with its status indicator.
+ */
+export type StagedFile = {
+    status: "modified" | "new file" | "deleted" | "renamed" | "copied" | "typechange";
+    path: string;
+};
+
+/**
+ * Retrieves a list of staged files with their status.
+ *
+ * Uses `git diff --cached --name-status` to get both the status
+ * indicator and file path for each staged file.
+ *
+ * @returns Array of staged files with status, empty array if none or on error
+ * @example
+ * ```typescript
+ * const files = await getStagedFilesWithStatus();
+ * // => [
+ * //   { status: "modified", path: "src/index.ts" },
+ * //   { status: "new file", path: "src/utils.ts" }
+ * // ]
+ * ```
+ */
+export async function getStagedFilesWithStatus(): Promise<StagedFile[]> {
+    try {
+        const { stdout } = await execa("git", ["diff", "--cached", "--name-status"]);
+        if (!stdout.trim()) {
+            return [];
+        }
+
+        const statusMap: Record<string, StagedFile["status"]> = {
+            M: "modified",
+            A: "new file",
+            D: "deleted",
+            R: "renamed",
+            C: "copied",
+            T: "typechange",
+        };
+
+        return stdout
+            .trim()
+            .split("\n")
+            .filter(Boolean)
+            .map((line) => {
+                const [statusCode, ...pathParts] = line.split("\t");
+                const status = statusMap[statusCode.charAt(0)] || "modified";
+                const path = pathParts.join("\t"); // Handle paths with tabs (rare but possible)
+                return { status, path };
+            });
+    } catch {
+        return [];
+    }
+}
