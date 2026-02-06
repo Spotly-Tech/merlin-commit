@@ -946,7 +946,8 @@ describe("initCommand", () => {
             expect(installDependencies).not.toHaveBeenCalled();
             expect(createCommitlintConfig).not.toHaveBeenCalled();
             expect(initializeHusky).toHaveBeenCalled();
-            expect(createCommitMsgHook).toHaveBeenCalled();
+            // Hook should NOT be created in husky-only mode (no commitlint to run)
+            expect(createCommitMsgHook).not.toHaveBeenCalled();
         });
 
         it("--commitlint-only --no-install skips install and husky", async () => {

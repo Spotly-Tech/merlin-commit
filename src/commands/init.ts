@@ -186,8 +186,9 @@ export async function initCommand(options: InitOptions): Promise<void> {
             }
         }
 
-        // Create commit-msg hook (only if husky was initialized or exists)
-        if (!options.commitlintOnly || existing.husky) {
+        // Create commit-msg hook (only if both husky AND commitlint are available)
+        // Skip if: huskyOnly (no commitlint to run) or commitlintOnly without existing husky
+        if (!options.huskyOnly && (!options.commitlintOnly || existing.husky)) {
             let shouldCreate = true;
 
             if (existing.commitMsgHook) {
