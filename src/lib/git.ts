@@ -97,22 +97,25 @@ export async function addFiles(files: string[]): Promise<void> {
  *
  * @param message - Commit message text
  * @param noVerify - If true, bypasses git hooks (default: false)
+ * @returns Git commit output (e.g., "[main abc1234] feat: add new feature")
  * @throws Error if git commit command fails
  * @example
  * ```typescript
  * // Standard commit
- * await commit("feat: add new feature");
+ * const output = await commit("feat: add new feature");
+ * console.log(output); // "[main abc1234] feat: add new feature"
  *
  * // Commit bypassing hooks
  * await commit("fix: emergency hotfix", true);
  * ```
  */
-export async function commit(message: string, noVerify = false): Promise<void> {
+export async function commit(message: string, noVerify = false): Promise<string> {
     const args = ["commit", "-m", message];
     if (noVerify) {
         args.push("--no-verify");
     }
-    await execa("git", args, { stdio: "inherit" });
+    const { stdout } = await execa("git", args);
+    return stdout;
 }
 
 /**
@@ -124,23 +127,26 @@ export async function commit(message: string, noVerify = false): Promise<void> {
  *
  * @param message - New commit message to replace the previous one
  * @param noVerify - If true, bypasses git hooks (default: false)
+ * @returns Git commit output (e.g., "[main abc1234] feat: add feature (fixed typo)")
  * @throws Error if git commit --amend command fails
  * @example
  * ```typescript
  * // Fix the last commit message
- * await amendCommit("feat: add feature (fixed typo)");
+ * const output = await amendCommit("feat: add feature (fixed typo)");
+ * console.log(output);
  *
  * // Amend without running hooks
  * await amendCommit("fix: corrected implementation", true);
  * ```
  * @warning This rewrites git history. Avoid amending commits that have been pushed to shared branches.
  */
-export async function amendCommit(message: string, noVerify = false): Promise<void> {
+export async function amendCommit(message: string, noVerify = false): Promise<string> {
     const args = ["commit", "--amend", "-m", message];
     if (noVerify) {
         args.push("--no-verify");
     }
-    await execa("git", args, { stdio: "inherit" });
+    const { stdout } = await execa("git", args);
+    return stdout;
 }
 
 /**

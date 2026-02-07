@@ -22,6 +22,7 @@ export async function promptUser(): Promise<CommitAnswers> {
         choices: config.types.map((type) => ({
             value: type.value,
             name: type.name,
+            short: type.value,
         })),
         pageSize: config.types.length,
         loop: true,
