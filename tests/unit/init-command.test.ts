@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { initCommand } from "../../src/commands/init";
-import { WIZARD_MESSAGES } from "../../src/utils/constants";
+import { initCommand } from "../../src/commands/init.js";
+import { WIZARD_MESSAGES } from "../../src/utils/constants.js";
 
 vi.mock("@inquirer/prompts", () => ({
     confirm: vi.fn(),
