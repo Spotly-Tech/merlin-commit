@@ -75,19 +75,18 @@ export async function commitCommand(options: CommitOptions): Promise<void> {
         }
 
         // Create or amend commit
-        const commitMessage = options.amend
-            ? messages.checking.unstaged
-            : messages.checking.staged;
-
-        spinner.start(commitMessage);
-
+        // Spinner runs during commit since git output is now captured
+        let gitOutput: string;
         if (options.amend) {
-            await amendCommit(message, options.noVerify);
+            spinner.start(messages.checking.unstaged);
+            gitOutput = await amendCommit(message, options.noVerify);
             spinner.succeed(chalk.green(messages.success.amend));
         } else {
-            await commit(message, options.noVerify);
+            spinner.start(messages.checking.staged);
+            gitOutput = await commit(message, options.noVerify);
             spinner.succeed(chalk.green(messages.success.commit));
         }
+        console.log(chalk.gray(gitOutput));
         console.log(chalk.gray(`\n${messages.commit.exit}\n`));
     } catch (error) {
         // Handle ExitPromptError (thrown by Inquirer on Ctrl+C)

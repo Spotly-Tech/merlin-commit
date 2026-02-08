@@ -35,7 +35,7 @@ import {
     initializeHusky,
     installDependencies,
     setupGitAlias,
-} from "../../src/lib/setup";
+} from "../../src/lib/setup.js";
 
 describe("hasPackageJson", () => {
     beforeEach(() => {

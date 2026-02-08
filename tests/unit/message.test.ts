@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildCommitMessage, formatPreview } from "../../src/lib/message";
+import { buildCommitMessage, formatPreview } from "../../src/lib/message.js";
 
 describe("buildCommitMessage", () => {
     it("builds basic commit with type and subject", () => {
