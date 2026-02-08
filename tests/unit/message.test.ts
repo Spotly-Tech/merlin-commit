@@ -63,6 +63,33 @@ describe("buildCommitMessage", () => {
         );
     });
 
+    it("strips BREAKING CHANGE prefix to prevent duplication", () => {
+        const result = buildCommitMessage({
+            type: "feat",
+            subject: "change API",
+            breaking: "BREAKING CHANGE: API endpoints changed",
+        });
+        expect(result).toBe("feat: change API\n\nBREAKING CHANGE: API endpoints changed");
+    });
+
+    it("strips case-insensitive breaking change prefix", () => {
+        const result = buildCommitMessage({
+            type: "feat",
+            subject: "change API",
+            breaking: "breaking change: API endpoints changed",
+        });
+        expect(result).toBe("feat: change API\n\nBREAKING CHANGE: API endpoints changed");
+    });
+
+    it("skips breaking change when only prefix is provided", () => {
+        const result = buildCommitMessage({
+            type: "feat",
+            subject: "change API",
+            breaking: "BREAKING CHANGE:",
+        });
+        expect(result).toBe("feat: change API");
+    });
+
     it("handles empty optional fields", () => {
         const result = buildCommitMessage({
             type: "chore",

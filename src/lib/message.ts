@@ -49,7 +49,12 @@ export function buildCommitMessage(answers: CommitAnswers): string {
         message += `\n\n${answers.body}`;
     }
     if (answers.breaking) {
-        message += `\n\nBREAKING CHANGE: ${answers.breaking}`;
+        // Strip "BREAKING CHANGE:" prefix if present to prevent duplication,
+        // since this function always adds the prefix
+        const breakingDescription = answers.breaking.replace(/^BREAKING CHANGE:\s*/i, "");
+        if (breakingDescription) {
+            message += `\n\nBREAKING CHANGE: ${breakingDescription}`;
+        }
     }
     if (answers.issues) {
         message += `\n\n${answers.issues}`;
