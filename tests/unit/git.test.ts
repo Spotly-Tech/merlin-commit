@@ -6,7 +6,7 @@ import {
     getUnstagedFiles,
     hasStagedChanges,
     isGitRepo,
-} from "../../src/lib/git";
+} from "../../src/lib/git.js";
 
 // Mock execa
 vi.mock("execa", () => ({
@@ -153,30 +153,31 @@ describe("commit", () => {
         vi.clearAllMocks();
     });
 
-    it("creates commit with message", async () => {
-        vi.mocked(execa).mockResolvedValue({} as never);
+    it("creates commit with message and returns git output", async () => {
+        vi.mocked(execa).mockResolvedValue({
+            stdout: "[main abc1234] feat: add new feature",
+        } as never);
 
-        await commit("feat: add new feature");
+        const result = await commit("feat: add new feature");
 
-        expect(execa).toHaveBeenCalledWith(
-            "git",
-            ["commit", "-m", "feat: add new feature"],
-            {
-                stdio: "inherit",
-            }
-        );
+        expect(result).toBe("[main abc1234] feat: add new feature");
+        expect(execa).toHaveBeenCalledWith("git", ["commit", "-m", "feat: add new feature"]);
     });
 
     it("creates commit with --no-verify flag", async () => {
-        vi.mocked(execa).mockResolvedValue({} as never);
+        vi.mocked(execa).mockResolvedValue({
+            stdout: "[main def5678] fix: urgent fix",
+        } as never);
 
-        await commit("fix: urgent fix", true);
+        const result = await commit("fix: urgent fix", true);
 
-        expect(execa).toHaveBeenCalledWith(
-            "git",
-            ["commit", "-m", "fix: urgent fix", "--no-verify"],
-            { stdio: "inherit" }
-        );
+        expect(result).toBe("[main def5678] fix: urgent fix");
+        expect(execa).toHaveBeenCalledWith("git", [
+            "commit",
+            "-m",
+            "fix: urgent fix",
+            "--no-verify",
+        ]);
     });
 
     it("throws error when commit fails", async () => {
@@ -191,28 +192,37 @@ describe("amendCommit", () => {
         vi.clearAllMocks();
     });
 
-    it("amends commit with new message", async () => {
-        vi.mocked(execa).mockResolvedValue({} as never);
+    it("amends commit with new message and returns git output", async () => {
+        vi.mocked(execa).mockResolvedValue({
+            stdout: "[main abc1234] feat: improved feature",
+        } as never);
 
-        await amendCommit("feat: improved feature");
+        const result = await amendCommit("feat: improved feature");
 
-        expect(execa).toHaveBeenCalledWith(
-            "git",
-            ["commit", "--amend", "-m", "feat: improved feature"],
-            { stdio: "inherit" }
-        );
+        expect(result).toBe("[main abc1234] feat: improved feature");
+        expect(execa).toHaveBeenCalledWith("git", [
+            "commit",
+            "--amend",
+            "-m",
+            "feat: improved feature",
+        ]);
     });
 
     it("amends commit with --no-verify flag", async () => {
-        vi.mocked(execa).mockResolvedValue({} as never);
+        vi.mocked(execa).mockResolvedValue({
+            stdout: "[main def5678] fix: corrected fix",
+        } as never);
 
-        await amendCommit("fix: corrected fix", true);
+        const result = await amendCommit("fix: corrected fix", true);
 
-        expect(execa).toHaveBeenCalledWith(
-            "git",
-            ["commit", "--amend", "-m", "fix: corrected fix", "--no-verify"],
-            { stdio: "inherit" }
-        );
+        expect(result).toBe("[main def5678] fix: corrected fix");
+        expect(execa).toHaveBeenCalledWith("git", [
+            "commit",
+            "--amend",
+            "-m",
+            "fix: corrected fix",
+            "--no-verify",
+        ]);
     });
 
     it("throws error when amend fails", async () => {

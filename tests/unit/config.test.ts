@@ -1,8 +1,8 @@
 import { existsSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { getMessages, loadConfig, resetConfig, saveConfig } from "../../src/utils/config";
-import { DEFAULT_CONFIG } from "../../src/utils/constants";
+import { getMessages, loadConfig, resetConfig, saveConfig } from "../../src/utils/config.js";
+import { DEFAULT_CONFIG } from "../../src/utils/constants.js";
 
 // Mock fs module
 vi.mock("fs", () => ({
