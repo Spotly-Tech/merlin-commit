@@ -453,6 +453,13 @@ export type WizardMessages = {
         intro: string;
 
         /**
+         * Farewell message displayed when init command completes.
+         * @example "🔮 Your repository enchantments are complete." (wizard)
+         * @example "Repository setup complete." (standard)
+         */
+        exit: string;
+
+        /**
          * Message while checking for package.json existence.
          * @example "📦 Searching for package.json in the realm" (wizard)
          * @example "Checking for package.json" (standard)
