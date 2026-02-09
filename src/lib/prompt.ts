@@ -1,7 +1,12 @@
 import { confirm, input, select } from "@inquirer/prompts";
 import type { CommitAnswers } from "../types/index.js";
 import { getMessages, loadConfig } from "../utils/config.js";
-import { editorWithConfig, editWithGitCommitMessage } from "./editor-wrapper.js";
+import {
+    buildBreakingChangeTemplate,
+    buildIssueReferenceTemplate,
+    editorWithCommentTemplate,
+    editWithGitCommitMessage,
+} from "./editor-wrapper.js";
 import { getStagedFilesWithStatus } from "./git.js";
 import {
     createCharacterCounterTransformer,
@@ -80,17 +85,19 @@ export async function promptUser(): Promise<CommitAnswers> {
         message: messages.prompts.breaking,
         default: false,
     });
-    // If user indicates breaking changes, show tip and open editor to enter details
+    // If user indicates breaking changes, open editor with comment template
     if (hasBreakingChanges) {
         console.log(messages.tips.breakingChange);
-        answers.breaking = await editorWithConfig(
-            {
-                message: messages.prompts.breaking,
-                waitForUserInput: false,
-                default: "BREAKING CHANGE: Describe what changed and why",
-            },
+        const breakingDescription = await editorWithCommentTemplate(
+            buildBreakingChangeTemplate(),
             config.editor
         );
+        // Strip "BREAKING CHANGE:" prefix if user typed it (prevents duplication
+        // since buildCommitMessage() adds the prefix automatically)
+        const cleanDescription = breakingDescription.replace(/^BREAKING CHANGE:\s*/i, "");
+        if (cleanDescription) {
+            answers.breaking = cleanDescription;
+        }
     }
 
     // Prompt for optional issue references
@@ -98,15 +105,15 @@ export async function promptUser(): Promise<CommitAnswers> {
         message: messages.prompts.issues,
         default: false,
     });
-    // If user wants to reference issues, open editor to enter them
+    // If user wants to reference issues, open editor with comment template
     if (hasIssues) {
-        answers.issues = await editorWithConfig(
-            {
-                message: messages.prompts.issues + " (e.g., Fixes #123, Closes #456)",
-                validate: (text: string) => text.length > 0 || messages.errors.required,
-            },
+        const issueReferences = await editorWithCommentTemplate(
+            buildIssueReferenceTemplate(),
             config.editor
         );
+        if (issueReferences) {
+            answers.issues = issueReferences;
+        }
     }
 
     return answers;

@@ -184,6 +184,102 @@ function stripCommentLines(content: string): string {
 }
 
 /**
+ * Builds a template with git-style comments for the breaking changes editor.
+ *
+ * Provides guidelines and examples for writing effective breaking change descriptions.
+ * The "BREAKING CHANGE:" prefix is added automatically by buildCommitMessage(),
+ * so the template instructs users to write only the description.
+ *
+ * @returns Template string with empty area for input and comment guidelines
+ */
+export function buildBreakingChangeTemplate(): string {
+    const lines: string[] = [];
+
+    lines.push("");
+    lines.push("# Describe the breaking change above this line.");
+    lines.push("# ─────────────────────────────────────────────────────────────");
+    lines.push("#");
+    lines.push("# Explain what changed and how users should update their code.");
+    lines.push('# The "BREAKING CHANGE:" prefix will be added automatically.');
+    lines.push("#");
+    lines.push("# Examples:");
+    lines.push("#   API endpoints now require authentication tokens in headers");
+    lines.push("#   The `getUser()` function was renamed to `fetchUser()`");
+    lines.push("#   Config file format changed from JSON to YAML");
+    lines.push("#");
+    lines.push("# Lines starting with '#' will be ignored.");
+    lines.push("# Save and close the file when done. Leave empty to skip.");
+
+    return lines.join("\n");
+}
+
+/**
+ * Builds a template with git-style comments for the issue references editor.
+ *
+ * Provides keyword examples and formatting guidance for referencing issues.
+ *
+ * @returns Template string with empty area for input and comment guidelines
+ */
+export function buildIssueReferenceTemplate(): string {
+    const lines: string[] = [];
+
+    lines.push("");
+    lines.push("# Reference related issues above this line.");
+    lines.push("# ─────────────────────────────────────────────────────────────");
+    lines.push("#");
+    lines.push("# Keywords recognized by most issue trackers:");
+    lines.push("#   Fixes #123        - Closes the issue when merged");
+    lines.push("#   Closes #456       - Same as Fixes");
+    lines.push("#   Resolves #789     - Same as Fixes");
+    lines.push("#   Refs #101         - References without closing");
+    lines.push("#   Related to #202   - Links as related");
+    lines.push("#");
+    lines.push("# Multiple references on one line:");
+    lines.push("#   Fixes #123, Closes #456");
+    lines.push("#");
+    lines.push("# Lines starting with '#' will be ignored.");
+    lines.push("# Save and close the file when done. Leave empty to skip.");
+
+    return lines.join("\n");
+}
+
+/**
+ * Opens an editor with a comment template and strips comments from the result.
+ *
+ * Generic function that works with any template containing `#` comment lines.
+ * Used by both breaking changes and issue references editors. Comment lines
+ * are stripped from the result, and empty content (only comments) returns
+ * an empty string.
+ *
+ * @param template - Template string with `#` comment lines for user guidance
+ * @param customEditor - Path to editor command from config (e.g., "code --wait", "vim")
+ * @returns Promise resolving to user content with comments stripped, or empty string
+ *
+ * @example
+ * ```typescript
+ * const description = await editorWithCommentTemplate(
+ *     buildBreakingChangeTemplate(),
+ *     config.editor
+ * );
+ * ```
+ */
+export async function editorWithCommentTemplate(
+    template: string,
+    customEditor?: string
+): Promise<string> {
+    const rawResult = await editorWithConfig(
+        {
+            message: "",
+            default: template,
+            waitForUserInput: false,
+        },
+        customEditor
+    );
+
+    return stripCommentLines(rawResult);
+}
+
+/**
  * Opens the user's editor with .git/COMMIT_EDITMSG for writing commit body.
  *
  * This provides a native git experience with:
