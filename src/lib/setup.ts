@@ -138,7 +138,7 @@ export async function installDependencies(
  * ```
  */
 export async function initializeHusky(): Promise<void> {
-    await execa("npx", ["husky", "init"], { stdio: "inherit" });
+    await execa("npx", ["husky", "init"], { stdio: "pipe" });
 }
 
 /**

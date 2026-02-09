@@ -150,6 +150,7 @@ export const WIZARD_MESSAGES: WizardMessages = {
         aliasScopeLocal: "📁 Local (this repository only)",
         createProjectConfig: "📜 Create a project config for team sharing?",
         creatingProjectConfig: "📜 Inscribing project enchantments...",
+        exit: "🔮 Your repository enchantments are complete.",
     },
 };
 
@@ -234,6 +235,7 @@ export const STANDARD_MESSAGES: WizardMessages = {
         aliasScopeLocal: "Local (this repository only)",
         createProjectConfig: "Create project config (.merlinrc.json) for team sharing?",
         creatingProjectConfig: "Creating project config...",
+        exit: "Repository setup complete.",
     },
 };
 
