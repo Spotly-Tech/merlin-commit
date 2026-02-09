@@ -1,4 +1,3 @@
-import chalk from "chalk";
 import { Command } from "commander";
 import { readFileSync } from "fs";
 import { dirname, join } from "path";
@@ -6,6 +5,7 @@ import { fileURLToPath } from "url";
 import { commitCommand } from "./commands/commit.js";
 import { configCommand } from "./commands/config.js";
 import { initCommand } from "./commands/init.js";
+import { colors } from "./utils/constants.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -47,7 +47,7 @@ program
 
 // Handle unknown commands
 program.on("command:*", () => {
-    console.error(chalk.red("\n✖ Invalid command: %s\n"), program.args.join(" "));
+    console.error(colors.error("\n✖ Invalid command: %s\n"), program.args.join(" "));
     program.help();
 });
 

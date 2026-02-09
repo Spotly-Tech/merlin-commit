@@ -1,5 +1,5 @@
-import chalk from "chalk";
 import type { WizardMessages } from "../types/index.js";
+import { colors } from "../utils/constants.js";
 
 /**
  * Creates a SIGINT handler for graceful Ctrl+C exit.
@@ -17,7 +17,7 @@ export function setupSigintHandler(
         cleanup?.();
         // Use stderr and force newline to ensure visibility after Inquirer clears the line
         process.stderr.write("\n");
-        console.error(chalk.yellow(messages.warnings.cancel + "\n"));
+        console.error(colors.warning(messages.warnings.cancel + "\n"));
         process.exit(0);
     };
 

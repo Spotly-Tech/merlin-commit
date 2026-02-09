@@ -1,8 +1,8 @@
 import { confirm, input, select } from "@inquirer/prompts";
-import chalk from "chalk";
 import { setupSigintHandler } from "../lib/sigint.js";
 import type { MerlinConfig, WizardMessages } from "../types/index.js";
 import { getMessages, loadConfig, resetConfig, saveConfig } from "../utils/config.js";
+import { colors } from "../utils/constants.js";
 import { createNonEmptyValidator, createRangeValidator } from "../utils/validators.js";
 
 type ConfigOptions = {
@@ -104,7 +104,7 @@ async function configureTheme(config: Required<MerlinConfig>): Promise<void> {
     });
 
     saveConfig({ theme });
-    console.log(chalk.green(`\nTheme set to: ${theme}`));
+    console.log(colors.success(`\nTheme set to: ${theme}`));
 }
 
 /**
@@ -119,7 +119,7 @@ async function configureMaxSubjectLength(config: Required<MerlinConfig>): Promis
     });
 
     saveConfig({ maxSubjectLength: parseInt(value, 10) });
-    console.log(chalk.green(`\nMax subject length set to: ${value}`));
+    console.log(colors.success(`\nMax subject length set to: ${value}`));
 }
 
 /**
@@ -134,7 +134,7 @@ async function configureMaxScopeLength(config: Required<MerlinConfig>): Promise<
     });
 
     saveConfig({ maxScopeLength: parseInt(value, 10) });
-    console.log(chalk.green(`\nMax scope length set to: ${value}`));
+    console.log(colors.success(`\nMax scope length set to: ${value}`));
 }
 
 /**
@@ -149,7 +149,7 @@ async function configureEditor(config: Required<MerlinConfig>): Promise<void> {
     });
 
     saveConfig({ editor: editor.trim() });
-    console.log(chalk.green(`\nEditor set to: ${editor.trim()}`));
+    console.log(colors.success(`\nEditor set to: ${editor.trim()}`));
 }
 
 /**
@@ -163,7 +163,7 @@ async function configureAutoAdd(config: Required<MerlinConfig>): Promise<void> {
     });
 
     saveConfig({ autoAdd });
-    console.log(chalk.green(`\nAuto-add set to: ${autoAdd}`));
+    console.log(colors.success(`\nAuto-add set to: ${autoAdd}`));
 }
 
 /**
@@ -172,8 +172,8 @@ async function configureAutoAdd(config: Required<MerlinConfig>): Promise<void> {
 function showConfig(): void {
     const config = loadConfig();
 
-    console.log(chalk.bold.cyan("\nCurrent Configuration:"));
-    console.log(chalk.gray("-".repeat(60)));
+    console.log(colors.header("\nCurrent Configuration:"));
+    console.log(colors.muted("-".repeat(60)));
 
     const displayConfig = {
         theme: config.theme,
@@ -184,16 +184,16 @@ function showConfig(): void {
         types: `[${config.types.length} commit types]`,
     };
 
-    console.log(chalk.white(JSON.stringify(displayConfig, null, 2)));
-    console.log(chalk.gray("-".repeat(60)));
-    console.log(chalk.gray(`Config file: ~/.merlinrc.json\n`));
+    console.log(colors.content(JSON.stringify(displayConfig, null, 2)));
+    console.log(colors.muted("-".repeat(60)));
+    console.log(colors.muted(`Config file: ~/.merlinrc.json\n`));
 }
 
 /**
  * Reset configuration to defaults with user confirmation.
  */
 async function resetConfigWithConfirmation(messages: WizardMessages): Promise<void> {
-    console.log(chalk.yellow(`\n${messages.warnings.resetConfig}`));
+    console.log(colors.warning(`\n${messages.warnings.resetConfig}`));
 
     const confirmed = await confirm({
         message: "Are you sure you want to reset all settings?",
@@ -202,9 +202,9 @@ async function resetConfigWithConfirmation(messages: WizardMessages): Promise<vo
 
     if (confirmed) {
         resetConfig();
-        console.log(chalk.green(`\n${messages.success.config}`));
+        console.log(colors.success(`\n${messages.success.config}`));
     } else {
-        console.log(chalk.gray("\nReset cancelled."));
+        console.log(colors.muted("\nReset cancelled."));
     }
 }
 
@@ -213,8 +213,8 @@ async function resetConfigWithConfirmation(messages: WizardMessages): Promise<vo
  * Displays all options with current values and processes user selections.
  */
 async function interactiveConfigMenu(messages: WizardMessages): Promise<void> {
-    console.log(chalk.bold.cyan(`\n${messages.config.intro}`));
-    console.log(chalk.gray("Configure Merlin's settings\n"));
+    console.log(colors.header(`\n${messages.config.intro}`));
+    console.log(colors.muted("Configure Merlin's settings\n"));
 
     let running = true;
     while (running) {
@@ -255,7 +255,7 @@ async function interactiveConfigMenu(messages: WizardMessages): Promise<void> {
                 break;
             case "exit":
                 running = false;
-                console.log(chalk.gray(`\n${messages.config.exit}\n`));
+                console.log(colors.muted(`\n${messages.config.exit}\n`));
                 break;
         }
 
@@ -306,13 +306,13 @@ export async function configCommand(options: ConfigOptions): Promise<void> {
     } catch (error) {
         // Handle ExitPromptError (thrown by Inquirer on Ctrl+C)
         if ((error as Error).name === "ExitPromptError") {
-            console.log(chalk.yellow(`\n${messages.warnings.cancel}\n`));
+            console.log(colors.warning(`\n${messages.warnings.cancel}\n`));
             process.exit(0);
         }
 
         // Re-throw unexpected errors
-        console.error(chalk.red("\nAn unexpected error occurred:"));
-        console.error(chalk.red((error as Error).message));
+        console.error(colors.error("\nAn unexpected error occurred:"));
+        console.error(colors.error((error as Error).message));
         process.exit(1);
     } finally {
         removeSigintHandler();
