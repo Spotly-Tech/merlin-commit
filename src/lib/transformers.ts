@@ -1,4 +1,4 @@
-import chalk from "chalk";
+import { colors } from "../utils/constants";
 
 /**
  * Transformer function signature matching Inquirer's expected interface.
@@ -39,12 +39,12 @@ export function createCharacterCounterTransformer(
         // This is a workaround for Inquirer's cursor positioning limitation
         // See: https://github.com/SBoudrias/Inquirer.js/issues/669
         if (count > maxLength) {
-            return `${chalk.red(counter)} ${value}`;
+            return `${colors.error(counter)} ${value}`;
         }
         if (count > maxLength * warningThreshold) {
-            return `${chalk.yellow(counter)} ${value}`;
+            return `${colors.warning(counter)} ${value}`;
         }
-        return `${chalk.gray(counter)} ${value}`;
+        return `${colors.muted(counter)} ${value}`;
     };
 }
 
@@ -72,8 +72,8 @@ export function createOptionalCharacterCounterTransformer(
         // Counter placed BEFORE value so cursor naturally stays after user input
         // See: https://github.com/SBoudrias/Inquirer.js/issues/669
         if (count > maxLength) {
-            return `${chalk.red(counter)} ${value}`;
+            return `${colors.error(counter)} ${value}`;
         }
-        return `${chalk.gray(counter)} ${value}`;
+        return `${colors.muted(counter)} ${value}`;
     };
 }
