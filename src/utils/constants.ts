@@ -1,4 +1,16 @@
+import chalk from "chalk";
 import type { CommitType, MerlinConfig, WizardMessages } from "../types/index.js";
+
+export const colors = {
+    primary: chalk.cyan,
+    header: chalk.bold.cyan,
+    success: chalk.green,
+    error: chalk.red,
+    warning: chalk.yellow,
+    info: chalk.blue,
+    muted: chalk.gray,
+    content: chalk.white,
+};
 
 export const COMMIT_TYPES: CommitType[] = [
     {
