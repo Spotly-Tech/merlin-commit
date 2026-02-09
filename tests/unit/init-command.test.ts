@@ -43,6 +43,7 @@ vi.mock("ora", () => {
 });
 
 import { confirm, select } from "@inquirer/prompts";
+import ora from "ora";
 import { isGitRepo } from "../../src/lib/git";
 import {
     checkGitAlias,
@@ -55,9 +56,8 @@ import {
     installDependencies,
     setupGitAlias,
 } from "../../src/lib/setup";
-import { getMessages } from "../../src/utils/config";
 import { setupSigintHandler } from "../../src/lib/sigint";
-import ora from "ora";
+import { getMessages } from "../../src/utils/config";
 
 const consoleSpy = {
     log: vi.spyOn(console, "log").mockImplementation(() => {}),
@@ -94,9 +94,9 @@ function setupHappyPath() {
     // 2. Setup git alias? → yes
     // 3. Create project config? → yes
     vi.mocked(confirm)
-        .mockResolvedValueOnce(true)   // install deps
-        .mockResolvedValueOnce(true)   // setup alias
-        .mockResolvedValueOnce(true);  // project config
+        .mockResolvedValueOnce(true) // install deps
+        .mockResolvedValueOnce(true) // setup alias
+        .mockResolvedValueOnce(true); // project config
 
     // select: alias scope → global
     vi.mocked(select).mockResolvedValueOnce("global");
@@ -169,11 +169,11 @@ describe("initCommand", () => {
             // Reset confirms: install deps, overwrite husky, overwrite hook, alias, project config
             vi.mocked(confirm).mockReset();
             vi.mocked(confirm)
-                .mockResolvedValueOnce(true)   // install deps
-                .mockResolvedValueOnce(true)   // overwrite .husky/
-                .mockResolvedValueOnce(true)   // overwrite commit-msg hook
-                .mockResolvedValueOnce(true)   // alias
-                .mockResolvedValueOnce(true);  // project config
+                .mockResolvedValueOnce(true) // install deps
+                .mockResolvedValueOnce(true) // overwrite .husky/
+                .mockResolvedValueOnce(true) // overwrite commit-msg hook
+                .mockResolvedValueOnce(true) // alias
+                .mockResolvedValueOnce(true); // project config
             vi.mocked(select).mockResolvedValueOnce("global");
 
             await initCommand({});
@@ -217,8 +217,8 @@ describe("initCommand", () => {
             // Reset confirms: no install prompt needed, alias, project config
             vi.mocked(confirm).mockReset();
             vi.mocked(confirm)
-                .mockResolvedValueOnce(true)   // alias
-                .mockResolvedValueOnce(true);  // project config
+                .mockResolvedValueOnce(true) // alias
+                .mockResolvedValueOnce(true); // project config
             vi.mocked(select).mockResolvedValueOnce("global");
 
             await initCommand({ noInstall: true });
@@ -230,9 +230,9 @@ describe("initCommand", () => {
             setupHappyPath();
             vi.mocked(confirm).mockReset();
             vi.mocked(confirm)
-                .mockResolvedValueOnce(false)  // decline install
-                .mockResolvedValueOnce(true)   // alias
-                .mockResolvedValueOnce(true);  // project config
+                .mockResolvedValueOnce(false) // decline install
+                .mockResolvedValueOnce(true) // alias
+                .mockResolvedValueOnce(true); // project config
             vi.mocked(select).mockResolvedValueOnce("global");
 
             await initCommand({});
@@ -245,10 +245,7 @@ describe("initCommand", () => {
 
             await initCommand({ huskyOnly: true });
 
-            expect(installDependencies).toHaveBeenCalledWith(
-                ["husky"],
-                { silent: true }
-            );
+            expect(installDependencies).toHaveBeenCalledWith(["husky"], { silent: true });
         });
 
         it("filters deps to exclude husky with --commitlint-only", async () => {
@@ -256,9 +253,9 @@ describe("initCommand", () => {
             // commitlint-only: no husky init step, but hook step runs if husky exists
             vi.mocked(confirm).mockReset();
             vi.mocked(confirm)
-                .mockResolvedValueOnce(true)   // install deps
-                .mockResolvedValueOnce(true)   // alias
-                .mockResolvedValueOnce(true);  // project config
+                .mockResolvedValueOnce(true) // install deps
+                .mockResolvedValueOnce(true) // alias
+                .mockResolvedValueOnce(true); // project config
             vi.mocked(select).mockResolvedValueOnce("global");
 
             await initCommand({ commitlintOnly: true });
@@ -286,7 +283,6 @@ describe("initCommand", () => {
             );
             expect(mockExit).toHaveBeenCalledWith(1);
         });
-
     });
 
     describe("husky initialization", () => {
@@ -302,9 +298,9 @@ describe("initCommand", () => {
             setupHappyPath();
             vi.mocked(confirm).mockReset();
             vi.mocked(confirm)
-                .mockResolvedValueOnce(true)   // install deps
-                .mockResolvedValueOnce(true)   // alias
-                .mockResolvedValueOnce(true);  // project config
+                .mockResolvedValueOnce(true) // install deps
+                .mockResolvedValueOnce(true) // alias
+                .mockResolvedValueOnce(true); // project config
             vi.mocked(select).mockResolvedValueOnce("global");
 
             await initCommand({ commitlintOnly: true });
@@ -320,10 +316,10 @@ describe("initCommand", () => {
             });
             vi.mocked(confirm).mockReset();
             vi.mocked(confirm)
-                .mockResolvedValueOnce(true)   // install deps
-                .mockResolvedValueOnce(true)   // overwrite .husky/
-                .mockResolvedValueOnce(true)   // alias
-                .mockResolvedValueOnce(true);  // project config
+                .mockResolvedValueOnce(true) // install deps
+                .mockResolvedValueOnce(true) // overwrite .husky/
+                .mockResolvedValueOnce(true) // alias
+                .mockResolvedValueOnce(true); // project config
             vi.mocked(select).mockResolvedValueOnce("global");
 
             await initCommand({});
@@ -344,10 +340,10 @@ describe("initCommand", () => {
             });
             vi.mocked(confirm).mockReset();
             vi.mocked(confirm)
-                .mockResolvedValueOnce(true)   // install deps
-                .mockResolvedValueOnce(false)  // decline overwrite .husky/
-                .mockResolvedValueOnce(true)   // alias
-                .mockResolvedValueOnce(true);  // project config
+                .mockResolvedValueOnce(true) // install deps
+                .mockResolvedValueOnce(false) // decline overwrite .husky/
+                .mockResolvedValueOnce(true) // alias
+                .mockResolvedValueOnce(true); // project config
             vi.mocked(select).mockResolvedValueOnce("global");
 
             await initCommand({});
@@ -360,9 +356,7 @@ describe("initCommand", () => {
 
         it("exits with error when husky init fails", async () => {
             setupHappyPath();
-            vi.mocked(initializeHusky).mockRejectedValue(
-                new Error("husky init failed")
-            );
+            vi.mocked(initializeHusky).mockRejectedValue(new Error("husky init failed"));
 
             await initCommand({});
 
@@ -399,10 +393,10 @@ describe("initCommand", () => {
             });
             vi.mocked(confirm).mockReset();
             vi.mocked(confirm)
-                .mockResolvedValueOnce(true)   // install deps
-                .mockResolvedValueOnce(true)   // overwrite commitlint config
-                .mockResolvedValueOnce(true)   // alias
-                .mockResolvedValueOnce(true);  // project config
+                .mockResolvedValueOnce(true) // install deps
+                .mockResolvedValueOnce(true) // overwrite commitlint config
+                .mockResolvedValueOnce(true) // alias
+                .mockResolvedValueOnce(true); // project config
             vi.mocked(select).mockResolvedValueOnce("global");
 
             await initCommand({});
@@ -423,10 +417,10 @@ describe("initCommand", () => {
             });
             vi.mocked(confirm).mockReset();
             vi.mocked(confirm)
-                .mockResolvedValueOnce(true)   // install deps
-                .mockResolvedValueOnce(false)  // decline overwrite commitlint
-                .mockResolvedValueOnce(true)   // alias
-                .mockResolvedValueOnce(true);  // project config
+                .mockResolvedValueOnce(true) // install deps
+                .mockResolvedValueOnce(false) // decline overwrite commitlint
+                .mockResolvedValueOnce(true) // alias
+                .mockResolvedValueOnce(true); // project config
             vi.mocked(select).mockResolvedValueOnce("global");
 
             await initCommand({});
@@ -467,10 +461,10 @@ describe("initCommand", () => {
             });
             vi.mocked(confirm).mockReset();
             vi.mocked(confirm)
-                .mockResolvedValueOnce(true)   // install deps
-                .mockResolvedValueOnce(true)   // overwrite commit-msg hook
-                .mockResolvedValueOnce(true)   // alias
-                .mockResolvedValueOnce(true);  // project config
+                .mockResolvedValueOnce(true) // install deps
+                .mockResolvedValueOnce(true) // overwrite commit-msg hook
+                .mockResolvedValueOnce(true) // alias
+                .mockResolvedValueOnce(true); // project config
             vi.mocked(select).mockResolvedValueOnce("global");
 
             await initCommand({});
@@ -491,10 +485,10 @@ describe("initCommand", () => {
             });
             vi.mocked(confirm).mockReset();
             vi.mocked(confirm)
-                .mockResolvedValueOnce(true)   // install deps
-                .mockResolvedValueOnce(false)  // decline overwrite hook
-                .mockResolvedValueOnce(true)   // alias
-                .mockResolvedValueOnce(true);  // project config
+                .mockResolvedValueOnce(true) // install deps
+                .mockResolvedValueOnce(false) // decline overwrite hook
+                .mockResolvedValueOnce(true) // alias
+                .mockResolvedValueOnce(true); // project config
             vi.mocked(select).mockResolvedValueOnce("global");
 
             await initCommand({});
@@ -510,9 +504,9 @@ describe("initCommand", () => {
             });
             vi.mocked(confirm).mockReset();
             vi.mocked(confirm)
-                .mockResolvedValueOnce(true)   // install deps
-                .mockResolvedValueOnce(true)   // alias
-                .mockResolvedValueOnce(true);  // project config
+                .mockResolvedValueOnce(true) // install deps
+                .mockResolvedValueOnce(true) // alias
+                .mockResolvedValueOnce(true); // project config
             vi.mocked(select).mockResolvedValueOnce("global");
 
             await initCommand({ commitlintOnly: true });
@@ -524,9 +518,9 @@ describe("initCommand", () => {
             setupHappyPath();
             vi.mocked(confirm).mockReset();
             vi.mocked(confirm)
-                .mockResolvedValueOnce(true)   // install deps
-                .mockResolvedValueOnce(true)   // alias
-                .mockResolvedValueOnce(true);  // project config
+                .mockResolvedValueOnce(true) // install deps
+                .mockResolvedValueOnce(true) // alias
+                .mockResolvedValueOnce(true); // project config
             vi.mocked(select).mockResolvedValueOnce("global");
 
             await initCommand({ commitlintOnly: true });
@@ -573,9 +567,9 @@ describe("initCommand", () => {
             setupHappyPath();
             vi.mocked(confirm).mockReset();
             vi.mocked(confirm)
-                .mockResolvedValueOnce(true)   // install deps
-                .mockResolvedValueOnce(false)  // decline alias
-                .mockResolvedValueOnce(true);  // project config
+                .mockResolvedValueOnce(true) // install deps
+                .mockResolvedValueOnce(false) // decline alias
+                .mockResolvedValueOnce(true); // project config
 
             await initCommand({});
 
@@ -588,10 +582,10 @@ describe("initCommand", () => {
             vi.mocked(checkGitAlias).mockResolvedValue("!merlin");
             vi.mocked(confirm).mockReset();
             vi.mocked(confirm)
-                .mockResolvedValueOnce(true)   // install deps
-                .mockResolvedValueOnce(true)   // wants alias
-                .mockResolvedValueOnce(true)   // overwrite alias
-                .mockResolvedValueOnce(true);  // project config
+                .mockResolvedValueOnce(true) // install deps
+                .mockResolvedValueOnce(true) // wants alias
+                .mockResolvedValueOnce(true) // overwrite alias
+                .mockResolvedValueOnce(true); // project config
             vi.mocked(select).mockResolvedValueOnce("global");
 
             await initCommand({});
@@ -609,10 +603,10 @@ describe("initCommand", () => {
             vi.mocked(checkGitAlias).mockResolvedValue("!merlin");
             vi.mocked(confirm).mockReset();
             vi.mocked(confirm)
-                .mockResolvedValueOnce(true)   // install deps
-                .mockResolvedValueOnce(true)   // wants alias
-                .mockResolvedValueOnce(false)  // decline overwrite
-                .mockResolvedValueOnce(true);  // project config
+                .mockResolvedValueOnce(true) // install deps
+                .mockResolvedValueOnce(true) // wants alias
+                .mockResolvedValueOnce(false) // decline overwrite
+                .mockResolvedValueOnce(true); // project config
 
             await initCommand({});
 
@@ -621,9 +615,7 @@ describe("initCommand", () => {
 
         it("continues to success summary when alias setup fails (non-fatal)", async () => {
             setupHappyPath();
-            vi.mocked(setupGitAlias).mockRejectedValue(
-                new Error("git config failed")
-            );
+            vi.mocked(setupGitAlias).mockRejectedValue(new Error("git config failed"));
 
             await initCommand({});
 
@@ -636,7 +628,6 @@ describe("initCommand", () => {
                 expect.stringContaining(WIZARD_MESSAGES.success.init)
             );
         });
-
     });
 
     describe("project config creation", () => {
@@ -652,8 +643,8 @@ describe("initCommand", () => {
             setupHappyPath();
             vi.mocked(confirm).mockReset();
             vi.mocked(confirm)
-                .mockResolvedValueOnce(true)   // install deps
-                .mockResolvedValueOnce(true)   // alias
+                .mockResolvedValueOnce(true) // install deps
+                .mockResolvedValueOnce(true) // alias
                 .mockResolvedValueOnce(false); // decline project config
             vi.mocked(select).mockResolvedValueOnce("global");
 
@@ -670,10 +661,10 @@ describe("initCommand", () => {
             });
             vi.mocked(confirm).mockReset();
             vi.mocked(confirm)
-                .mockResolvedValueOnce(true)   // install deps
-                .mockResolvedValueOnce(true)   // alias
-                .mockResolvedValueOnce(true)   // wants project config
-                .mockResolvedValueOnce(true);  // overwrite .merlinrc.json
+                .mockResolvedValueOnce(true) // install deps
+                .mockResolvedValueOnce(true) // alias
+                .mockResolvedValueOnce(true) // wants project config
+                .mockResolvedValueOnce(true); // overwrite .merlinrc.json
             vi.mocked(select).mockResolvedValueOnce("global");
 
             await initCommand({});
@@ -694,9 +685,9 @@ describe("initCommand", () => {
             });
             vi.mocked(confirm).mockReset();
             vi.mocked(confirm)
-                .mockResolvedValueOnce(true)   // install deps
-                .mockResolvedValueOnce(true)   // alias
-                .mockResolvedValueOnce(true)   // wants project config
+                .mockResolvedValueOnce(true) // install deps
+                .mockResolvedValueOnce(true) // alias
+                .mockResolvedValueOnce(true) // wants project config
                 .mockResolvedValueOnce(false); // decline overwrite
             vi.mocked(select).mockResolvedValueOnce("global");
 
@@ -707,9 +698,7 @@ describe("initCommand", () => {
 
         it("continues to success summary when project config fails (non-fatal)", async () => {
             setupHappyPath();
-            vi.mocked(createProjectConfig).mockRejectedValue(
-                new Error("write failed")
-            );
+            vi.mocked(createProjectConfig).mockRejectedValue(new Error("write failed"));
 
             await initCommand({});
 
@@ -717,7 +706,6 @@ describe("initCommand", () => {
                 expect.stringContaining(WIZARD_MESSAGES.success.init)
             );
         });
-
     });
 
     describe("success", () => {
@@ -730,6 +718,19 @@ describe("initCommand", () => {
                 expect.stringContaining(WIZARD_MESSAGES.success.init)
             );
             expect(mockExit).toHaveBeenCalledWith(0);
+        });
+
+        it("displays init-specific exit message, not commit exit", async () => {
+            setupHappyPath();
+
+            await initCommand({});
+
+            expect(consoleSpy.log).toHaveBeenCalledWith(
+                expect.stringContaining(WIZARD_MESSAGES.init.exit)
+            );
+            expect(consoleSpy.log).not.toHaveBeenCalledWith(
+                expect.stringContaining(WIZARD_MESSAGES.commit.exit)
+            );
         });
     });
 
@@ -843,16 +844,18 @@ describe("initCommand", () => {
             });
             vi.mocked(confirm).mockReset();
             vi.mocked(confirm)
-                .mockResolvedValueOnce(true)    // install deps
-                .mockResolvedValueOnce(false)   // decline husky overwrite
-                .mockResolvedValueOnce(true)    // alias
-                .mockResolvedValueOnce(true);   // project config
+                .mockResolvedValueOnce(true) // install deps
+                .mockResolvedValueOnce(false) // decline husky overwrite
+                .mockResolvedValueOnce(true) // alias
+                .mockResolvedValueOnce(true); // project config
             vi.mocked(select).mockResolvedValueOnce("global");
 
             await initCommand({});
 
             const summaryItems = extractSummaryItems();
-            expect(summaryItems.some((item) => item.includes(".husky/ directory"))).toBe(false);
+            expect(summaryItems.some((item) => item.includes(".husky/ directory"))).toBe(
+                false
+            );
         });
 
         it("omits commitlint from summary when user declines overwrite", async () => {
@@ -863,16 +866,18 @@ describe("initCommand", () => {
             });
             vi.mocked(confirm).mockReset();
             vi.mocked(confirm)
-                .mockResolvedValueOnce(true)    // install deps
-                .mockResolvedValueOnce(false)   // decline commitlint overwrite
-                .mockResolvedValueOnce(true)    // alias
-                .mockResolvedValueOnce(true);   // project config
+                .mockResolvedValueOnce(true) // install deps
+                .mockResolvedValueOnce(false) // decline commitlint overwrite
+                .mockResolvedValueOnce(true) // alias
+                .mockResolvedValueOnce(true); // project config
             vi.mocked(select).mockResolvedValueOnce("global");
 
             await initCommand({});
 
             const summaryItems = extractSummaryItems();
-            expect(summaryItems.some((item) => item.includes("commitlint.config.js"))).toBe(false);
+            expect(
+                summaryItems.some((item) => item.includes("commitlint.config.js"))
+            ).toBe(false);
         });
 
         it("omits commit-msg hook from summary when user declines overwrite", async () => {
@@ -883,25 +888,27 @@ describe("initCommand", () => {
             });
             vi.mocked(confirm).mockReset();
             vi.mocked(confirm)
-                .mockResolvedValueOnce(true)    // install deps
-                .mockResolvedValueOnce(false)   // decline hook overwrite
-                .mockResolvedValueOnce(true)    // alias
-                .mockResolvedValueOnce(true);   // project config
+                .mockResolvedValueOnce(true) // install deps
+                .mockResolvedValueOnce(false) // decline hook overwrite
+                .mockResolvedValueOnce(true) // alias
+                .mockResolvedValueOnce(true); // project config
             vi.mocked(select).mockResolvedValueOnce("global");
 
             await initCommand({});
 
             const summaryItems = extractSummaryItems();
-            expect(summaryItems.some((item) => item.includes(".husky/commit-msg hook"))).toBe(false);
+            expect(
+                summaryItems.some((item) => item.includes(".husky/commit-msg hook"))
+            ).toBe(false);
         });
 
         it("omits husky items when --commitlint-only is used", async () => {
             setupHappyPath();
             vi.mocked(confirm).mockReset();
             vi.mocked(confirm)
-                .mockResolvedValueOnce(true)    // install deps
-                .mockResolvedValueOnce(true)    // alias
-                .mockResolvedValueOnce(true);   // project config
+                .mockResolvedValueOnce(true) // install deps
+                .mockResolvedValueOnce(true) // alias
+                .mockResolvedValueOnce(true); // project config
             vi.mocked(select).mockResolvedValueOnce("global");
 
             await initCommand({ commitlintOnly: true });
@@ -916,9 +923,9 @@ describe("initCommand", () => {
             setupHappyPath();
             vi.mocked(confirm).mockReset();
             vi.mocked(confirm)
-                .mockResolvedValueOnce(true)    // install deps
-                .mockResolvedValueOnce(true)    // alias
-                .mockResolvedValueOnce(true);   // project config
+                .mockResolvedValueOnce(true) // install deps
+                .mockResolvedValueOnce(true) // alias
+                .mockResolvedValueOnce(true); // project config
             vi.mocked(select).mockResolvedValueOnce("global");
 
             await initCommand({ huskyOnly: true });
@@ -937,8 +944,8 @@ describe("initCommand", () => {
             // Confirms: alias, project config
             vi.mocked(confirm).mockReset();
             vi.mocked(confirm)
-                .mockResolvedValueOnce(true)   // alias
-                .mockResolvedValueOnce(true);  // project config
+                .mockResolvedValueOnce(true) // alias
+                .mockResolvedValueOnce(true); // project config
             vi.mocked(select).mockResolvedValueOnce("global");
 
             await initCommand({ huskyOnly: true, noInstall: true });
@@ -954,8 +961,8 @@ describe("initCommand", () => {
             setupHappyPath();
             vi.mocked(confirm).mockReset();
             vi.mocked(confirm)
-                .mockResolvedValueOnce(true)   // alias
-                .mockResolvedValueOnce(true);  // project config
+                .mockResolvedValueOnce(true) // alias
+                .mockResolvedValueOnce(true); // project config
             vi.mocked(select).mockResolvedValueOnce("local");
 
             await initCommand({ commitlintOnly: true, noInstall: true });

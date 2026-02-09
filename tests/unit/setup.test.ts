@@ -224,7 +224,7 @@ describe("initializeHusky", () => {
         await initializeHusky();
 
         expect(execa).toHaveBeenCalledWith("npx", ["husky", "init"], {
-            stdio: "inherit",
+            stdio: "pipe",
         });
     });
 
