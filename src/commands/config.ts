@@ -220,12 +220,15 @@ async function interactiveConfigMenu(messages: WizardMessages): Promise<void> {
     while (running) {
         const config = loadConfig();
 
+        const menuChoices = buildMenuChoices(config);
         const choice = await select<MenuChoice>({
             message:
                 config.theme === "wizard"
                     ? "What would you like to configure?"
                     : "Select option:",
-            choices: buildMenuChoices(config),
+            choices: menuChoices,
+            pageSize: menuChoices.length,
+            loop: true,
         });
 
         switch (choice) {

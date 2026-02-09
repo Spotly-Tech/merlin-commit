@@ -67,7 +67,6 @@ export async function promptUser(): Promise<CommitAnswers> {
     });
     // If user wants detailed body, open editor with git commit context
     if (wantsDetailedBody) {
-        console.log(`\n${messages.tips.useEditor}`);
         const stagedFiles = await getStagedFilesWithStatus();
         answers.body = await editWithGitCommitMessage(
             {
@@ -87,7 +86,6 @@ export async function promptUser(): Promise<CommitAnswers> {
     });
     // If user indicates breaking changes, open editor with comment template
     if (hasBreakingChanges) {
-        console.log(messages.tips.breakingChange);
         const breakingDescription = await editorWithCommentTemplate(
             buildBreakingChangeTemplate(),
             config.editor
