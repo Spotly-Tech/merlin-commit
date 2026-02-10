@@ -20,7 +20,7 @@ export async function commitCommand(options: CommitOptions): Promise<void> {
 
     try {
         // Show intro message
-        console.log(colors.header(messages.commit.intro));
+        console.log(colors.header(`\n${messages.commit.intro}`));
 
         // Check if inside a git repository
         spinner.start(messages.checking.repo);
