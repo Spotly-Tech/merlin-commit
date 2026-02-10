@@ -1,6 +1,7 @@
 import { existsSync, readFileSync, writeFileSync } from "fs";
 import { homedir } from "os";
 import { join } from "path";
+
 import type { CommitType, MerlinConfig, WizardMessages } from "../types/index.js";
 import { DEFAULT_CONFIG, STANDARD_MESSAGES, WIZARD_MESSAGES } from "./constants.js";
 

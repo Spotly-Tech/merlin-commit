@@ -1,7 +1,8 @@
-import { Command } from "commander";
 import { readFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
+import { Command } from "commander";
+
 import { commitCommand } from "./commands/commit.js";
 import { configCommand } from "./commands/config.js";
 import { initCommand } from "./commands/init.js";

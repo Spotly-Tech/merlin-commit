@@ -1,0 +1,8 @@
+dist/
+package-lock.json
+coverage/
+.husky/
+.github/
+LICENSE
+.npmignore
+.gitattributes

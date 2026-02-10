@@ -1,7 +1,8 @@
-import { editor } from "@inquirer/prompts";
 import { spawnSync } from "child_process";
 import { readFileSync, writeFileSync } from "fs";
 import path from "path";
+import { editor } from "@inquirer/prompts";
+
 import { getGitDirectory, type StagedFile } from "./git.js";
 
 /**

@@ -1,4 +1,5 @@
 import { confirm, input, select } from "@inquirer/prompts";
+
 import type { CommitAnswers } from "../types/index.js";
 import { getMessages, loadConfig } from "../utils/config.js";
 import {
