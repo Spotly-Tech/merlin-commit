@@ -1,4 +1,5 @@
 import { confirm, input, select } from "@inquirer/prompts";
+
 import { setupSigintHandler } from "../lib/sigint.js";
 import type { MerlinConfig, WizardMessages } from "../types/index.js";
 import { getMessages, loadConfig, resetConfig, saveConfig } from "../utils/config.js";

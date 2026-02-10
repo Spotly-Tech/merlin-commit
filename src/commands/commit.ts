@@ -1,5 +1,6 @@
 import { confirm } from "@inquirer/prompts";
 import ora from "ora";
+
 import { amendCommit, commit, hasStagedChanges, isGitRepo } from "../lib/git.js";
 import { buildCommitMessage, formatPreview } from "../lib/message.js";
 import { promptUser } from "../lib/prompt.js";
