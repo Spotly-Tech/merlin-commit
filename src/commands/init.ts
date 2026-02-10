@@ -1,5 +1,6 @@
 import { confirm, select } from "@inquirer/prompts";
 import ora from "ora";
+
 import { isGitRepo } from "../lib/git.js";
 import {
     checkGitAlias,

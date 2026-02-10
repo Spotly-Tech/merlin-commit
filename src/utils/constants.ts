@@ -1,4 +1,5 @@
 import chalk from "chalk";
+
 import type { CommitType, MerlinConfig, WizardMessages } from "../types/index.js";
 
 export const colors = {

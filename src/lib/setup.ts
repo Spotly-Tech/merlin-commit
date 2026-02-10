@@ -1,8 +1,9 @@
-import { execa } from "execa";
 import { existsSync } from "fs";
 import { chmod, writeFile } from "fs/promises";
 import { platform } from "node:os";
 import { join } from "node:path";
+import { execa } from "execa";
+
 import { DEFAULT_CONFIG } from "../utils/constants.js";
 
 /**
