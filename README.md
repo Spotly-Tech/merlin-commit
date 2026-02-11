@@ -7,7 +7,7 @@
 ## Installation
 
 ```bash
-npm install -g @spotly/merlin-commit
+npm install -g @avilolabs/merlin-commit
 ```
 
 ## Usage
@@ -18,4 +18,4 @@ merlin
 
 ## License
 
-MIT © Spotly Tech
+MIT © Avilo Labs
