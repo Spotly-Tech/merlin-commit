@@ -21,6 +21,7 @@ vi.mock("../../src/lib/setup", () => ({
     checkGitAlias: vi.fn(),
     setupGitAlias: vi.fn(),
     createProjectConfig: vi.fn(),
+    isPackageInstalled: vi.fn(),
     INIT_DEPENDENCIES: ["husky", "@commitlint/cli", "@commitlint/config-conventional"],
 }));
 
@@ -54,6 +55,7 @@ import {
     hasPackageJson,
     initializeHusky,
     installDependencies,
+    isPackageInstalled,
     setupGitAlias,
 } from "../../src/lib/setup";
 import { setupSigintHandler } from "../../src/lib/sigint";
@@ -88,6 +90,7 @@ function setupHappyPath() {
     vi.mocked(checkGitAlias).mockResolvedValue(null);
     vi.mocked(setupGitAlias).mockResolvedValue(undefined);
     vi.mocked(createProjectConfig).mockResolvedValue(undefined);
+    vi.mocked(isPackageInstalled).mockResolvedValue(true);
 
     // Default confirm responses in order:
     // 1. Install deps? → yes
