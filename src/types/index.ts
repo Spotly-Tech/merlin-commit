@@ -592,9 +592,9 @@ export type InitOptions = {
     commitlintOnly?: boolean;
 
     /**
-     * When true, skip npm install of dependencies (husky, commitlint).
-     * Useful when dependencies are already installed or using different package manager.
-     * @default false
+     * When false, skip npm install of dependencies (husky, commitlint).
+     * Commander.js sets this to false when --no-install is passed.
+     * @default true
      */
-    noInstall?: boolean;
+    install?: boolean;
 };
