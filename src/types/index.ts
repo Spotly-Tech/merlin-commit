@@ -481,13 +481,6 @@ export type WizardMessages = {
         installingDeps: string;
 
         /**
-         * Prompt asking if user wants to initialize husky.
-         * @example "🎣 Awaken the husky guardian?" (wizard)
-         * @example "Initialize husky git hooks?" (standard)
-         */
-        initHusky: string;
-
-        /**
          * Spinner message during husky initialization.
          * @example "🎣 Awakening the husky guardian..." (wizard)
          * @example "Initializing husky..." (standard)
@@ -495,25 +488,11 @@ export type WizardMessages = {
         initializingHusky: string;
 
         /**
-         * Prompt asking if user wants to create commit-msg hook.
-         * @example "📜 Inscribe the commit-msg protection spell?" (wizard)
-         * @example "Create commit-msg hook for validation?" (standard)
-         */
-        createHook: string;
-
-        /**
          * Spinner message during hook file creation.
          * @example "📜 Inscribing the commit-msg guardian..." (wizard)
          * @example "Creating commit-msg hook..." (standard)
          */
         creatingHook: string;
-
-        /**
-         * Prompt asking if user wants to create commitlint config.
-         * @example "📋 Create the commitlint tome of rules?" (wizard)
-         * @example "Create commitlint configuration?" (standard)
-         */
-        createCommitlint: string;
 
         /**
          * Spinner message during commitlint config creation.
