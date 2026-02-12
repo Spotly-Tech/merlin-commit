@@ -1,4 +1,4 @@
-import { colors } from "../utils/constants";
+import { colors } from "../utils/constants.js";
 
 /**
  * Transformer function signature matching Inquirer's expected interface.

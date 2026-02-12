@@ -36,7 +36,7 @@ import { colors } from "../utils/constants.js";
  * @param options - Command line options
  * @param options.huskyOnly - Only setup husky hooks, skip commitlint config
  * @param options.commitlintOnly - Only setup commitlint, skip husky init
- * @param options.noInstall - Skip npm install of dependencies
+ * @param options.install - When false, skip npm install of dependencies
  *
  * @example
  * // Full setup
@@ -98,7 +98,7 @@ export async function initCommand(options: InitOptions): Promise<void> {
         }
 
         // Install dependencies (unless --no-install)
-        if (!options.noInstall) {
+        if (options.install !== false) {
             const shouldInstall = await confirm({
                 message: messages.init.installDeps,
                 default: true,
