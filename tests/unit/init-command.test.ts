@@ -224,7 +224,7 @@ describe("initCommand", () => {
                 .mockResolvedValueOnce(true); // project config
             vi.mocked(select).mockResolvedValueOnce("global");
 
-            await initCommand({ noInstall: true });
+            await initCommand({ install: false });
 
             expect(installDependencies).not.toHaveBeenCalled();
         });
@@ -951,7 +951,7 @@ describe("initCommand", () => {
                 .mockResolvedValueOnce(true); // project config
             vi.mocked(select).mockResolvedValueOnce("global");
 
-            await initCommand({ huskyOnly: true, noInstall: true });
+            await initCommand({ huskyOnly: true, install: false });
 
             expect(installDependencies).not.toHaveBeenCalled();
             expect(createCommitlintConfig).not.toHaveBeenCalled();
@@ -968,7 +968,7 @@ describe("initCommand", () => {
                 .mockResolvedValueOnce(true); // project config
             vi.mocked(select).mockResolvedValueOnce("local");
 
-            await initCommand({ commitlintOnly: true, noInstall: true });
+            await initCommand({ commitlintOnly: true, install: false });
 
             expect(installDependencies).not.toHaveBeenCalled();
             expect(initializeHusky).not.toHaveBeenCalled();
