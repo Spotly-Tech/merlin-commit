@@ -100,6 +100,17 @@ export async function detectExistingSetup(): Promise<DetectedSetup> {
 }
 
 /**
+ * Checks whether a specific npm package is installed locally
+ * by verifying its presence in node_modules.
+ *
+ * @param packageName - The npm package name to check (e.g., "husky", "@commitlint/cli")
+ * @returns True if the package directory exists in node_modules, false otherwise
+ */
+export async function isPackageInstalled(packageName: string): Promise<boolean> {
+    return existsSync(join("node_modules", packageName));
+}
+
+/**
  * Installs npm packages as dev dependencies.
  *
  * @param deps - Array of package names to install

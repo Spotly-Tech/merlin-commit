@@ -12,6 +12,7 @@ import {
     INIT_DEPENDENCIES,
     initializeHusky,
     installDependencies,
+    isPackageInstalled,
     setupGitAlias,
 } from "../lib/setup.js";
 import { setupSigintHandler } from "../lib/sigint.js";
@@ -131,60 +132,82 @@ export async function initCommand(options: InitOptions): Promise<void> {
 
         // Initialize Husky (unless --commitlint-only)
         if (!options.commitlintOnly) {
-            let shouldInit = true;
+            const isHuskyInstalled = await isPackageInstalled("husky");
 
-            if (existing.husky) {
-                shouldInit = await confirm({
-                    message: `${messages.init.overwrite} (.husky/)`,
-                    default: false,
-                });
-                if (!shouldInit) {
-                    console.log(colors.muted(`  ${messages.init.skipExisting} .husky/`));
+            if (!isHuskyInstalled) {
+                console.log(
+                    colors.warning(
+                        "  ⚠️  Skipping Husky initialization — husky not installed"
+                    )
+                );
+            } else {
+                let shouldInit = true;
+
+                if (existing.husky) {
+                    shouldInit = await confirm({
+                        message: `${messages.init.overwrite} (.husky/)`,
+                        default: false,
+                    });
+                    if (!shouldInit) {
+                        console.log(
+                            colors.muted(`  ${messages.init.skipExisting} .husky/`)
+                        );
+                    }
                 }
-            }
 
-            if (shouldInit) {
-                spinner.start(messages.init.initializingHusky);
-                try {
-                    await initializeHusky();
-                    spinner.succeed();
-                    huskyInitialized = true;
-                } catch (error) {
-                    spinner.fail(colors.error(messages.errors.huskyFailed));
-                    console.error(colors.muted(`\n${(error as Error).message}\n`));
-                    process.exit(1);
+                if (shouldInit) {
+                    spinner.start(messages.init.initializingHusky);
+                    try {
+                        await initializeHusky();
+                        spinner.succeed();
+                        huskyInitialized = true;
+                    } catch (error) {
+                        spinner.fail(colors.error(messages.errors.huskyFailed));
+                        console.error(colors.muted(`\n${(error as Error).message}\n`));
+                        process.exit(1);
+                    }
                 }
             }
         }
 
         // Create commitlint config (unless --husky-only)
         if (!options.huskyOnly) {
-            let shouldCreate = true;
+            const isCommitlintInstalled = await isPackageInstalled("@commitlint/cli");
 
-            if (existing.commitlintConfig) {
-                shouldCreate = await confirm({
-                    message: `${messages.init.overwrite} (commitlint.config.js)`,
-                    default: false,
-                });
-                if (!shouldCreate) {
-                    console.log(
-                        colors.muted(
-                            `  ${messages.init.skipExisting} commitlint.config.js`
-                        )
-                    );
+            if (!isCommitlintInstalled) {
+                console.log(
+                    colors.warning(
+                        "  ⚠️  Skipping commitlint config — @commitlint/cli not installed"
+                    )
+                );
+            } else {
+                let shouldCreate = true;
+
+                if (existing.commitlintConfig) {
+                    shouldCreate = await confirm({
+                        message: `${messages.init.overwrite} (commitlint.config.js)`,
+                        default: false,
+                    });
+                    if (!shouldCreate) {
+                        console.log(
+                            colors.muted(
+                                `  ${messages.init.skipExisting} commitlint.config.js`
+                            )
+                        );
+                    }
                 }
-            }
 
-            if (shouldCreate) {
-                spinner.start(messages.init.creatingCommitlint);
-                try {
-                    await createCommitlintConfig();
-                    spinner.succeed();
-                    commitlintCreated = true;
-                } catch (error) {
-                    spinner.fail(colors.error(messages.errors.configFailed));
-                    console.error(colors.muted(`\n${(error as Error).message}\n`));
-                    process.exit(1);
+                if (shouldCreate) {
+                    spinner.start(messages.init.creatingCommitlint);
+                    try {
+                        await createCommitlintConfig();
+                        spinner.succeed();
+                        commitlintCreated = true;
+                    } catch (error) {
+                        spinner.fail(colors.error(messages.errors.configFailed));
+                        console.error(colors.muted(`\n${(error as Error).message}\n`));
+                        process.exit(1);
+                    }
                 }
             }
         }
@@ -192,30 +215,44 @@ export async function initCommand(options: InitOptions): Promise<void> {
         // Create commit-msg hook (only if both husky AND commitlint are available)
         // Skip if: huskyOnly (no commitlint to run) or commitlintOnly without existing husky
         if (!options.huskyOnly && (!options.commitlintOnly || existing.husky)) {
-            let shouldCreate = true;
+            const isHookViable =
+                (huskyInitialized || existing.husky) &&
+                (await isPackageInstalled("@commitlint/cli"));
 
-            if (existing.commitMsgHook) {
-                shouldCreate = await confirm({
-                    message: `${messages.init.overwrite} (.husky/commit-msg)`,
-                    default: false,
-                });
-                if (!shouldCreate) {
-                    console.log(
-                        colors.muted(`  ${messages.init.skipExisting} .husky/commit-msg`)
-                    );
+            if (!isHookViable) {
+                console.log(
+                    colors.warning(
+                        "  ⚠️  Skipping commit-msg hook — missing dependencies"
+                    )
+                );
+            } else {
+                let shouldCreate = true;
+
+                if (existing.commitMsgHook) {
+                    shouldCreate = await confirm({
+                        message: `${messages.init.overwrite} (.husky/commit-msg)`,
+                        default: false,
+                    });
+                    if (!shouldCreate) {
+                        console.log(
+                            colors.muted(
+                                `  ${messages.init.skipExisting} .husky/commit-msg`
+                            )
+                        );
+                    }
                 }
-            }
 
-            if (shouldCreate) {
-                spinner.start(messages.init.creatingHook);
-                try {
-                    await createCommitMsgHook();
-                    spinner.succeed();
-                    hookCreated = true;
-                } catch (error) {
-                    spinner.fail(colors.error(messages.errors.hookFailed));
-                    console.error(colors.muted(`\n${(error as Error).message}\n`));
-                    process.exit(1);
+                if (shouldCreate) {
+                    spinner.start(messages.init.creatingHook);
+                    try {
+                        await createCommitMsgHook();
+                        spinner.succeed();
+                        hookCreated = true;
+                    } catch (error) {
+                        spinner.fail(colors.error(messages.errors.hookFailed));
+                        console.error(colors.muted(`\n${(error as Error).message}\n`));
+                        process.exit(1);
+                    }
                 }
             }
         }
