@@ -1,11 +1,11 @@
 import { confirm } from "@inquirer/prompts";
 import ora from "ora";
 
+import { getMessages } from "../lib/config-loader.js";
 import { amendCommit, commit, hasStagedChanges, isGitRepo } from "../lib/git.js";
 import { buildCommitMessage, formatPreview } from "../lib/message.js";
 import { promptUser } from "../lib/prompt.js";
 import { setupSigintHandler } from "../lib/sigint.js";
-import { getMessages } from "../utils/config.js";
 import { colors } from "../utils/constants.js";
 
 type CommitOptions = {
@@ -15,7 +15,7 @@ type CommitOptions = {
 };
 
 export async function commitCommand(options: CommitOptions): Promise<void> {
-    const messages = getMessages();
+    const messages = await getMessages();
     const spinner = ora();
     const removeSigintHandler = setupSigintHandler(messages, () => spinner.stop());
 

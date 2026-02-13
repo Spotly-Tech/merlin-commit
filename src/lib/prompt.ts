@@ -1,7 +1,7 @@
 import { confirm, input, select } from "@inquirer/prompts";
 
 import type { CommitAnswers } from "../types/index.js";
-import { getMessages, loadConfig } from "../utils/config.js";
+import { getMessages, loadConfig } from "./config-loader.js";
 import {
     buildBreakingChangeTemplate,
     buildIssueReferenceTemplate,
@@ -15,8 +15,8 @@ import {
 } from "./transformers.js";
 
 export async function promptUser(): Promise<CommitAnswers> {
-    const config = loadConfig();
-    const messages = getMessages();
+    const config = await loadConfig();
+    const messages = await getMessages();
     const answers: CommitAnswers = {
         type: "",
         subject: "",

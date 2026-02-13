@@ -1,7 +1,12 @@
 import { existsSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { getMessages, loadConfig, resetConfig, saveConfig } from "../../src/utils/config.js";
+import {
+    loadUserConfig,
+    resetConfig,
+    saveConfig,
+    validateConfig,
+} from "../../src/utils/config.js";
 import { DEFAULT_CONFIG } from "../../src/utils/constants.js";
 
 // Mock fs module
@@ -19,216 +24,133 @@ vi.mock("os", () => ({
 // Expected config path (platform-independent)
 const EXPECTED_CONFIG_PATH = join("/mock/home", ".merlinrc.json");
 
-describe("loadConfig", () => {
-    beforeEach(() => {
-        vi.clearAllMocks();
+describe("validateConfig", () => {
+    it("returns empty object for null input", () => {
+        const result = validateConfig(null);
+
+        expect(result).toEqual({});
     });
 
-    it("returns default config when file does not exist", () => {
-        vi.mocked(existsSync).mockReturnValue(false);
-
-        const config = loadConfig();
-
-        expect(config).toEqual(DEFAULT_CONFIG);
-        expect(existsSync).toHaveBeenCalledWith(EXPECTED_CONFIG_PATH);
+    it("returns empty object for non-object input", () => {
+        expect(validateConfig("string")).toEqual({});
+        expect(validateConfig(42)).toEqual({});
+        expect(validateConfig(true)).toEqual({});
+        expect(validateConfig(undefined)).toEqual({});
     });
 
-    it("returns default config when JSON is invalid", () => {
-        vi.mocked(existsSync).mockReturnValue(true);
-        vi.mocked(readFileSync).mockReturnValue("invalid json {{{");
+    it("returns empty object for empty object input", () => {
+        const result = validateConfig({});
 
-        const config = loadConfig();
-
-        expect(config).toEqual(DEFAULT_CONFIG);
+        expect(result).toEqual({});
     });
 
-    it("merges valid user config with defaults", () => {
-        vi.mocked(existsSync).mockReturnValue(true);
-        vi.mocked(readFileSync).mockReturnValue(
-            JSON.stringify({
-                theme: "standard",
-                maxSubjectLength: 50,
-            })
-        );
+    it("validates and returns only recognized fields", () => {
+        const result = validateConfig({
+            theme: "standard",
+            maxSubjectLength: 50,
+            unknownField: "ignored",
+        });
 
-        const config = loadConfig();
-
-        expect(config.theme).toBe("standard");
-        expect(config.maxSubjectLength).toBe(50);
-        expect(config.maxScopeLength).toBe(DEFAULT_CONFIG.maxScopeLength);
+        expect(result).toEqual({ theme: "standard", maxSubjectLength: 50 });
+        expect((result as Record<string, unknown>).unknownField).toBeUndefined();
     });
 
-    it("ignores invalid theme value", () => {
-        vi.mocked(existsSync).mockReturnValue(true);
-        vi.mocked(readFileSync).mockReturnValue(
-            JSON.stringify({
-                theme: "invalid-theme",
-            })
-        );
+    it("rejects invalid theme values", () => {
+        const result = validateConfig({ theme: "dark" });
 
-        const config = loadConfig();
-
-        expect(config.theme).toBe(DEFAULT_CONFIG.theme);
+        expect(result.theme).toBeUndefined();
     });
 
-    it("ignores negative maxSubjectLength", () => {
-        vi.mocked(existsSync).mockReturnValue(true);
-        vi.mocked(readFileSync).mockReturnValue(
-            JSON.stringify({
-                maxSubjectLength: -10,
-            })
-        );
-
-        const config = loadConfig();
-
-        expect(config.maxSubjectLength).toBe(DEFAULT_CONFIG.maxSubjectLength);
+    it("rejects zero and negative maxSubjectLength", () => {
+        expect(validateConfig({ maxSubjectLength: 0 })).toEqual({});
+        expect(validateConfig({ maxSubjectLength: -5 })).toEqual({});
     });
 
-    it("ignores non-number maxSubjectLength", () => {
-        vi.mocked(existsSync).mockReturnValue(true);
-        vi.mocked(readFileSync).mockReturnValue(
-            JSON.stringify({
-                maxSubjectLength: "fifty",
-            })
-        );
-
-        const config = loadConfig();
-
-        expect(config.maxSubjectLength).toBe(DEFAULT_CONFIG.maxSubjectLength);
+    it("rejects zero and negative maxScopeLength", () => {
+        expect(validateConfig({ maxScopeLength: 0 })).toEqual({});
+        expect(validateConfig({ maxScopeLength: -1 })).toEqual({});
     });
 
-    it("ignores empty editor string", () => {
-        vi.mocked(existsSync).mockReturnValue(true);
-        vi.mocked(readFileSync).mockReturnValue(
-            JSON.stringify({
-                editor: "   ",
-            })
-        );
+    it("filters valid commit types and ignores invalid ones", () => {
+        const result = validateConfig({
+            types: [
+                {
+                    value: "feat",
+                    name: "Feature",
+                    description: "A new feature",
+                    emoji: "✨",
+                },
+                { invalid: "missing fields" },
+                {
+                    value: "fix",
+                    name: "Bug Fix",
+                    description: "A bug fix",
+                    emoji: "🐛",
+                },
+            ],
+        });
 
-        const config = loadConfig();
-
-        expect(config.editor).toBe(DEFAULT_CONFIG.editor);
+        expect(result.types).toHaveLength(2);
+        expect(result.types![0].value).toBe("feat");
+        expect(result.types![1].value).toBe("fix");
     });
 
-    it("accepts valid editor string", () => {
-        vi.mocked(existsSync).mockReturnValue(true);
-        vi.mocked(readFileSync).mockReturnValue(
-            JSON.stringify({
-                editor: "code --wait",
-            })
-        );
+    it("omits types field when all entries are invalid", () => {
+        const result = validateConfig({
+            types: [{ invalid: "type" }, { also: "invalid" }],
+        });
 
-        const config = loadConfig();
-
-        expect(config.editor).toBe("code --wait");
+        expect(result.types).toBeUndefined();
     });
 
-    it("ignores non-boolean autoAdd", () => {
-        vi.mocked(existsSync).mockReturnValue(true);
-        vi.mocked(readFileSync).mockReturnValue(
-            JSON.stringify({
-                autoAdd: "yes",
-            })
-        );
+    it("omits types field for empty array", () => {
+        const result = validateConfig({ types: [] });
 
-        const config = loadConfig();
-
-        expect(config.autoAdd).toBe(DEFAULT_CONFIG.autoAdd);
-    });
-
-    it("accepts valid autoAdd boolean", () => {
-        vi.mocked(existsSync).mockReturnValue(true);
-        vi.mocked(readFileSync).mockReturnValue(
-            JSON.stringify({
-                autoAdd: true,
-            })
-        );
-
-        const config = loadConfig();
-
-        expect(config.autoAdd).toBe(true);
-    });
-
-    it("validates commit types array", () => {
-        vi.mocked(existsSync).mockReturnValue(true);
-        vi.mocked(readFileSync).mockReturnValue(
-            JSON.stringify({
-                types: [
-                    {
-                        value: "custom",
-                        name: "Custom",
-                        description: "A custom type",
-                        emoji: "🎨",
-                    },
-                    { invalid: "type" }, // Should be filtered out
-                    {
-                        value: "another",
-                        name: "Another",
-                        description: "Another type",
-                        emoji: "✨",
-                    },
-                ],
-            })
-        );
-
-        const config = loadConfig();
-
-        expect(config.types).toHaveLength(2);
-        expect(config.types[0].value).toBe("custom");
-        expect(config.types[1].value).toBe("another");
-    });
-
-    it("uses default types when all provided types are invalid", () => {
-        vi.mocked(existsSync).mockReturnValue(true);
-        vi.mocked(readFileSync).mockReturnValue(
-            JSON.stringify({
-                types: [{ invalid: "type" }, { also: "invalid" }],
-            })
-        );
-
-        const config = loadConfig();
-
-        expect(config.types).toEqual(DEFAULT_CONFIG.types);
-    });
-
-    it("ignores extra unknown properties", () => {
-        vi.mocked(existsSync).mockReturnValue(true);
-        vi.mocked(readFileSync).mockReturnValue(
-            JSON.stringify({
-                theme: "standard",
-                unknownProperty: "should be ignored",
-                anotherUnknown: 123,
-            })
-        );
-
-        const config = loadConfig();
-
-        expect(config.theme).toBe("standard");
-        expect((config as Record<string, unknown>).unknownProperty).toBeUndefined();
+        expect(result.types).toBeUndefined();
     });
 });
 
-describe("getMessages", () => {
+describe("loadUserConfig", () => {
     beforeEach(() => {
         vi.clearAllMocks();
     });
 
-    it("returns wizard messages for wizard theme", () => {
-        vi.mocked(existsSync).mockReturnValue(true);
-        vi.mocked(readFileSync).mockReturnValue(JSON.stringify({ theme: "wizard" }));
+    it("returns empty object when config file does not exist", () => {
+        vi.mocked(existsSync).mockReturnValue(false);
 
-        const messages = getMessages();
+        const config = loadUserConfig();
 
-        expect(messages.commit.intro).toContain("Merlin");
+        expect(config).toEqual({});
     });
 
-    it("returns standard messages for standard theme", () => {
+    it("returns empty object when JSON is invalid", () => {
         vi.mocked(existsSync).mockReturnValue(true);
-        vi.mocked(readFileSync).mockReturnValue(JSON.stringify({ theme: "standard" }));
+        vi.mocked(readFileSync).mockReturnValue("not valid json");
 
-        const messages = getMessages();
+        const config = loadUserConfig();
 
-        expect(messages.commit.intro).toBe("Ready to create a commit");
+        expect(config).toEqual({});
+    });
+
+    it("returns validated partial config without defaults merge", () => {
+        vi.mocked(existsSync).mockReturnValue(true);
+        vi.mocked(readFileSync).mockReturnValue(
+            JSON.stringify({ theme: "standard", maxSubjectLength: 50 })
+        );
+
+        const config = loadUserConfig();
+
+        expect(config).toEqual({ theme: "standard", maxSubjectLength: 50 });
+        expect(config.maxScopeLength).toBeUndefined();
+        expect(config.editor).toBeUndefined();
+    });
+
+    it("reads from the correct path", () => {
+        vi.mocked(existsSync).mockReturnValue(false);
+
+        loadUserConfig();
+
+        expect(existsSync).toHaveBeenCalledWith(EXPECTED_CONFIG_PATH);
     });
 });
 
