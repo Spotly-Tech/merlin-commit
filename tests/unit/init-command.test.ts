@@ -25,7 +25,7 @@ vi.mock("../../src/lib/setup", () => ({
     INIT_DEPENDENCIES: ["husky", "@commitlint/cli", "@commitlint/config-conventional"],
 }));
 
-vi.mock("../../src/utils/config", () => ({
+vi.mock("../../src/lib/config-loader", () => ({
     getMessages: vi.fn(),
 }));
 
@@ -59,7 +59,7 @@ import {
     setupGitAlias,
 } from "../../src/lib/setup";
 import { setupSigintHandler } from "../../src/lib/sigint";
-import { getMessages } from "../../src/utils/config";
+import { getMessages } from "../../src/lib/config-loader";
 
 const consoleSpy = {
     log: vi.spyOn(console, "log").mockImplementation(() => {}),
@@ -108,7 +108,7 @@ function setupHappyPath() {
 describe("initCommand", () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        vi.mocked(getMessages).mockReturnValue(WIZARD_MESSAGES);
+        vi.mocked(getMessages).mockResolvedValue(WIZARD_MESSAGES);
         vi.mocked(setupSigintHandler).mockReturnValue(vi.fn());
     });
 
