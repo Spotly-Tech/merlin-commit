@@ -3,6 +3,7 @@ import {
     addFiles,
     amendCommit,
     commit,
+    getRepoRoot,
     getUnstagedFiles,
     hasStagedChanges,
     isGitRepo,
@@ -229,5 +230,30 @@ describe("amendCommit", () => {
         vi.mocked(execa).mockRejectedValue(new Error("nothing to amend"));
 
         await expect(amendCommit("feat: feature")).rejects.toThrow("nothing to amend");
+    });
+});
+
+describe("getRepoRoot", () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    it("returns trimmed repository root path on success", async () => {
+        vi.mocked(execa).mockResolvedValue({
+            stdout: "/home/user/project\n",
+        } as never);
+
+        const result = await getRepoRoot();
+
+        expect(result).toBe("/home/user/project");
+        expect(execa).toHaveBeenCalledWith("git", ["rev-parse", "--show-toplevel"]);
+    });
+
+    it("returns null when not in a git repository", async () => {
+        vi.mocked(execa).mockRejectedValue(new Error("not a git repo"));
+
+        const result = await getRepoRoot();
+
+        expect(result).toBeNull();
     });
 });

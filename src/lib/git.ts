@@ -170,6 +170,31 @@ export async function getGitDirectory(): Promise<string> {
 }
 
 /**
+ * Gets the root directory of the current git repository.
+ *
+ * Uses `git rev-parse --show-toplevel` to find the repository root.
+ * Returns null if not inside a git repository, allowing callers
+ * to gracefully skip project-level config.
+ *
+ * @returns Absolute path to repository root, or null if not in a git repository
+ * @example
+ * ```typescript
+ * const repoRoot = await getRepoRoot();
+ * if (repoRoot) {
+ *   // Load project-level config from repoRoot
+ * }
+ * ```
+ */
+export async function getRepoRoot(): Promise<string | null> {
+    try {
+        const { stdout } = await execa("git", ["rev-parse", "--show-toplevel"]);
+        return stdout.trim();
+    } catch {
+        return null;
+    }
+}
+
+/**
  * Represents a staged file with its status indicator.
  */
 export type StagedFile = {
