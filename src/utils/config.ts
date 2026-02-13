@@ -2,8 +2,8 @@ import { existsSync, readFileSync, writeFileSync } from "fs";
 import { homedir } from "os";
 import { join } from "path";
 
-import type { CommitType, MerlinConfig, WizardMessages } from "../types/index.js";
-import { DEFAULT_CONFIG, STANDARD_MESSAGES, WIZARD_MESSAGES } from "./constants.js";
+import type { CommitType, MerlinConfig } from "../types/index.js";
+import { DEFAULT_CONFIG } from "./constants.js";
 
 const USER_CONFIG_PATH = join(homedir(), ".merlinrc.json");
 
@@ -86,46 +86,6 @@ export function loadUserConfig(): Partial<MerlinConfig> {
     } catch {
         return {};
     }
-}
-
-/**
- * Loads Merlin configuration with user settings merged over defaults.
- *
- * Reads user-level config from `~/.merlinrc.json` and merges it with
- * DEFAULT_CONFIG to ensure all required fields are present. This will
- * be replaced by the async version in lib/config-loader.ts once
- * project-level config support is added.
- *
- * @returns Complete configuration object with all required fields populated
- *
- * @example
- * const config = loadConfig();
- * console.log(config.maxSubjectLength); // 72 (default or user-configured)
- * console.log(config.theme); // "wizard" or "standard"
- */
-export function loadConfig(): Required<MerlinConfig> {
-    const userConfig = loadUserConfig();
-    return { ...DEFAULT_CONFIG, ...userConfig };
-}
-
-/**
- * Retrieves the appropriate message set based on the configured theme.
- *
- * Returns either wizard-themed messages (with emojis and mystical language) or
- * standard messages (minimalist and professional) depending on the user's theme
- * preference in their configuration.
- *
- * @returns Message object containing all UI text for prompts, errors, and tips
- *
- * @example
- * const messages = getMessages();
- * console.log(messages.intro);
- * // With wizard theme: "🧙 Merlin is ready to guide your commit"
- * // With standard theme: "Ready to create commit"
- */
-export function getMessages(): WizardMessages {
-    const config = loadConfig();
-    return config.theme === "wizard" ? WIZARD_MESSAGES : STANDARD_MESSAGES;
 }
 
 /**

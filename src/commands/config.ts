@@ -1,8 +1,9 @@
 import { confirm, input, select } from "@inquirer/prompts";
 
+import { getMessages, loadConfig } from "../lib/config-loader.js";
 import { setupSigintHandler } from "../lib/sigint.js";
 import type { MerlinConfig, WizardMessages } from "../types/index.js";
-import { getMessages, loadConfig, resetConfig, saveConfig } from "../utils/config.js";
+import { resetConfig, saveConfig } from "../utils/config.js";
 import { colors } from "../utils/constants.js";
 import { createNonEmptyValidator, createRangeValidator } from "../utils/validators.js";
 
@@ -170,8 +171,8 @@ async function configureAutoAdd(config: Required<MerlinConfig>): Promise<void> {
 /**
  * Display the current configuration as formatted JSON.
  */
-function showConfig(): void {
-    const config = loadConfig();
+async function showConfig(): Promise<void> {
+    const config = await loadConfig();
 
     console.log(colors.header("\nCurrent Configuration:"));
     console.log(colors.muted("-".repeat(60)));
@@ -219,7 +220,7 @@ async function interactiveConfigMenu(messages: WizardMessages): Promise<void> {
 
     let running = true;
     while (running) {
-        const config = loadConfig();
+        const config = await loadConfig();
 
         const menuChoices = buildMenuChoices(config);
         const choice = await select<MenuChoice>({
@@ -289,7 +290,7 @@ async function interactiveConfigMenu(messages: WizardMessages): Promise<void> {
  * merlin config
  */
 export async function configCommand(options: ConfigOptions): Promise<void> {
-    const messages = getMessages();
+    const messages = await getMessages();
     const removeSigintHandler = setupSigintHandler(messages);
 
     try {
