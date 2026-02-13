@@ -5,7 +5,7 @@ import { join } from "path";
 import type { CommitType, MerlinConfig, WizardMessages } from "../types/index.js";
 import { DEFAULT_CONFIG, STANDARD_MESSAGES, WIZARD_MESSAGES } from "./constants.js";
 
-const CONFIG_PATH = join(homedir(), ".merlinrc.json");
+const USER_CONFIG_PATH = join(homedir(), ".merlinrc.json");
 
 /**
  * Validates a single commit type object.
@@ -25,7 +25,7 @@ function isValidCommitType(type: unknown): type is CommitType {
  * Validates and sanitizes user configuration.
  * Returns only valid fields, ignoring malformed values.
  */
-function validateConfig(userConfig: unknown): Partial<MerlinConfig> {
+export function validateConfig(userConfig: unknown): Partial<MerlinConfig> {
     if (typeof userConfig !== "object" || userConfig === null) {
         return {};
     }
@@ -70,11 +70,31 @@ function validateConfig(userConfig: unknown): Partial<MerlinConfig> {
 }
 
 /**
- * Loads Merlin configuration from the user's home directory.
+ * Loads and validates user-level config from ~/.merlinrc.json.
+ * Returns only the validated fields (not merged with defaults).
  *
- * Attempts to read configuration from `~/.merlinrc.json`. If the file doesn't exist
- * or contains invalid JSON, returns the default configuration instead. User settings
- * are merged with defaults to ensure all required fields are present.
+ * @returns Validated partial config from user's home directory
+ */
+export function loadUserConfig(): Partial<MerlinConfig> {
+    if (!existsSync(USER_CONFIG_PATH)) {
+        return {};
+    }
+
+    try {
+        const rawConfig = JSON.parse(readFileSync(USER_CONFIG_PATH, "utf-8"));
+        return validateConfig(rawConfig);
+    } catch {
+        return {};
+    }
+}
+
+/**
+ * Loads Merlin configuration with user settings merged over defaults.
+ *
+ * Reads user-level config from `~/.merlinrc.json` and merges it with
+ * DEFAULT_CONFIG to ensure all required fields are present. This will
+ * be replaced by the async version in lib/config-loader.ts once
+ * project-level config support is added.
  *
  * @returns Complete configuration object with all required fields populated
  *
@@ -84,17 +104,8 @@ function validateConfig(userConfig: unknown): Partial<MerlinConfig> {
  * console.log(config.theme); // "wizard" or "standard"
  */
 export function loadConfig(): Required<MerlinConfig> {
-    if (!existsSync(CONFIG_PATH)) {
-        return DEFAULT_CONFIG;
-    }
-
-    try {
-        const rawConfig = JSON.parse(readFileSync(CONFIG_PATH, "utf-8"));
-        const validatedConfig = validateConfig(rawConfig);
-        return { ...DEFAULT_CONFIG, ...validatedConfig };
-    } catch {
-        return DEFAULT_CONFIG;
-    }
+    const userConfig = loadUserConfig();
+    return { ...DEFAULT_CONFIG, ...userConfig };
 }
 
 /**
@@ -148,9 +159,9 @@ export function getMessages(): WizardMessages {
  * });
  */
 export function saveConfig(config: Partial<MerlinConfig>): void {
-    const currentConfig = loadConfig();
-    const newConfig = { ...currentConfig, ...config };
-    writeFileSync(CONFIG_PATH, JSON.stringify(newConfig, null, 4));
+    const currentConfig = loadUserConfig();
+    const newConfig = { ...DEFAULT_CONFIG, ...currentConfig, ...config };
+    writeFileSync(USER_CONFIG_PATH, JSON.stringify(newConfig, null, 4));
 }
 
 /**
@@ -176,7 +187,7 @@ export function saveConfig(config: Partial<MerlinConfig>): void {
  * }
  */
 export function resetConfig(): void {
-    if (existsSync(CONFIG_PATH)) {
-        writeFileSync(CONFIG_PATH, JSON.stringify(DEFAULT_CONFIG, null, 4));
+    if (existsSync(USER_CONFIG_PATH)) {
+        writeFileSync(USER_CONFIG_PATH, JSON.stringify(DEFAULT_CONFIG, null, 4));
     }
 }
