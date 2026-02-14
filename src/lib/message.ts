@@ -26,7 +26,7 @@ import type { CommitAnswers } from "../types/index.js";
  *   issues: 'closes #123, refs #456'
  * })
  * // Returns:
- * // "feat(auth): add OAuth support
+ * // "feat(auth)!: add OAuth support
  * //
  * // Implements OAuth 2.0 flow with Google and GitHub providers
  * //
@@ -42,6 +42,15 @@ export function buildCommitMessage(answers: CommitAnswers): string {
     if (answers.scope) {
         message += `(${answers.scope})`;
     }
+
+    const hasBreakingDescription = answers.breaking
+        ? answers.breaking.replace(/^BREAKING CHANGE:\s*/i, "").length > 0
+        : false;
+
+    if (hasBreakingDescription) {
+        message += "!";
+    }
+
     if (answers.subject) {
         message += `: ${answers.subject}`;
     }
