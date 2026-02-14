@@ -28,13 +28,25 @@ describe("buildCommitMessage", () => {
         expect(result).toBe("feat: add OAuth\n\nImplements OAuth 2.0 flow");
     });
 
-    it("builds commit with breaking change", () => {
+    it("builds commit with breaking change and adds ! to header", () => {
         const result = buildCommitMessage({
             type: "feat",
             subject: "change API",
             breaking: "API endpoints changed",
         });
-        expect(result).toBe("feat: change API\n\nBREAKING CHANGE: API endpoints changed");
+        expect(result).toBe("feat!: change API\n\nBREAKING CHANGE: API endpoints changed");
+    });
+
+    it("builds commit with scope and breaking change indicator", () => {
+        const result = buildCommitMessage({
+            type: "feat",
+            scope: "api",
+            subject: "change endpoints",
+            breaking: "removed v1 endpoints",
+        });
+        expect(result).toBe(
+            "feat(api)!: change endpoints\n\nBREAKING CHANGE: removed v1 endpoints"
+        );
     });
 
     it("builds commit with issue references", () => {
@@ -56,7 +68,7 @@ describe("buildCommitMessage", () => {
             issues: "Closes #789",
         });
         expect(result).toBe(
-            "feat(api): add pagination\n\n" +
+            "feat(api)!: add pagination\n\n" +
                 "Implements cursor-based pagination\n\n" +
                 "BREAKING CHANGE: Page numbers no longer supported\n\n" +
                 "Closes #789"
@@ -69,7 +81,7 @@ describe("buildCommitMessage", () => {
             subject: "change API",
             breaking: "BREAKING CHANGE: API endpoints changed",
         });
-        expect(result).toBe("feat: change API\n\nBREAKING CHANGE: API endpoints changed");
+        expect(result).toBe("feat!: change API\n\nBREAKING CHANGE: API endpoints changed");
     });
 
     it("strips case-insensitive breaking change prefix", () => {
@@ -78,7 +90,7 @@ describe("buildCommitMessage", () => {
             subject: "change API",
             breaking: "breaking change: API endpoints changed",
         });
-        expect(result).toBe("feat: change API\n\nBREAKING CHANGE: API endpoints changed");
+        expect(result).toBe("feat!: change API\n\nBREAKING CHANGE: API endpoints changed");
     });
 
     it("skips breaking change when only prefix is provided", () => {
@@ -151,10 +163,10 @@ describe("formatPreview", () => {
 
     it("formats complete message with breaking change and issues", () => {
         const message =
-            "feat(api): add auth\n\nImplements OAuth\n\nBREAKING CHANGE: new flow\n\nCloses #100";
+            "feat(api)!: add auth\n\nImplements OAuth\n\nBREAKING CHANGE: new flow\n\nCloses #100";
         const result = formatPreview(message);
         expect(result).toBe(
-            "feat(api): add auth\n\nImplements OAuth\n\n⚠️  BREAKING CHANGE: new flow\n\n🔗 Closes #100"
+            "feat(api)!: add auth\n\nImplements OAuth\n\n⚠️  BREAKING CHANGE: new flow\n\n🔗 Closes #100"
         );
     });
 });
