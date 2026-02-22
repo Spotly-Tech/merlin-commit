@@ -1,6 +1,11 @@
 import { confirm, input, select } from "@inquirer/prompts";
 
 import type { CommitAnswers } from "../types/index.js";
+import {
+    EMOJI_COLUMN_WIDTH,
+    VALUE_COLUMN_WIDTH,
+    VARIATION_SELECTOR,
+} from "../utils/constants.js";
 import { getMessages, loadConfig } from "./config-loader.js";
 import {
     buildBreakingChangeTemplate,
@@ -23,13 +28,27 @@ export async function promptUser(): Promise<CommitAnswers> {
     };
 
     // Prompt for commit type
+    const isWizardTheme = config.theme === "wizard";
     answers.type = await select({
         message: messages.prompts.type,
-        choices: config.types.map((type) => ({
-            value: type.value,
-            name: type.name,
-            short: type.value,
-        })),
+        choices: config.types.map((type) => {
+            const valuePadding = " ".repeat(
+                Math.max(1, VALUE_COLUMN_WIDTH - type.value.length)
+            );
+            const hasVariationSelector = type.emoji.includes(VARIATION_SELECTOR);
+            const emojiPadding = " ".repeat(
+                hasVariationSelector ? EMOJI_COLUMN_WIDTH - 1 : EMOJI_COLUMN_WIDTH - 2
+            );
+            const label = isWizardTheme
+                ? `${type.value}:${valuePadding}${type.emoji}${emojiPadding}${type.name}`
+                : `${type.value}:${valuePadding}${type.name}`;
+            return {
+                value: type.value,
+                name: label,
+                description: type.description,
+                short: type.value,
+            };
+        }),
         pageSize: config.types.length,
         loop: true,
     });
