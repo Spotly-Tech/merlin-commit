@@ -152,7 +152,7 @@ export const WIZARD_MESSAGES: WizardMessages = {
         creatingHook: "📜 Inscribing the commit-msg guardian...",
         creatingCommitlint: "📋 Writing the commitlint scrolls...",
         setupAlias: "🔗 Bind 'git merlin' to your spellbook?",
-        aliasScope: "🌍 Choose the scope of this binding:",
+        aliasScope: "🔮 Choose the scope of this binding:",
         creatingAlias: "🔗 Binding the magical alias...",
         skipExisting: "⏭️  Skipping existing artifact:",
         overwrite: "⚠️  This artifact already exists. Overwrite it?",
