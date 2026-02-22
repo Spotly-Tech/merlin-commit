@@ -16,71 +16,77 @@ export const colors = {
 export const COMMIT_TYPES: CommitType[] = [
     {
         value: "feat",
-        name: "feat:        ✨  A new feature",
-        description: "A new feature for users",
+        name: "A new feature",
+        description: "New functionality visible to users",
         emoji: "✨",
     },
     {
         value: "fix",
-        name: "fix:         🐛  A bug fix",
-        description: "A bug fix",
+        name: "A bug fix",
+        description: "Resolves incorrect or broken behavior",
         emoji: "🐛",
     },
     {
         value: "docs",
-        name: "docs:        📚  Documentation",
-        description: "Documentation only changes",
+        name: "Documentation",
+        description: "README, JSDoc, comments - no code logic changes",
         emoji: "📚",
     },
     {
         value: "style",
-        name: "style:       💄  Code style",
-        description: "Formatting, whitespace, etc (no code change)",
+        name: "Code style",
+        description: "Formatting, whitespace, semicolons - no logic changes",
         emoji: "💄",
     },
     {
         value: "refactor",
-        name: "refactor:    📦  Code refactoring",
-        description: "Code change that neither fixes a bug nor adds a feature",
+        name: "Code refactoring",
+        description: "Restructure code without changing external behavior",
         emoji: "📦",
     },
     {
         value: "perf",
-        name: "perf:        🚀  Performance",
-        description: "Performance improvements",
+        name: "Performance",
+        description: "Faster execution, reduced memory, optimized queries",
         emoji: "🚀",
     },
     {
         value: "test",
-        name: "test:        🚨  Tests",
-        description: "Adding or updating tests",
+        name: "Tests",
+        description: "Add, update, or fix test cases - no production code",
         emoji: "🚨",
     },
     {
         value: "build",
-        name: "build:       🔨  Build system",
-        description: "Build system or external dependencies",
+        name: "Build system",
+        description: "tsconfig, bundler, package.json scripts, dependencies",
         emoji: "🔨",
     },
     {
         value: "ci",
-        name: "ci:          ⚙️   CI/CD",
-        description: "CI/CD configuration and scripts",
+        name: "CI/CD",
+        description: "GitHub Actions, pipelines, deployment config",
         emoji: "⚙️",
     },
     {
         value: "chore",
-        name: "chore:       ♻️   Maintenance",
-        description: "Maintenance tasks, tooling, or dependencies",
+        name: "Maintenance",
+        description: "Tooling, linting config, .gitignore - no production code",
         emoji: "♻️",
     },
     {
         value: "revert",
-        name: "revert:      ⏪  Revert",
-        description: "Revert a previous commit",
+        name: "Revert",
+        description: "Undo a previous commit entirely",
         emoji: "⏪",
     },
 ];
+
+// Target terminal column widths for aligning commit type selector labels
+export const VALUE_COLUMN_WIDTH = 12;
+export const EMOJI_COLUMN_WIDTH = 4;
+// U+FE0F - terminals render these emojis 1 column narrower than standard emojis
+export const VARIATION_SELECTOR = "\uFE0F";
 
 export const WIZARD_MESSAGES: WizardMessages = {
     commit: {
