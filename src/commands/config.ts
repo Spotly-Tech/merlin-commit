@@ -214,13 +214,15 @@ async function resetConfigWithConfirmation(messages: WizardMessages): Promise<vo
  * Main interactive configuration menu loop.
  * Displays all options with current values and processes user selections.
  */
-async function interactiveConfigMenu(messages: WizardMessages): Promise<void> {
-    console.log(colors.header(`\n${messages.config.intro}`));
+async function interactiveConfigMenu(): Promise<void> {
+    const initialMessages = await getMessages();
+    console.log(colors.header(`\n${initialMessages.config.intro}`));
     console.log(colors.muted("Configure Merlin's settings\n"));
 
     let running = true;
     while (running) {
         const config = await loadConfig();
+        const messages = await getMessages();
 
         const menuChoices = buildMenuChoices(config);
         const choice = await select<MenuChoice>({
@@ -304,7 +306,7 @@ export async function configCommand(options: ConfigOptions): Promise<void> {
             return;
         }
 
-        await interactiveConfigMenu(messages);
+        await interactiveConfigMenu();
     } catch (error) {
         // Handle ExitPromptError (thrown by Inquirer on Ctrl+C)
         if ((error as Error).name === "ExitPromptError") {
