@@ -183,6 +183,41 @@ describe("editorWithConfig", () => {
         );
     });
 
+    it("skips cmd wrapping when editor already starts with cmd on Windows", async () => {
+        const originalPlatform = process.platform;
+        Object.defineProperty(process, "platform", { value: "win32" });
+
+        let capturedVisual: string | undefined;
+        vi.mocked(editor).mockImplementation(async () => {
+            capturedVisual = process.env.VISUAL;
+            return "result";
+        });
+
+        await editorWithConfig({ message: "test" }, "cmd /c notepad");
+
+        // Should NOT double-wrap with cmd /c
+        expect(capturedVisual).toBe("cmd /c notepad");
+
+        Object.defineProperty(process, "platform", { value: originalPlatform });
+    });
+
+    it("wraps non-cmd editor with cmd /c on Windows", async () => {
+        const originalPlatform = process.platform;
+        Object.defineProperty(process, "platform", { value: "win32" });
+
+        let capturedVisual: string | undefined;
+        vi.mocked(editor).mockImplementation(async () => {
+            capturedVisual = process.env.VISUAL;
+            return "result";
+        });
+
+        await editorWithConfig({ message: "test" }, "code --wait");
+
+        expect(capturedVisual).toBe("cmd /c code --wait");
+
+        Object.defineProperty(process, "platform", { value: originalPlatform });
+    });
+
     it("restores environment variables after using custom editor", async () => {
         const originalVisual = process.env.VISUAL;
         const originalEditor = process.env.EDITOR;
