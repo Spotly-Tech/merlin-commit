@@ -3,6 +3,8 @@ import {
     buildBreakingChangeTemplate,
     buildIssueReferenceTemplate,
     editorWithCommentTemplate,
+    editorWithConfig,
+    editWithGitCommitMessage,
 } from "../../src/lib/editor-wrapper.js";
 
 // Mock @inquirer/prompts editor
@@ -16,7 +18,23 @@ vi.mock("../../src/lib/git.js", () => ({
     getStagedFilesWithStatus: vi.fn(),
 }));
 
+vi.mock("child_process", () => ({
+    spawnSync: vi.fn(),
+}));
+
+vi.mock("fs", async (importOriginal) => {
+    const actual = await importOriginal<typeof import("fs")>();
+    return {
+        ...actual,
+        readFileSync: vi.fn(),
+        writeFileSync: vi.fn(),
+    };
+});
+
 import { editor } from "@inquirer/prompts";
+import { spawnSync } from "child_process";
+import { readFileSync, writeFileSync } from "fs";
+import { getGitDirectory } from "../../src/lib/git.js";
 
 describe("buildBreakingChangeTemplate", () => {
     it("returns template with comment lines", () => {
@@ -146,5 +164,120 @@ describe("editorWithCommentTemplate", () => {
                 waitForUserInput: false,
             })
         );
+    });
+});
+
+describe("editorWithConfig", () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    it("calls editor with provided options when no custom editor", async () => {
+        vi.mocked(editor).mockResolvedValue("user input");
+
+        const result = await editorWithConfig({ message: "Enter text:" });
+
+        expect(result).toBe("user input");
+        expect(editor).toHaveBeenCalledWith(
+            expect.objectContaining({ message: "Enter text:" })
+        );
+    });
+
+    it("skips cmd wrapping when editor already starts with cmd on Windows", async () => {
+        const originalPlatform = process.platform;
+        Object.defineProperty(process, "platform", { value: "win32" });
+
+        let capturedVisual: string | undefined;
+        vi.mocked(editor).mockImplementation(async () => {
+            capturedVisual = process.env.VISUAL;
+            return "result";
+        });
+
+        await editorWithConfig({ message: "test" }, "cmd /c notepad");
+
+        // Should NOT double-wrap with cmd /c
+        expect(capturedVisual).toBe("cmd /c notepad");
+
+        Object.defineProperty(process, "platform", { value: originalPlatform });
+    });
+
+    it("wraps non-cmd editor with cmd /c on Windows", async () => {
+        const originalPlatform = process.platform;
+        Object.defineProperty(process, "platform", { value: "win32" });
+
+        let capturedVisual: string | undefined;
+        vi.mocked(editor).mockImplementation(async () => {
+            capturedVisual = process.env.VISUAL;
+            return "result";
+        });
+
+        await editorWithConfig({ message: "test" }, "code --wait");
+
+        expect(capturedVisual).toBe("cmd /c code --wait");
+
+        Object.defineProperty(process, "platform", { value: originalPlatform });
+    });
+
+    it("restores environment variables after using custom editor", async () => {
+        const originalVisual = process.env.VISUAL;
+        const originalEditor = process.env.EDITOR;
+
+        vi.mocked(editor).mockResolvedValue("result");
+
+        await editorWithConfig({ message: "test" }, "nano");
+
+        expect(process.env.VISUAL).toBe(originalVisual);
+        expect(process.env.EDITOR).toBe(originalEditor);
+    });
+});
+
+describe("editWithGitCommitMessage", () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    it("writes template and returns stripped result", async () => {
+        vi.mocked(getGitDirectory).mockResolvedValue(".git");
+        vi.mocked(spawnSync).mockReturnValue({
+            status: 0,
+            error: undefined,
+        } as never);
+        vi.mocked(readFileSync).mockReturnValue(
+            "User body text\n# Type: feat\n# Subject: add feature\n"
+        );
+
+        const result = await editWithGitCommitMessage(
+            {
+                type: "feat",
+                subject: "add feature",
+                stagedFiles: [{ status: "modified", path: "src/index.ts" }],
+            },
+            "vim"
+        );
+
+        expect(writeFileSync).toHaveBeenCalledWith(
+            expect.stringContaining("COMMIT_EDITMSG"),
+            expect.any(String),
+            "utf8"
+        );
+        expect(result).toBe("User body text");
+    });
+
+    it("throws when editor fails to launch", async () => {
+        vi.mocked(getGitDirectory).mockResolvedValue(".git");
+        vi.mocked(spawnSync).mockReturnValue({
+            error: new Error("ENOENT"),
+        } as never);
+
+        await expect(
+            editWithGitCommitMessage(
+                {
+                    type: "feat",
+                    subject: "test",
+                    stagedFiles: [],
+                },
+                "nonexistent-editor"
+            )
+        ).rejects.toThrow("Failed to launch editor");
     });
 });
