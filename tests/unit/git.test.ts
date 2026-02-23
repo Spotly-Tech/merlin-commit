@@ -3,7 +3,9 @@ import {
     addFiles,
     amendCommit,
     commit,
+    getGitDirectory,
     getRepoRoot,
+    getStagedFilesWithStatus,
     getUnstagedFiles,
     hasStagedChanges,
     isGitRepo,
@@ -255,5 +257,73 @@ describe("getRepoRoot", () => {
         const result = await getRepoRoot();
 
         expect(result).toBeNull();
+    });
+});
+
+describe("getGitDirectory", () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    it("returns trimmed git directory path", async () => {
+        vi.mocked(execa).mockResolvedValue({ stdout: ".git\n" } as never);
+
+        const result = await getGitDirectory();
+
+        expect(result).toBe(".git");
+        expect(execa).toHaveBeenCalledWith("git", ["rev-parse", "--git-dir"]);
+    });
+
+    it("throws when not in a git repository", async () => {
+        vi.mocked(execa).mockRejectedValue(new Error("not a git repo"));
+
+        await expect(getGitDirectory()).rejects.toThrow("not a git repo");
+    });
+});
+
+describe("getStagedFilesWithStatus", () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    it("parses multiple file statuses correctly", async () => {
+        vi.mocked(execa).mockResolvedValue({
+            stdout: "M\tsrc/index.ts\nA\tsrc/new-file.ts\nD\told-file.ts",
+        } as never);
+
+        const result = await getStagedFilesWithStatus();
+
+        expect(result).toEqual([
+            { status: "modified", path: "src/index.ts" },
+            { status: "new file", path: "src/new-file.ts" },
+            { status: "deleted", path: "old-file.ts" },
+        ]);
+        expect(execa).toHaveBeenCalledWith("git", ["diff", "--cached", "--name-status"]);
+    });
+
+    it("returns empty array when no staged files", async () => {
+        vi.mocked(execa).mockResolvedValue({ stdout: "" } as never);
+
+        const result = await getStagedFilesWithStatus();
+
+        expect(result).toEqual([]);
+    });
+
+    it("returns empty array on git error", async () => {
+        vi.mocked(execa).mockRejectedValue(new Error("git error"));
+
+        const result = await getStagedFilesWithStatus();
+
+        expect(result).toEqual([]);
+    });
+
+    it("defaults unknown status codes to modified", async () => {
+        vi.mocked(execa).mockResolvedValue({
+            stdout: "X\tunknown-status.ts",
+        } as never);
+
+        const result = await getStagedFilesWithStatus();
+
+        expect(result).toEqual([{ status: "modified", path: "unknown-status.ts" }]);
     });
 });

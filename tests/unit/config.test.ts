@@ -71,6 +71,20 @@ describe("validateConfig", () => {
         expect(validateConfig({ maxScopeLength: -1 })).toEqual({});
     });
 
+    it("accepts valid positive maxScopeLength", () => {
+        const result = validateConfig({ maxScopeLength: 30 });
+
+        expect(result.maxScopeLength).toBe(30);
+    });
+
+    it("accepts valid autoAdd boolean", () => {
+        const resultTrue = validateConfig({ autoAdd: true });
+        const resultFalse = validateConfig({ autoAdd: false });
+
+        expect(resultTrue.autoAdd).toBe(true);
+        expect(resultFalse.autoAdd).toBe(false);
+    });
+
     it("filters valid commit types and ignores invalid ones", () => {
         const result = validateConfig({
             types: [

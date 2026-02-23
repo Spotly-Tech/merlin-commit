@@ -34,6 +34,7 @@ import {
     hasPackageJson,
     initializeHusky,
     installDependencies,
+    isPackageInstalled,
     setupGitAlias,
 } from "../../src/lib/setup.js";
 
@@ -388,5 +389,30 @@ describe("createProjectConfig", () => {
         expect(writtenContent).toMatch(/^\{/);
         expect(writtenContent).toMatch(/\n$/);
         expect(writtenContent).toContain("    ");
+    });
+});
+
+describe("isPackageInstalled", () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    it("returns true when package exists in node_modules", async () => {
+        vi.mocked(existsSync).mockReturnValue(true);
+
+        const result = await isPackageInstalled("husky");
+
+        expect(result).toBe(true);
+        expect(existsSync).toHaveBeenCalledWith(
+            expect.stringContaining("husky")
+        );
+    });
+
+    it("returns false when package is missing from node_modules", async () => {
+        vi.mocked(existsSync).mockReturnValue(false);
+
+        const result = await isPackageInstalled("nonexistent-package");
+
+        expect(result).toBe(false);
     });
 });

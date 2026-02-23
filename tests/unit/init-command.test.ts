@@ -357,6 +357,21 @@ describe("initCommand", () => {
             );
         });
 
+        it("shows warning and skips husky when husky is not installed", async () => {
+            setupHappyPath();
+            vi.mocked(isPackageInstalled).mockImplementation(async (pkg) => {
+                if (pkg === "husky") return false;
+                return true;
+            });
+
+            await initCommand({});
+
+            expect(consoleSpy.log).toHaveBeenCalledWith(
+                expect.stringContaining("Skipping Husky initialization")
+            );
+            expect(initializeHusky).not.toHaveBeenCalled();
+        });
+
         it("exits with error when husky init fails", async () => {
             setupHappyPath();
             vi.mocked(initializeHusky).mockRejectedValue(new Error("husky init failed"));
@@ -428,6 +443,21 @@ describe("initCommand", () => {
 
             await initCommand({});
 
+            expect(createCommitlintConfig).not.toHaveBeenCalled();
+        });
+
+        it("shows warning and skips commitlint when @commitlint/cli is not installed", async () => {
+            setupHappyPath();
+            vi.mocked(isPackageInstalled).mockImplementation(async (pkg) => {
+                if (pkg === "@commitlint/cli") return false;
+                return true;
+            });
+
+            await initCommand({});
+
+            expect(consoleSpy.log).toHaveBeenCalledWith(
+                expect.stringContaining("Skipping commitlint config")
+            );
             expect(createCommitlintConfig).not.toHaveBeenCalled();
         });
 
