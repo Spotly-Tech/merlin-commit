@@ -252,7 +252,7 @@ async function interactiveConfigMenu(): Promise<void> {
                 await configureAutoAdd(config);
                 break;
             case "show":
-                showConfig();
+                await showConfig();
                 break;
             case "reset":
                 await resetConfigWithConfirmation(messages);
@@ -260,6 +260,8 @@ async function interactiveConfigMenu(): Promise<void> {
             case "exit":
                 running = false;
                 console.log(colors.muted(`\n${messages.config.exit}\n`));
+                break;
+            default:
                 break;
         }
 
@@ -297,7 +299,7 @@ export async function configCommand(options: ConfigOptions): Promise<void> {
 
     try {
         if (options.show) {
-            showConfig();
+            await showConfig();
             return;
         }
 

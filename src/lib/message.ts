@@ -108,9 +108,9 @@ export function formatPreview(message: string): string {
         const line = lines[i];
 
         if (line.startsWith("BREAKING CHANGE:")) {
-            formattedLines.push("⚠️  " + line);
+            formattedLines.push(`⚠️  ${line}`);
         } else if (line.match(/(fixes|closes|resolves|refs|related to) #\d+/i)) {
-            formattedLines.push("🔗 " + line);
+            formattedLines.push(`🔗 ${line}`);
         } else {
             formattedLines.push(line);
         }

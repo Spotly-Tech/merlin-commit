@@ -256,6 +256,7 @@ export const DEFAULT_CONFIG: Required<MerlinConfig> = {
     types: COMMIT_TYPES,
     maxSubjectLength: 72,
     maxScopeLength: 20,
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- empty EDITOR="" should fall through
     editor: process.env.EDITOR || process.env.VISUAL || "vim",
     autoAdd: false,
     theme: "wizard",

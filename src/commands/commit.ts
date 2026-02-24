@@ -55,7 +55,7 @@ export async function commitCommand(options: CommitOptions): Promise<void> {
         // Dry run mode
         if (options.dryRun) {
             console.log(colors.info(`\n${messages.success.dryRun}`));
-            console.log(colors.muted(messages.commit.exit + "\n"));
+            console.log(colors.muted(`${messages.commit.exit}\n`));
             process.exit(0);
         }
 
@@ -71,7 +71,7 @@ export async function commitCommand(options: CommitOptions): Promise<void> {
         });
         if (!confirmed) {
             console.log(colors.warning(`\n${messages.warnings.cancel}`));
-            console.log(colors.muted(messages.commit.exit + "\n"));
+            console.log(colors.muted(`${messages.commit.exit}\n`));
             process.exit(0);
         }
 
@@ -98,7 +98,7 @@ export async function commitCommand(options: CommitOptions): Promise<void> {
         }
 
         spinner.fail(colors.error(messages.errors.commitFailed));
-        console.error(colors.error("\n" + (error as Error).message + "\n"));
+        console.error(colors.error(`\n${(error as Error).message}\n`));
         process.exit(1);
     } finally {
         removeSigintHandler();

@@ -372,7 +372,7 @@ export async function initCommand(options: InitOptions): Promise<void> {
             process.exit(0);
         }
         spinner.fail();
-        console.error(colors.error("\n" + (error as Error).message + "\n"));
+        console.error(colors.error(`\n${(error as Error).message}\n`));
         process.exit(1);
     } finally {
         removeSigintHandler();
