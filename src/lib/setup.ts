@@ -262,7 +262,7 @@ export async function createProjectConfig(): Promise<void> {
 
     await writeFile(
         ".merlinrc.json",
-        JSON.stringify(projectConfig, null, 4) + "\n",
+        `${JSON.stringify(projectConfig, null, 4)}\n`,
         "utf-8"
     );
 }

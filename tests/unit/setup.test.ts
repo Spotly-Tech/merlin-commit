@@ -1,5 +1,22 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { execa } from "execa";
+import { existsSync } from "fs";
+import { chmod, writeFile } from "fs/promises";
+import { platform } from "node:os";
+import {
+    checkGitAlias,
+    createCommitlintConfig,
+    createCommitMsgHook,
+    createProjectConfig,
+    detectExistingSetup,
+    hasPackageJson,
+    initializeHusky,
+    installDependencies,
+    isPackageInstalled,
+    setupGitAlias,
+} from "../../src/lib/setup.js";
+
 vi.mock("fs", async (importOriginal) => {
     const actual = await importOriginal<typeof import("fs")>();
     return {
@@ -20,23 +37,6 @@ vi.mock("execa", () => ({
 vi.mock("node:os", () => ({
     platform: vi.fn(),
 }));
-
-import { execa } from "execa";
-import { existsSync } from "fs";
-import { chmod, writeFile } from "fs/promises";
-import { platform } from "node:os";
-import {
-    checkGitAlias,
-    createCommitlintConfig,
-    createCommitMsgHook,
-    createProjectConfig,
-    detectExistingSetup,
-    hasPackageJson,
-    initializeHusky,
-    installDependencies,
-    isPackageInstalled,
-    setupGitAlias,
-} from "../../src/lib/setup.js";
 
 describe("hasPackageJson", () => {
     beforeEach(() => {

@@ -2,6 +2,24 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { initCommand } from "../../src/commands/init.js";
 import { WIZARD_MESSAGES } from "../../src/utils/constants.js";
 
+import { confirm, select } from "@inquirer/prompts";
+import ora from "ora";
+import { isGitRepo } from "../../src/lib/git";
+import {
+    checkGitAlias,
+    createCommitlintConfig,
+    createCommitMsgHook,
+    createProjectConfig,
+    detectExistingSetup,
+    hasPackageJson,
+    initializeHusky,
+    installDependencies,
+    isPackageInstalled,
+    setupGitAlias,
+} from "../../src/lib/setup";
+import { setupSigintHandler } from "../../src/lib/sigint";
+import { getMessages } from "../../src/lib/config-loader";
+
 vi.mock("@inquirer/prompts", () => ({
     confirm: vi.fn(),
     select: vi.fn(),
@@ -42,24 +60,6 @@ vi.mock("ora", () => {
     };
     return { default: vi.fn(() => spinnerInstance) };
 });
-
-import { confirm, select } from "@inquirer/prompts";
-import ora from "ora";
-import { isGitRepo } from "../../src/lib/git";
-import {
-    checkGitAlias,
-    createCommitlintConfig,
-    createCommitMsgHook,
-    createProjectConfig,
-    detectExistingSetup,
-    hasPackageJson,
-    initializeHusky,
-    installDependencies,
-    isPackageInstalled,
-    setupGitAlias,
-} from "../../src/lib/setup";
-import { setupSigintHandler } from "../../src/lib/sigint";
-import { getMessages } from "../../src/lib/config-loader";
 
 const consoleSpy = {
     log: vi.spyOn(console, "log").mockImplementation(() => {}),
@@ -829,7 +829,7 @@ describe("initCommand", () => {
          * This isolates summary output from the existing-file detection output.
          */
         function extractSummaryItems(): string[] {
-            const calls = consoleSpy.log.mock.calls;
+            const {calls} = consoleSpy.log.mock;
             const createdIndex = calls.findIndex((call) =>
                 String(call[0]).includes("Created/updated:")
             );
