@@ -24,7 +24,7 @@
         "build": "tsc",
         "dev": "tsc --watch",
         "clean": "rimraf dist",
-        "lint": "eslint src/**/*.ts",
+        "lint": "eslint src/ tests/",
         "format": "prettier --write \"src/**/*.ts\"",
         "type-check": "tsc --noEmit",
         "test": "vitest run",
@@ -97,6 +97,10 @@
     "homepage": "https://github.com/avilo-labs/merlin-commit#readme",
     "lint-staged": {
         "src/**/*.ts": [
+            "eslint --fix",
+            "prettier --write"
+        ],
+        "tests/**/*.ts": [
             "eslint --fix",
             "prettier --write"
         ]
