@@ -11,12 +11,12 @@ import {
     isGitRepo,
 } from "../../src/lib/git.js";
 
+import { execa } from "execa";
+
 // Mock execa
 vi.mock("execa", () => ({
     execa: vi.fn(),
 }));
-
-import { execa } from "execa";
 
 describe("isGitRepo", () => {
     beforeEach(() => {

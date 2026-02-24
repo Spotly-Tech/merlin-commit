@@ -2,6 +2,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { configCommand } from "../../src/commands/config.js";
 import { DEFAULT_CONFIG, WIZARD_MESSAGES } from "../../src/utils/constants.js";
 
+// Import mocked modules
+import { confirm, input, select } from "@inquirer/prompts";
+import { getMessages, loadConfig } from "../../src/lib/config-loader";
+import { resetConfig, saveConfig } from "../../src/utils/config";
+
 // Mock @inquirer/prompts
 vi.mock("@inquirer/prompts", () => ({
     select: vi.fn(),
@@ -20,11 +25,6 @@ vi.mock("../../src/utils/config", () => ({
     saveConfig: vi.fn(),
     resetConfig: vi.fn(),
 }));
-
-// Import mocked modules
-import { confirm, input, select } from "@inquirer/prompts";
-import { getMessages, loadConfig } from "../../src/lib/config-loader";
-import { resetConfig, saveConfig } from "../../src/utils/config";
 
 // Mock console methods
 const consoleSpy = {

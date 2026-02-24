@@ -2,6 +2,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { commitCommand } from "../../src/commands/commit.js";
 import { WIZARD_MESSAGES } from "../../src/utils/constants.js";
 
+import { confirm } from "@inquirer/prompts";
+import ora from "ora";
+import { amendCommit, commit, hasStagedChanges, isGitRepo } from "../../src/lib/git";
+import { buildCommitMessage, formatPreview } from "../../src/lib/message";
+import { promptUser } from "../../src/lib/prompt";
+import { getMessages } from "../../src/lib/config-loader";
+import { setupSigintHandler } from "../../src/lib/sigint";
+
 vi.mock("@inquirer/prompts", () => ({
     confirm: vi.fn(),
 }));
@@ -39,14 +47,6 @@ vi.mock("ora", () => {
     };
     return { default: vi.fn(() => spinnerInstance) };
 });
-
-import { confirm } from "@inquirer/prompts";
-import ora from "ora";
-import { amendCommit, commit, hasStagedChanges, isGitRepo } from "../../src/lib/git";
-import { buildCommitMessage, formatPreview } from "../../src/lib/message";
-import { promptUser } from "../../src/lib/prompt";
-import { getMessages } from "../../src/lib/config-loader";
-import { setupSigintHandler } from "../../src/lib/sigint";
 
 const consoleSpy = {
     log: vi.spyOn(console, "log").mockImplementation(() => {}),

@@ -2,6 +2,18 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { promptUser } from "../../src/lib/prompt.js";
 import { DEFAULT_CONFIG, WIZARD_MESSAGES } from "../../src/utils/constants.js";
 
+import { confirm, input, select } from "@inquirer/prompts";
+import { loadConfig, getMessages } from "../../src/lib/config-loader";
+import {
+    editorWithCommentTemplate,
+    editWithGitCommitMessage,
+} from "../../src/lib/editor-wrapper";
+import { getStagedFilesWithStatus } from "../../src/lib/git";
+import {
+    createCharacterCounterTransformer,
+    createOptionalCharacterCounterTransformer,
+} from "../../src/lib/transformers";
+
 vi.mock("@inquirer/prompts", () => ({
     confirm: vi.fn(),
     input: vi.fn(),
@@ -28,18 +40,6 @@ vi.mock("../../src/lib/transformers", () => ({
     createCharacterCounterTransformer: vi.fn().mockReturnValue(vi.fn()),
     createOptionalCharacterCounterTransformer: vi.fn().mockReturnValue(vi.fn()),
 }));
-
-import { confirm, input, select } from "@inquirer/prompts";
-import { loadConfig, getMessages } from "../../src/lib/config-loader";
-import {
-    editorWithCommentTemplate,
-    editWithGitCommitMessage,
-} from "../../src/lib/editor-wrapper";
-import { getStagedFilesWithStatus } from "../../src/lib/git";
-import {
-    createCharacterCounterTransformer,
-    createOptionalCharacterCounterTransformer,
-} from "../../src/lib/transformers";
 
 /**
  * Sets up mocks for a minimal prompt flow (no body, no breaking, no issues).

@@ -7,6 +7,11 @@ import {
     editWithGitCommitMessage,
 } from "../../src/lib/editor-wrapper.js";
 
+import { editor } from "@inquirer/prompts";
+import { spawnSync } from "child_process";
+import { readFileSync, writeFileSync } from "fs";
+import { getGitDirectory } from "../../src/lib/git.js";
+
 // Mock @inquirer/prompts editor
 vi.mock("@inquirer/prompts", () => ({
     editor: vi.fn(),
@@ -30,11 +35,6 @@ vi.mock("fs", async (importOriginal) => {
         writeFileSync: vi.fn(),
     };
 });
-
-import { editor } from "@inquirer/prompts";
-import { spawnSync } from "child_process";
-import { readFileSync, writeFileSync } from "fs";
-import { getGitDirectory } from "../../src/lib/git.js";
 
 describe("buildBreakingChangeTemplate", () => {
     it("returns template with comment lines", () => {
