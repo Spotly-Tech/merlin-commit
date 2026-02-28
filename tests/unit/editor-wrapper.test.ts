@@ -1,4 +1,8 @@
+import { spawnSync } from "child_process";
+import { readFileSync, writeFileSync } from "fs";
+import { editor } from "@inquirer/prompts";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import {
     buildBreakingChangeTemplate,
     buildIssueReferenceTemplate,
@@ -6,10 +10,6 @@ import {
     editorWithConfig,
     editWithGitCommitMessage,
 } from "../../src/lib/editor-wrapper.js";
-
-import { editor } from "@inquirer/prompts";
-import { spawnSync } from "child_process";
-import { readFileSync, writeFileSync } from "fs";
 import { getGitDirectory } from "../../src/lib/git.js";
 
 // Mock @inquirer/prompts editor
@@ -143,9 +143,7 @@ describe("editorWithCommentTemplate", () => {
     });
 
     it("trims whitespace from result", async () => {
-        vi.mocked(editor).mockResolvedValue(
-            "\n  User content  \n\n# comment\n\n"
-        );
+        vi.mocked(editor).mockResolvedValue("\n  User content  \n\n# comment\n\n");
 
         const result = await editorWithCommentTemplate("# template");
 
@@ -261,6 +259,48 @@ describe("editWithGitCommitMessage", () => {
             "utf8"
         );
         expect(result).toBe("User body text");
+    });
+
+    it("passes file path as args array element to prevent shell injection", async () => {
+        vi.mocked(getGitDirectory).mockResolvedValue(".git");
+        vi.mocked(spawnSync).mockReturnValue({
+            status: 0,
+            error: undefined,
+        } as never);
+        vi.mocked(readFileSync).mockReturnValue("body\n");
+
+        await editWithGitCommitMessage(
+            { type: "feat", subject: "test", stagedFiles: [] },
+            "vim"
+        );
+
+        // Verify args are passed as array, not concatenated into bin string
+        const [bin, args] = vi.mocked(spawnSync).mock.calls[0];
+        expect(bin).toBe("vim");
+        expect(args).toEqual(
+            expect.arrayContaining([expect.stringContaining("COMMIT_EDITMSG")])
+        );
+    });
+
+    it("passes editor args as array even for multi-word editor commands", async () => {
+        vi.mocked(getGitDirectory).mockResolvedValue(".git");
+        vi.mocked(spawnSync).mockReturnValue({
+            status: 0,
+            error: undefined,
+        } as never);
+        vi.mocked(readFileSync).mockReturnValue("body\n");
+
+        await editWithGitCommitMessage(
+            { type: "feat", subject: "test", stagedFiles: [] },
+            "code --wait"
+        );
+
+        const [bin, args] = vi.mocked(spawnSync).mock.calls[0];
+        expect(bin).toBe("code");
+        expect(args).toContain("--wait");
+        expect(args).toEqual(
+            expect.arrayContaining([expect.stringContaining("COMMIT_EDITMSG")])
+        );
     });
 
     it("throws when editor fails to launch", async () => {

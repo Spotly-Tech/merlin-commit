@@ -322,12 +322,9 @@ export async function editWithGitCommitMessage(
         shell: isWindows,
     };
 
-    // Build final command - on Windows with shell:true, we pass the full command
-    const finalBin = isWindows ? `${bin} ${args.join(" ")} "${commitMsgPath}"` : bin;
-    const finalArgs = isWindows ? [] : [...args, commitMsgPath];
-
-    // Spawn editor and wait for it to close
-    const result = spawnSync(finalBin, finalArgs, spawnOptions);
+    // Use args array on all platforms to prevent shell injection.
+    // With shell:true on Windows, spawnSync escapes each arg individually.
+    const result = spawnSync(bin, [...args, commitMsgPath], spawnOptions);
 
     if (result.error) {
         throw new Error(`Failed to launch editor: ${result.error.message}`);
