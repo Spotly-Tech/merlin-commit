@@ -19,6 +19,8 @@ export async function isGitRepo(): Promise<boolean> {
         await execa("git", ["rev-parse", "--git-dir"]);
         return true;
     } catch {
+        // Intentional: non-repo directories and git failures both return false.
+        // The command layer handles this with a user-facing error message.
         return false;
     }
 }
@@ -43,6 +45,8 @@ export async function hasStagedChanges(): Promise<boolean> {
         const { stdout } = await execa("git", ["diff", "--cached", "--name-only"]);
         return stdout.trim().length > 0;
     } catch {
+        // Intentional: git failures return false so the command layer
+        // can prompt the user to stage files instead of crashing.
         return false;
     }
 }
@@ -66,6 +70,8 @@ export async function getUnstagedFiles(): Promise<string[]> {
         const { stdout } = await execa("git", ["diff", "--name-only"]);
         return stdout.trim().split("\n").filter(Boolean);
     } catch {
+        // Intentional: returns empty array on failure so callers
+        // treat it as "no unstaged files" rather than an error.
         return [];
     }
 }
@@ -190,6 +196,8 @@ export async function getRepoRoot(): Promise<string | null> {
         const { stdout } = await execa("git", ["rev-parse", "--show-toplevel"]);
         return stdout.trim();
     } catch {
+        // Intentional: returns null when not in a git repo so callers
+        // can skip project-level config gracefully.
         return null;
     }
 }
@@ -245,6 +253,8 @@ export async function getStagedFilesWithStatus(): Promise<StagedFile[]> {
                 return { status, path };
             });
     } catch {
+        // Intentional: returns empty array on failure so the editor
+        // template gracefully omits the staged files section.
         return [];
     }
 }
