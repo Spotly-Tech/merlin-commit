@@ -254,6 +254,48 @@ describe("editWithGitCommitMessage", () => {
         expect(result).toBe("User body text");
     });
 
+    it("passes file path as args array element to prevent shell injection", () => {
+        vi.mocked(spawnSync).mockReturnValue({
+            status: 0,
+            error: undefined,
+        } as never);
+        vi.mocked(readFileSync).mockReturnValue("body\n");
+
+        editWithGitCommitMessage(
+            { type: "feat", subject: "test", stagedFiles: [] },
+            "vim",
+            ".git"
+        );
+
+        // Verify args are passed as array, not concatenated into bin string
+        const [bin, args] = vi.mocked(spawnSync).mock.calls[0];
+        expect(bin).toBe("vim");
+        expect(args).toEqual(
+            expect.arrayContaining([expect.stringContaining("COMMIT_EDITMSG")])
+        );
+    });
+
+    it("passes editor args as array even for multi-word editor commands", () => {
+        vi.mocked(spawnSync).mockReturnValue({
+            status: 0,
+            error: undefined,
+        } as never);
+        vi.mocked(readFileSync).mockReturnValue("body\n");
+
+        editWithGitCommitMessage(
+            { type: "feat", subject: "test", stagedFiles: [] },
+            "code --wait",
+            ".git"
+        );
+
+        const [bin, args] = vi.mocked(spawnSync).mock.calls[0];
+        expect(bin).toBe("code");
+        expect(args).toContain("--wait");
+        expect(args).toEqual(
+            expect.arrayContaining([expect.stringContaining("COMMIT_EDITMSG")])
+        );
+    });
+
     it("throws when editor fails to launch", () => {
         vi.mocked(spawnSync).mockReturnValue({
             error: new Error("ENOENT"),
