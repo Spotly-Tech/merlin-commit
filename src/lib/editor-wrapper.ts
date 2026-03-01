@@ -3,7 +3,7 @@ import { readFileSync, writeFileSync } from "fs";
 import path from "path";
 import { editor } from "@inquirer/prompts";
 
-import { getGitDirectory, type StagedFile } from "./git.js";
+import type { StagedFile } from "./git.js";
 
 /**
  * Options for the editor prompt, matching @inquirer/prompts editor() signature.
@@ -290,22 +290,24 @@ export async function editorWithCommentTemplate(
  *
  * @param context - Commit context for the template
  * @param editorCommand - Editor command from config (e.g., "code --wait")
+ * @param gitDir - Path to the .git directory (from getGitDirectory())
  * @returns Promise resolving to the text entered (comments stripped)
  *
  * @example
  * ```typescript
+ * const gitDir = await getGitDirectory();
  * const body = await editWithGitCommitMessage(
  *     { type: "feat", scope: "auth", subject: "add login", stagedFiles },
- *     "code --wait"
+ *     "code --wait",
+ *     gitDir
  * );
  * ```
  */
-export async function editWithGitCommitMessage(
+export function editWithGitCommitMessage(
     context: CommitEditorContext,
-    editorCommand: string
-): Promise<string> {
-    // Get the git directory and construct COMMIT_EDITMSG path
-    const gitDir = await getGitDirectory();
+    editorCommand: string,
+    gitDir: string
+): string {
     const commitMsgPath = path.resolve(gitDir, "COMMIT_EDITMSG");
 
     // Write template with context comments

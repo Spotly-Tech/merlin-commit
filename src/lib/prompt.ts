@@ -1,27 +1,35 @@
 import { confirm, input, select } from "@inquirer/prompts";
 
-import type { CommitAnswers } from "../types/index.js";
+import type { CommitAnswers, MerlinConfig, WizardMessages } from "../types/index.js";
 import {
     EMOJI_COLUMN_WIDTH,
     VALUE_COLUMN_WIDTH,
     VARIATION_SELECTOR,
 } from "../utils/constants.js";
-import { getMessages, loadConfig } from "./config-loader.js";
-import {
-    buildBreakingChangeTemplate,
-    buildIssueReferenceTemplate,
-    editorWithCommentTemplate,
-    editWithGitCommitMessage,
-} from "./editor-wrapper.js";
-import { getStagedFilesWithStatus } from "./git.js";
+import type { CommitEditorContext } from "./editor-wrapper.js";
+import type { StagedFile } from "./git.js";
 import {
     createCharacterCounterTransformer,
     createOptionalCharacterCounterTransformer,
 } from "./transformers.js";
 
-export async function promptUser(): Promise<CommitAnswers> {
-    const config = await loadConfig();
-    const messages = await getMessages();
+/**
+ * Dependencies injected by the command layer, avoiding direct lib-to-lib imports.
+ */
+export type PromptDependencies = {
+    config: Required<MerlinConfig>;
+    messages: WizardMessages;
+    getStagedFiles: () => Promise<StagedFile[]>;
+    editBody: (context: CommitEditorContext) => string;
+    editBreaking: () => Promise<string>;
+    editIssues: () => Promise<string>;
+};
+
+export async function promptUser(
+    dependencies: PromptDependencies
+): Promise<CommitAnswers> {
+    const { config, messages, getStagedFiles, editBody, editBreaking, editIssues } =
+        dependencies;
     const answers: CommitAnswers = {
         type: "",
         subject: "",
@@ -87,16 +95,13 @@ export async function promptUser(): Promise<CommitAnswers> {
     });
     // If user wants detailed body, open editor with git commit context
     if (wantsDetailedBody) {
-        const stagedFiles = await getStagedFilesWithStatus();
-        answers.body = await editWithGitCommitMessage(
-            {
-                type: answers.type,
-                scope: answers.scope,
-                subject: answers.subject,
-                stagedFiles,
-            },
-            config.editor
-        );
+        const stagedFiles = await getStagedFiles();
+        answers.body = editBody({
+            type: answers.type,
+            scope: answers.scope,
+            subject: answers.subject,
+            stagedFiles,
+        });
     }
 
     // Prompt for optional breaking changes using external editor
@@ -106,10 +111,7 @@ export async function promptUser(): Promise<CommitAnswers> {
     });
     // If user indicates breaking changes, open editor with comment template
     if (hasBreakingChanges) {
-        const breakingDescription = await editorWithCommentTemplate(
-            buildBreakingChangeTemplate(),
-            config.editor
-        );
+        const breakingDescription = await editBreaking();
         // Strip "BREAKING CHANGE:" prefix if user typed it (prevents duplication
         // since buildCommitMessage() adds the prefix automatically)
         const cleanDescription = breakingDescription.replace(/^BREAKING CHANGE:\s*/i, "");
@@ -125,10 +127,7 @@ export async function promptUser(): Promise<CommitAnswers> {
     });
     // If user wants to reference issues, open editor with comment template
     if (hasIssues) {
-        const issueReferences = await editorWithCommentTemplate(
-            buildIssueReferenceTemplate(),
-            config.editor
-        );
+        const issueReferences = await editIssues();
         if (issueReferences) {
             answers.issues = issueReferences;
         }
