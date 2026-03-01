@@ -1,4 +1,8 @@
+import { spawnSync } from "child_process";
+import { readFileSync, writeFileSync } from "fs";
+import { editor } from "@inquirer/prompts";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import {
     buildBreakingChangeTemplate,
     buildIssueReferenceTemplate,
@@ -7,20 +11,9 @@ import {
     editWithGitCommitMessage,
 } from "../../src/lib/editor-wrapper.js";
 
-import { editor } from "@inquirer/prompts";
-import { spawnSync } from "child_process";
-import { readFileSync, writeFileSync } from "fs";
-import { getGitDirectory } from "../../src/lib/git.js";
-
 // Mock @inquirer/prompts editor
 vi.mock("@inquirer/prompts", () => ({
     editor: vi.fn(),
-}));
-
-// Mock git.js to avoid real git operations (needed by editWithGitCommitMessage)
-vi.mock("../../src/lib/git.js", () => ({
-    getGitDirectory: vi.fn(),
-    getStagedFilesWithStatus: vi.fn(),
 }));
 
 vi.mock("child_process", () => ({
@@ -143,9 +136,7 @@ describe("editorWithCommentTemplate", () => {
     });
 
     it("trims whitespace from result", async () => {
-        vi.mocked(editor).mockResolvedValue(
-            "\n  User content  \n\n# comment\n\n"
-        );
+        vi.mocked(editor).mockResolvedValue("\n  User content  \n\n# comment\n\n");
 
         const result = await editorWithCommentTemplate("# template");
 
@@ -236,8 +227,7 @@ describe("editWithGitCommitMessage", () => {
         vi.clearAllMocks();
     });
 
-    it("writes template and returns stripped result", async () => {
-        vi.mocked(getGitDirectory).mockResolvedValue(".git");
+    it("writes template and returns stripped result", () => {
         vi.mocked(spawnSync).mockReturnValue({
             status: 0,
             error: undefined,
@@ -246,13 +236,14 @@ describe("editWithGitCommitMessage", () => {
             "User body text\n# Type: feat\n# Subject: add feature\n"
         );
 
-        const result = await editWithGitCommitMessage(
+        const result = editWithGitCommitMessage(
             {
                 type: "feat",
                 subject: "add feature",
                 stagedFiles: [{ status: "modified", path: "src/index.ts" }],
             },
-            "vim"
+            "vim",
+            ".git"
         );
 
         expect(writeFileSync).toHaveBeenCalledWith(
@@ -263,21 +254,21 @@ describe("editWithGitCommitMessage", () => {
         expect(result).toBe("User body text");
     });
 
-    it("throws when editor fails to launch", async () => {
-        vi.mocked(getGitDirectory).mockResolvedValue(".git");
+    it("throws when editor fails to launch", () => {
         vi.mocked(spawnSync).mockReturnValue({
             error: new Error("ENOENT"),
         } as never);
 
-        await expect(
+        expect(() =>
             editWithGitCommitMessage(
                 {
                     type: "feat",
                     subject: "test",
                     stagedFiles: [],
                 },
-                "nonexistent-editor"
+                "nonexistent-editor",
+                ".git"
             )
-        ).rejects.toThrow("Failed to launch editor");
+        ).toThrow("Failed to launch editor");
     });
 });

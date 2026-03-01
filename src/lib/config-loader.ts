@@ -8,7 +8,6 @@ import {
     STANDARD_MESSAGES,
     WIZARD_MESSAGES,
 } from "../utils/constants.js";
-import { getRepoRoot } from "./git.js";
 
 /**
  * Loads and validates project-level config from <repoRoot>/.merlinrc.json.
@@ -35,11 +34,11 @@ function loadProjectConfig(repoRoot: string): Partial<MerlinConfig> {
  * 2. ~/.merlinrc.json (user preferences)
  * 3. <repo-root>/.merlinrc.json (project/team config)
  *
+ * @param repoRoot - Repository root path for project-level config, or null/undefined to skip
  * @returns Complete configuration with all required fields
  */
-export async function loadConfig(): Promise<Required<MerlinConfig>> {
+export function loadConfig(repoRoot?: string | null): Required<MerlinConfig> {
     const userConfig = loadUserConfig();
-    const repoRoot = await getRepoRoot();
     const projectConfig = repoRoot ? loadProjectConfig(repoRoot) : {};
     return { ...DEFAULT_CONFIG, ...userConfig, ...projectConfig };
 }
@@ -47,9 +46,10 @@ export async function loadConfig(): Promise<Required<MerlinConfig>> {
 /**
  * Retrieves the appropriate message set based on the merged theme config.
  *
+ * @param repoRoot - Repository root path for project-level config, or null/undefined to skip
  * @returns Message object containing all UI text for prompts, errors, and tips
  */
-export async function getMessages(): Promise<WizardMessages> {
-    const config = await loadConfig();
+export function getMessages(repoRoot?: string | null): WizardMessages {
+    const config = loadConfig(repoRoot);
     return config.theme === "wizard" ? WIZARD_MESSAGES : STANDARD_MESSAGES;
 }
