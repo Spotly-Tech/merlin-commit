@@ -1,10 +1,10 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { initCommand } from "../../src/commands/init.js";
-import { WIZARD_MESSAGES } from "../../src/utils/constants.js";
-
 import { confirm, select } from "@inquirer/prompts";
 import ora from "ora";
-import { isGitRepo } from "../../src/lib/git";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { initCommand } from "../../src/commands/init.js";
+import { getMessages } from "../../src/lib/config-loader";
+import { getRepoRoot, isGitRepo } from "../../src/lib/git";
 import {
     checkGitAlias,
     createCommitlintConfig,
@@ -18,7 +18,7 @@ import {
     setupGitAlias,
 } from "../../src/lib/setup";
 import { setupSigintHandler } from "../../src/lib/sigint";
-import { getMessages } from "../../src/lib/config-loader";
+import { WIZARD_MESSAGES } from "../../src/utils/constants.js";
 
 vi.mock("@inquirer/prompts", () => ({
     confirm: vi.fn(),
@@ -27,6 +27,7 @@ vi.mock("@inquirer/prompts", () => ({
 
 vi.mock("../../src/lib/git", () => ({
     isGitRepo: vi.fn(),
+    getRepoRoot: vi.fn(),
 }));
 
 vi.mock("../../src/lib/setup", () => ({
@@ -108,7 +109,8 @@ function setupHappyPath() {
 describe("initCommand", () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        vi.mocked(getMessages).mockResolvedValue(WIZARD_MESSAGES);
+        vi.mocked(getRepoRoot).mockResolvedValue("/mock/repo");
+        vi.mocked(getMessages).mockReturnValue(WIZARD_MESSAGES);
         vi.mocked(setupSigintHandler).mockReturnValue(vi.fn());
     });
 
@@ -829,7 +831,7 @@ describe("initCommand", () => {
          * This isolates summary output from the existing-file detection output.
          */
         function extractSummaryItems(): string[] {
-            const {calls} = consoleSpy.log.mock;
+            const { calls } = consoleSpy.log.mock;
             const createdIndex = calls.findIndex((call) =>
                 String(call[0]).includes("Created/updated:")
             );

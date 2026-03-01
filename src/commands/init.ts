@@ -2,7 +2,7 @@ import { confirm, select } from "@inquirer/prompts";
 import ora from "ora";
 
 import { getMessages } from "../lib/config-loader.js";
-import { isGitRepo } from "../lib/git.js";
+import { getRepoRoot, isGitRepo } from "../lib/git.js";
 import {
     checkGitAlias,
     createCommitlintConfig,
@@ -51,7 +51,8 @@ import { colors } from "../utils/constants.js";
  * merlin init --no-install
  */
 export async function initCommand(options: InitOptions): Promise<void> {
-    const messages = await getMessages();
+    const repoRoot = await getRepoRoot();
+    const messages = getMessages(repoRoot);
     const spinner = ora();
     const removeSigintHandler = setupSigintHandler(messages, () => spinner.stop());
 

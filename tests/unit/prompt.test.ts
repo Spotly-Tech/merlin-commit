@@ -1,39 +1,17 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { promptUser } from "../../src/lib/prompt.js";
-import { DEFAULT_CONFIG, WIZARD_MESSAGES } from "../../src/utils/constants.js";
-
 import { confirm, input, select } from "@inquirer/prompts";
-import { loadConfig, getMessages } from "../../src/lib/config-loader";
-import {
-    editorWithCommentTemplate,
-    editWithGitCommitMessage,
-} from "../../src/lib/editor-wrapper";
-import { getStagedFilesWithStatus } from "../../src/lib/git";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { promptUser, type PromptDependencies } from "../../src/lib/prompt.js";
 import {
     createCharacterCounterTransformer,
     createOptionalCharacterCounterTransformer,
 } from "../../src/lib/transformers";
+import { DEFAULT_CONFIG, WIZARD_MESSAGES } from "../../src/utils/constants.js";
 
 vi.mock("@inquirer/prompts", () => ({
     confirm: vi.fn(),
     input: vi.fn(),
     select: vi.fn(),
-}));
-
-vi.mock("../../src/lib/config-loader", () => ({
-    loadConfig: vi.fn(),
-    getMessages: vi.fn(),
-}));
-
-vi.mock("../../src/lib/editor-wrapper", () => ({
-    buildBreakingChangeTemplate: vi.fn().mockReturnValue("breaking template"),
-    buildIssueReferenceTemplate: vi.fn().mockReturnValue("issue template"),
-    editorWithCommentTemplate: vi.fn(),
-    editWithGitCommitMessage: vi.fn(),
-}));
-
-vi.mock("../../src/lib/git", () => ({
-    getStagedFilesWithStatus: vi.fn(),
 }));
 
 vi.mock("../../src/lib/transformers", () => ({
@@ -42,12 +20,27 @@ vi.mock("../../src/lib/transformers", () => ({
 }));
 
 /**
+ * Creates a PromptDependencies object with default mocks.
+ * Individual tests can override specific mock functions.
+ */
+function createMockDependencies(
+    overrides?: Partial<PromptDependencies>
+): PromptDependencies {
+    return {
+        config: { ...DEFAULT_CONFIG },
+        messages: WIZARD_MESSAGES,
+        getStagedFiles: vi.fn().mockResolvedValue([]),
+        editBody: vi.fn().mockReturnValue(""),
+        editBreaking: vi.fn().mockResolvedValue(""),
+        editIssues: vi.fn().mockResolvedValue(""),
+        ...overrides,
+    };
+}
+
+/**
  * Sets up mocks for a minimal prompt flow (no body, no breaking, no issues).
  */
 function setupMinimalFlow() {
-    vi.mocked(loadConfig).mockResolvedValue({ ...DEFAULT_CONFIG });
-    vi.mocked(getMessages).mockResolvedValue(WIZARD_MESSAGES);
-
     // select: commit type
     vi.mocked(select).mockResolvedValueOnce("feat");
 
@@ -71,8 +64,9 @@ describe("promptUser", () => {
     describe("basic flow", () => {
         it("returns correct CommitAnswers shape from minimal input", async () => {
             setupMinimalFlow();
+            const dependencies = createMockDependencies();
 
-            const answers = await promptUser();
+            const answers = await promptUser(dependencies);
 
             expect(answers).toEqual({
                 type: "feat",
@@ -81,19 +75,11 @@ describe("promptUser", () => {
             });
         });
 
-        it("loads config and messages", async () => {
-            setupMinimalFlow();
-
-            await promptUser();
-
-            expect(loadConfig).toHaveBeenCalled();
-            expect(getMessages).toHaveBeenCalled();
-        });
-
         it("uses config types as select choices", async () => {
             setupMinimalFlow();
+            const dependencies = createMockDependencies();
 
-            await promptUser();
+            await promptUser(dependencies);
 
             expect(select).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -107,8 +93,9 @@ describe("promptUser", () => {
 
         it("applies character counter transformer to scope", async () => {
             setupMinimalFlow();
+            const dependencies = createMockDependencies();
 
-            await promptUser();
+            await promptUser(dependencies);
 
             expect(createOptionalCharacterCounterTransformer).toHaveBeenCalledWith(
                 DEFAULT_CONFIG.maxScopeLength
@@ -117,8 +104,9 @@ describe("promptUser", () => {
 
         it("applies character counter transformer to subject", async () => {
             setupMinimalFlow();
+            const dependencies = createMockDependencies();
 
-            await promptUser();
+            await promptUser(dependencies);
 
             expect(createCharacterCounterTransformer).toHaveBeenCalledWith(
                 DEFAULT_CONFIG.maxSubjectLength
@@ -129,15 +117,14 @@ describe("promptUser", () => {
     describe("scope handling", () => {
         it("includes scope in answers when provided", async () => {
             setupMinimalFlow();
+            const dependencies = createMockDependencies();
 
-            const answers = await promptUser();
+            const answers = await promptUser(dependencies);
 
             expect(answers.scope).toBe("core");
         });
 
         it("sets empty scope when user enters nothing", async () => {
-            vi.mocked(loadConfig).mockResolvedValue({ ...DEFAULT_CONFIG });
-            vi.mocked(getMessages).mockResolvedValue(WIZARD_MESSAGES);
             vi.mocked(select).mockResolvedValueOnce("fix");
             vi.mocked(input)
                 .mockResolvedValueOnce("") // empty scope
@@ -146,17 +133,16 @@ describe("promptUser", () => {
                 .mockResolvedValueOnce(false)
                 .mockResolvedValueOnce(false)
                 .mockResolvedValueOnce(false);
+            const dependencies = createMockDependencies();
 
-            const answers = await promptUser();
+            const answers = await promptUser(dependencies);
 
             expect(answers.scope).toBe("");
         });
     });
 
     describe("body flow", () => {
-        it("opens editor when user confirms body", async () => {
-            vi.mocked(loadConfig).mockResolvedValue({ ...DEFAULT_CONFIG });
-            vi.mocked(getMessages).mockResolvedValue(WIZARD_MESSAGES);
+        it("calls editBody when user confirms body", async () => {
             vi.mocked(select).mockResolvedValueOnce("feat");
             vi.mocked(input)
                 .mockResolvedValueOnce("api")
@@ -165,37 +151,41 @@ describe("promptUser", () => {
                 .mockResolvedValueOnce(true) // wants body
                 .mockResolvedValueOnce(false) // no breaking
                 .mockResolvedValueOnce(false); // no issues
-            vi.mocked(getStagedFilesWithStatus).mockResolvedValue([]);
-            vi.mocked(editWithGitCommitMessage).mockResolvedValue("detailed body text");
 
-            const answers = await promptUser();
+            const mockEditBody = vi.fn().mockReturnValue("detailed body text");
+            const dependencies = createMockDependencies({
+                editBody: mockEditBody,
+            });
 
-            expect(editWithGitCommitMessage).toHaveBeenCalledWith(
+            const answers = await promptUser(dependencies);
+
+            expect(mockEditBody).toHaveBeenCalledWith(
                 expect.objectContaining({
                     type: "feat",
                     scope: "api",
                     subject: "add endpoint",
                     stagedFiles: [],
-                }),
-                DEFAULT_CONFIG.editor
+                })
             );
             expect(answers.body).toBe("detailed body text");
         });
 
         it("does not set body when user declines", async () => {
             setupMinimalFlow();
+            const mockEditBody = vi.fn();
+            const dependencies = createMockDependencies({
+                editBody: mockEditBody,
+            });
 
-            const answers = await promptUser();
+            const answers = await promptUser(dependencies);
 
-            expect(editWithGitCommitMessage).not.toHaveBeenCalled();
+            expect(mockEditBody).not.toHaveBeenCalled();
             expect(answers.body).toBeUndefined();
         });
     });
 
     describe("breaking changes flow", () => {
-        it("opens editor and sets breaking when user confirms", async () => {
-            vi.mocked(loadConfig).mockResolvedValue({ ...DEFAULT_CONFIG });
-            vi.mocked(getMessages).mockResolvedValue(WIZARD_MESSAGES);
+        it("calls editBreaking and sets breaking when user confirms", async () => {
             vi.mocked(select).mockResolvedValueOnce("feat");
             vi.mocked(input)
                 .mockResolvedValueOnce("")
@@ -204,17 +194,19 @@ describe("promptUser", () => {
                 .mockResolvedValueOnce(false) // no body
                 .mockResolvedValueOnce(true) // has breaking
                 .mockResolvedValueOnce(false); // no issues
-            vi.mocked(editorWithCommentTemplate).mockResolvedValue("removed endpoint");
 
-            const answers = await promptUser();
+            const mockEditBreaking = vi.fn().mockResolvedValue("removed endpoint");
+            const dependencies = createMockDependencies({
+                editBreaking: mockEditBreaking,
+            });
 
-            expect(editorWithCommentTemplate).toHaveBeenCalled();
+            const answers = await promptUser(dependencies);
+
+            expect(mockEditBreaking).toHaveBeenCalled();
             expect(answers.breaking).toBe("removed endpoint");
         });
 
         it("strips BREAKING CHANGE: prefix to prevent duplication", async () => {
-            vi.mocked(loadConfig).mockResolvedValue({ ...DEFAULT_CONFIG });
-            vi.mocked(getMessages).mockResolvedValue(WIZARD_MESSAGES);
             vi.mocked(select).mockResolvedValueOnce("feat");
             vi.mocked(input)
                 .mockResolvedValueOnce("")
@@ -223,18 +215,19 @@ describe("promptUser", () => {
                 .mockResolvedValueOnce(false)
                 .mockResolvedValueOnce(true)
                 .mockResolvedValueOnce(false);
-            vi.mocked(editorWithCommentTemplate).mockResolvedValue(
-                "BREAKING CHANGE: removed old endpoint"
-            );
 
-            const answers = await promptUser();
+            const dependencies = createMockDependencies({
+                editBreaking: vi
+                    .fn()
+                    .mockResolvedValue("BREAKING CHANGE: removed old endpoint"),
+            });
+
+            const answers = await promptUser(dependencies);
 
             expect(answers.breaking).toBe("removed old endpoint");
         });
 
         it("does not set breaking when editor returns empty", async () => {
-            vi.mocked(loadConfig).mockResolvedValue({ ...DEFAULT_CONFIG });
-            vi.mocked(getMessages).mockResolvedValue(WIZARD_MESSAGES);
             vi.mocked(select).mockResolvedValueOnce("feat");
             vi.mocked(input)
                 .mockResolvedValueOnce("")
@@ -243,26 +236,32 @@ describe("promptUser", () => {
                 .mockResolvedValueOnce(false)
                 .mockResolvedValueOnce(true)
                 .mockResolvedValueOnce(false);
-            vi.mocked(editorWithCommentTemplate).mockResolvedValue("");
 
-            const answers = await promptUser();
+            const dependencies = createMockDependencies({
+                editBreaking: vi.fn().mockResolvedValue(""),
+            });
+
+            const answers = await promptUser(dependencies);
 
             expect(answers.breaking).toBeUndefined();
         });
 
         it("does not open editor when user declines breaking", async () => {
             setupMinimalFlow();
+            const mockEditBreaking = vi.fn();
+            const dependencies = createMockDependencies({
+                editBreaking: mockEditBreaking,
+            });
 
-            const answers = await promptUser();
+            const answers = await promptUser(dependencies);
 
+            expect(mockEditBreaking).not.toHaveBeenCalled();
             expect(answers.breaking).toBeUndefined();
         });
     });
 
     describe("issues flow", () => {
-        it("opens editor and sets issues when user confirms", async () => {
-            vi.mocked(loadConfig).mockResolvedValue({ ...DEFAULT_CONFIG });
-            vi.mocked(getMessages).mockResolvedValue(WIZARD_MESSAGES);
+        it("calls editIssues and sets issues when user confirms", async () => {
             vi.mocked(select).mockResolvedValueOnce("fix");
             vi.mocked(input)
                 .mockResolvedValueOnce("")
@@ -271,17 +270,19 @@ describe("promptUser", () => {
                 .mockResolvedValueOnce(false) // no body
                 .mockResolvedValueOnce(false) // no breaking
                 .mockResolvedValueOnce(true); // has issues
-            vi.mocked(editorWithCommentTemplate).mockResolvedValue("fixes #123");
 
-            const answers = await promptUser();
+            const mockEditIssues = vi.fn().mockResolvedValue("fixes #123");
+            const dependencies = createMockDependencies({
+                editIssues: mockEditIssues,
+            });
 
-            expect(editorWithCommentTemplate).toHaveBeenCalled();
+            const answers = await promptUser(dependencies);
+
+            expect(mockEditIssues).toHaveBeenCalled();
             expect(answers.issues).toBe("fixes #123");
         });
 
         it("does not set issues when editor returns empty", async () => {
-            vi.mocked(loadConfig).mockResolvedValue({ ...DEFAULT_CONFIG });
-            vi.mocked(getMessages).mockResolvedValue(WIZARD_MESSAGES);
             vi.mocked(select).mockResolvedValueOnce("fix");
             vi.mocked(input)
                 .mockResolvedValueOnce("")
@@ -290,26 +291,32 @@ describe("promptUser", () => {
                 .mockResolvedValueOnce(false)
                 .mockResolvedValueOnce(false)
                 .mockResolvedValueOnce(true);
-            vi.mocked(editorWithCommentTemplate).mockResolvedValue("");
 
-            const answers = await promptUser();
+            const dependencies = createMockDependencies({
+                editIssues: vi.fn().mockResolvedValue(""),
+            });
+
+            const answers = await promptUser(dependencies);
 
             expect(answers.issues).toBeUndefined();
         });
 
         it("does not open editor when user declines issues", async () => {
             setupMinimalFlow();
+            const mockEditIssues = vi.fn();
+            const dependencies = createMockDependencies({
+                editIssues: mockEditIssues,
+            });
 
-            const answers = await promptUser();
+            const answers = await promptUser(dependencies);
 
+            expect(mockEditIssues).not.toHaveBeenCalled();
             expect(answers.issues).toBeUndefined();
         });
     });
 
     describe("full flow with all fields", () => {
         it("returns complete CommitAnswers with all optional fields", async () => {
-            vi.mocked(loadConfig).mockResolvedValue({ ...DEFAULT_CONFIG });
-            vi.mocked(getMessages).mockResolvedValue(WIZARD_MESSAGES);
             vi.mocked(select).mockResolvedValueOnce("feat");
             vi.mocked(input)
                 .mockResolvedValueOnce("auth")
@@ -318,13 +325,14 @@ describe("promptUser", () => {
                 .mockResolvedValueOnce(true) // body
                 .mockResolvedValueOnce(true) // breaking
                 .mockResolvedValueOnce(true); // issues
-            vi.mocked(getStagedFilesWithStatus).mockResolvedValue([]);
-            vi.mocked(editWithGitCommitMessage).mockResolvedValue("Added OAuth2 login");
-            vi.mocked(editorWithCommentTemplate)
-                .mockResolvedValueOnce("old session API removed")
-                .mockResolvedValueOnce("closes #42, #43");
 
-            const answers = await promptUser();
+            const dependencies = createMockDependencies({
+                editBody: vi.fn().mockReturnValue("Added OAuth2 login"),
+                editBreaking: vi.fn().mockResolvedValue("old session API removed"),
+                editIssues: vi.fn().mockResolvedValue("closes #42, #43"),
+            });
+
+            const answers = await promptUser(dependencies);
 
             expect(answers).toEqual({
                 type: "feat",
