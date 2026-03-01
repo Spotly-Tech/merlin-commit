@@ -1,14 +1,22 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { commitCommand } from "../../src/commands/commit.js";
-import { WIZARD_MESSAGES } from "../../src/utils/constants.js";
-
 import { confirm } from "@inquirer/prompts";
 import ora from "ora";
-import { amendCommit, commit, hasStagedChanges, isGitRepo } from "../../src/lib/git";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { commitCommand } from "../../src/commands/commit.js";
+import { getMessages, loadConfig } from "../../src/lib/config-loader";
+import {
+    amendCommit,
+    commit,
+    getGitDirectory,
+    getRepoRoot,
+    getStagedFilesWithStatus,
+    hasStagedChanges,
+    isGitRepo,
+} from "../../src/lib/git";
 import { buildCommitMessage, formatPreview } from "../../src/lib/message";
 import { promptUser } from "../../src/lib/prompt";
-import { getMessages } from "../../src/lib/config-loader";
 import { setupSigintHandler } from "../../src/lib/sigint";
+import { DEFAULT_CONFIG, WIZARD_MESSAGES } from "../../src/utils/constants.js";
 
 vi.mock("@inquirer/prompts", () => ({
     confirm: vi.fn(),
@@ -19,6 +27,9 @@ vi.mock("../../src/lib/git", () => ({
     hasStagedChanges: vi.fn(),
     commit: vi.fn(),
     amendCommit: vi.fn(),
+    getRepoRoot: vi.fn(),
+    getGitDirectory: vi.fn(),
+    getStagedFilesWithStatus: vi.fn(),
 }));
 
 vi.mock("../../src/lib/message", () => ({
@@ -32,6 +43,14 @@ vi.mock("../../src/lib/prompt", () => ({
 
 vi.mock("../../src/lib/config-loader", () => ({
     getMessages: vi.fn(),
+    loadConfig: vi.fn(),
+}));
+
+vi.mock("../../src/lib/editor-wrapper", () => ({
+    editWithGitCommitMessage: vi.fn(),
+    editorWithCommentTemplate: vi.fn(),
+    buildBreakingChangeTemplate: vi.fn(),
+    buildIssueReferenceTemplate: vi.fn(),
 }));
 
 vi.mock("../../src/lib/sigint", () => ({
@@ -71,13 +90,19 @@ function setupHappyPath() {
     vi.mocked(formatPreview).mockReturnValue("feat(core): add new feature");
     vi.mocked(confirm).mockResolvedValue(true);
     vi.mocked(commit).mockResolvedValue("[main abc1234] feat(core): add new feature");
-    vi.mocked(amendCommit).mockResolvedValue("[main abc1234] feat(core): add new feature");
+    vi.mocked(amendCommit).mockResolvedValue(
+        "[main abc1234] feat(core): add new feature"
+    );
 }
 
 describe("commitCommand", () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        vi.mocked(getMessages).mockResolvedValue(WIZARD_MESSAGES);
+        vi.mocked(getRepoRoot).mockResolvedValue("/mock/repo");
+        vi.mocked(getGitDirectory).mockResolvedValue(".git");
+        vi.mocked(getStagedFilesWithStatus).mockResolvedValue([]);
+        vi.mocked(getMessages).mockReturnValue(WIZARD_MESSAGES);
+        vi.mocked(loadConfig).mockReturnValue(DEFAULT_CONFIG);
         vi.mocked(setupSigintHandler).mockReturnValue(vi.fn());
     });
 
@@ -154,10 +179,7 @@ describe("commitCommand", () => {
                     message: WIZARD_MESSAGES.prompts.confirm,
                 })
             );
-            expect(commit).toHaveBeenCalledWith(
-                "feat(core): add new feature",
-                undefined
-            );
+            expect(commit).toHaveBeenCalledWith("feat(core): add new feature", undefined);
         });
 
         it("displays commit preview before confirmation", async () => {
@@ -256,10 +278,7 @@ describe("commitCommand", () => {
 
             await commitCommand({ noVerify: true });
 
-            expect(commit).toHaveBeenCalledWith(
-                "feat(core): add new feature",
-                true
-            );
+            expect(commit).toHaveBeenCalledWith("feat(core): add new feature", true);
         });
 
         it("passes noVerify option through to amendCommit", async () => {
@@ -267,10 +286,7 @@ describe("commitCommand", () => {
 
             await commitCommand({ noVerify: true, amend: true });
 
-            expect(amendCommit).toHaveBeenCalledWith(
-                "feat(core): add new feature",
-                true
-            );
+            expect(amendCommit).toHaveBeenCalledWith("feat(core): add new feature", true);
         });
     });
 
@@ -307,7 +323,9 @@ describe("commitCommand", () => {
 
         it("handles commit failure with error message", async () => {
             setupHappyPath();
-            vi.mocked(commit).mockRejectedValue(new Error("git commit failed: hook rejected"));
+            vi.mocked(commit).mockRejectedValue(
+                new Error("git commit failed: hook rejected")
+            );
 
             await commitCommand({});
 

@@ -1,6 +1,7 @@
 import { confirm, input, select } from "@inquirer/prompts";
 
 import { getMessages, loadConfig } from "../lib/config-loader.js";
+import { getRepoRoot } from "../lib/git.js";
 import { setupSigintHandler } from "../lib/sigint.js";
 import type { MerlinConfig, WizardMessages } from "../types/index.js";
 import { resetConfig, saveConfig } from "../utils/config.js";
@@ -172,7 +173,8 @@ async function configureAutoAdd(config: Required<MerlinConfig>): Promise<void> {
  * Display the current configuration as formatted JSON.
  */
 async function showConfig(): Promise<void> {
-    const config = await loadConfig();
+    const repoRoot = await getRepoRoot();
+    const config = loadConfig(repoRoot);
 
     console.log(colors.header("\nCurrent Configuration:"));
     console.log(colors.muted("-".repeat(60)));
@@ -215,14 +217,15 @@ async function resetConfigWithConfirmation(messages: WizardMessages): Promise<vo
  * Displays all options with current values and processes user selections.
  */
 async function interactiveConfigMenu(): Promise<void> {
-    const initialMessages = await getMessages();
+    const repoRoot = await getRepoRoot();
+    const initialMessages = getMessages(repoRoot);
     console.log(colors.header(`\n${initialMessages.config.intro}`));
     console.log(colors.muted("Configure Merlin's settings\n"));
 
     let running = true;
     while (running) {
-        const config = await loadConfig();
-        const messages = await getMessages();
+        const config = loadConfig(repoRoot);
+        const messages = getMessages(repoRoot);
 
         const menuChoices = buildMenuChoices(config);
         const choice = await select<MenuChoice>({
@@ -294,7 +297,8 @@ async function interactiveConfigMenu(): Promise<void> {
  * merlin config
  */
 export async function configCommand(options: ConfigOptions): Promise<void> {
-    const messages = await getMessages();
+    const repoRoot = await getRepoRoot();
+    const messages = getMessages(repoRoot);
     const removeSigintHandler = setupSigintHandler(messages);
 
     try {

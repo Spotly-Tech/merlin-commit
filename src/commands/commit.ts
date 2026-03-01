@@ -1,8 +1,22 @@
 import { confirm } from "@inquirer/prompts";
 import ora from "ora";
 
-import { getMessages } from "../lib/config-loader.js";
-import { amendCommit, commit, hasStagedChanges, isGitRepo } from "../lib/git.js";
+import { getMessages, loadConfig } from "../lib/config-loader.js";
+import {
+    buildBreakingChangeTemplate,
+    buildIssueReferenceTemplate,
+    editorWithCommentTemplate,
+    editWithGitCommitMessage,
+} from "../lib/editor-wrapper.js";
+import {
+    amendCommit,
+    commit,
+    getGitDirectory,
+    getRepoRoot,
+    getStagedFilesWithStatus,
+    hasStagedChanges,
+    isGitRepo,
+} from "../lib/git.js";
 import { buildCommitMessage, formatPreview } from "../lib/message.js";
 import { promptUser } from "../lib/prompt.js";
 import { setupSigintHandler } from "../lib/sigint.js";
@@ -15,7 +29,8 @@ type CommitOptions = {
 };
 
 export async function commitCommand(options: CommitOptions): Promise<void> {
-    const messages = await getMessages();
+    const repoRoot = await getRepoRoot();
+    const messages = getMessages(repoRoot);
     const spinner = ora();
     const removeSigintHandler = setupSigintHandler(messages, () => spinner.stop());
 
@@ -40,8 +55,22 @@ export async function commitCommand(options: CommitOptions): Promise<void> {
         }
         spinner.succeed();
 
-        // Prompt user for commit details
-        const userAnswers = await promptUser();
+        // Load config and resolve git directory for editor integration
+        const config = loadConfig(repoRoot);
+        const gitDir = await getGitDirectory();
+
+        // Prompt user for commit details with injected dependencies
+        const userAnswers = await promptUser({
+            config,
+            messages,
+            getStagedFiles: getStagedFilesWithStatus,
+            editBody: (context) =>
+                editWithGitCommitMessage(context, config.editor, gitDir),
+            editBreaking: () =>
+                editorWithCommentTemplate(buildBreakingChangeTemplate(), config.editor),
+            editIssues: () =>
+                editorWithCommentTemplate(buildIssueReferenceTemplate(), config.editor),
+        });
         const message = buildCommitMessage(userAnswers);
 
         // Show commit preview

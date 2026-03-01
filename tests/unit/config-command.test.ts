@@ -1,11 +1,12 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { configCommand } from "../../src/commands/config.js";
-import { DEFAULT_CONFIG, WIZARD_MESSAGES } from "../../src/utils/constants.js";
-
 // Import mocked modules
 import { confirm, input, select } from "@inquirer/prompts";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { configCommand } from "../../src/commands/config.js";
 import { getMessages, loadConfig } from "../../src/lib/config-loader";
+import { getRepoRoot } from "../../src/lib/git";
 import { resetConfig, saveConfig } from "../../src/utils/config";
+import { DEFAULT_CONFIG, WIZARD_MESSAGES } from "../../src/utils/constants.js";
 
 // Mock @inquirer/prompts
 vi.mock("@inquirer/prompts", () => ({
@@ -14,10 +15,15 @@ vi.mock("@inquirer/prompts", () => ({
     confirm: vi.fn(),
 }));
 
-// Mock async config-loader (loadConfig, getMessages)
+// Mock config-loader (loadConfig, getMessages) - now synchronous
 vi.mock("../../src/lib/config-loader", () => ({
     loadConfig: vi.fn(),
     getMessages: vi.fn(),
+}));
+
+// Mock git module (getRepoRoot)
+vi.mock("../../src/lib/git", () => ({
+    getRepoRoot: vi.fn(),
 }));
 
 // Mock sync config utilities (saveConfig, resetConfig)
@@ -38,8 +44,9 @@ const mockExit = vi.spyOn(process, "exit").mockImplementation((() => {}) as neve
 describe("configCommand", () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        vi.mocked(getMessages).mockResolvedValue(WIZARD_MESSAGES);
-        vi.mocked(loadConfig).mockResolvedValue({ ...DEFAULT_CONFIG });
+        vi.mocked(getRepoRoot).mockResolvedValue("/mock/repo");
+        vi.mocked(getMessages).mockReturnValue(WIZARD_MESSAGES);
+        vi.mocked(loadConfig).mockReturnValue({ ...DEFAULT_CONFIG });
     });
 
     describe("--show flag", () => {
@@ -49,7 +56,7 @@ describe("configCommand", () => {
                 theme: "standard" as const,
                 maxSubjectLength: 50,
             };
-            vi.mocked(loadConfig).mockResolvedValue(mockConfig);
+            vi.mocked(loadConfig).mockReturnValue(mockConfig);
 
             await configCommand({ show: true });
 
@@ -153,7 +160,7 @@ describe("configCommand", () => {
         });
 
         it("shows current values in menu choices", async () => {
-            vi.mocked(loadConfig).mockResolvedValue({
+            vi.mocked(loadConfig).mockReturnValue({
                 ...DEFAULT_CONFIG,
                 theme: "standard",
                 maxSubjectLength: 100,
@@ -173,7 +180,7 @@ describe("configCommand", () => {
         });
 
         it("uses wizard theme message when theme is wizard", async () => {
-            vi.mocked(loadConfig).mockResolvedValue({ ...DEFAULT_CONFIG, theme: "wizard" });
+            vi.mocked(loadConfig).mockReturnValue({ ...DEFAULT_CONFIG, theme: "wizard" });
             vi.mocked(select).mockResolvedValueOnce("exit");
 
             await configCommand({});
@@ -186,7 +193,7 @@ describe("configCommand", () => {
         });
 
         it("uses standard theme message when theme is standard", async () => {
-            vi.mocked(loadConfig).mockResolvedValue({
+            vi.mocked(loadConfig).mockReturnValue({
                 ...DEFAULT_CONFIG,
                 theme: "standard",
             });
@@ -388,7 +395,7 @@ describe("configCommand", () => {
         });
 
         it("uses current value as default", async () => {
-            vi.mocked(loadConfig).mockResolvedValue({ ...DEFAULT_CONFIG, autoAdd: true });
+            vi.mocked(loadConfig).mockReturnValue({ ...DEFAULT_CONFIG, autoAdd: true });
             vi.mocked(select)
                 .mockResolvedValueOnce("autoAdd")
                 .mockResolvedValueOnce("exit");
