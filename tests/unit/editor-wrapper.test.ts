@@ -9,6 +9,7 @@ import {
     editorWithCommentTemplate,
     editorWithConfig,
     editWithGitCommitMessage,
+    validateEditorAvailable,
 } from "../../src/lib/editor-wrapper.js";
 
 // Mock @inquirer/prompts editor
@@ -158,9 +159,42 @@ describe("editorWithCommentTemplate", () => {
     });
 });
 
+describe("validateEditorAvailable", () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    it("returns true when editor binary is found on PATH", () => {
+        vi.mocked(spawnSync).mockReturnValue({ status: 0 } as never);
+
+        const result = validateEditorAvailable("code --wait");
+
+        expect(result).toBe(true);
+    });
+
+    it("returns false when editor binary is not found on PATH", () => {
+        vi.mocked(spawnSync).mockReturnValue({ status: 1 } as never);
+
+        const result = validateEditorAvailable("nonexistent-editor");
+
+        expect(result).toBe(false);
+    });
+
+    it("extracts binary name from command with args", () => {
+        vi.mocked(spawnSync).mockReturnValue({ status: 0 } as never);
+
+        validateEditorAvailable("code --wait --new-window");
+
+        const [, checkedArgs] = vi.mocked(spawnSync).mock.calls[0];
+        expect(checkedArgs).toEqual(["code"]);
+    });
+});
+
 describe("editorWithConfig", () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        // Default: editor binary is available on PATH
+        vi.mocked(spawnSync).mockReturnValue({ status: 0 } as never);
     });
 
     it("calls editor with provided options when no custom editor", async () => {
@@ -219,6 +253,14 @@ describe("editorWithConfig", () => {
 
         expect(process.env.VISUAL).toBe(originalVisual);
         expect(process.env.EDITOR).toBe(originalEditor);
+    });
+
+    it("throws when custom editor binary is not found on PATH", async () => {
+        vi.mocked(spawnSync).mockReturnValue({ status: 1 } as never);
+
+        await expect(
+            editorWithConfig({ message: "test" }, "nonexistent-editor")
+        ).rejects.toThrow("Editor 'nonexistent-editor' not found");
     });
 });
 
@@ -312,5 +354,24 @@ describe("editWithGitCommitMessage", () => {
                 ".git"
             )
         ).toThrow("Failed to launch editor");
+    });
+
+    it("throws when editor exits with non-zero status", () => {
+        vi.mocked(spawnSync).mockReturnValue({
+            status: 1,
+            error: undefined,
+        } as never);
+
+        expect(() =>
+            editWithGitCommitMessage(
+                {
+                    type: "feat",
+                    subject: "test",
+                    stagedFiles: [],
+                },
+                "vim",
+                ".git"
+            )
+        ).toThrow("Editor vim failed or was not found (exit code 1)");
     });
 });
