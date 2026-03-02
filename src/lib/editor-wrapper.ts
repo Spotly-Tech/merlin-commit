@@ -16,6 +16,22 @@ type EditorOptions = {
 };
 
 /**
+ * Checks whether the editor binary is available on PATH before launching.
+ *
+ * Uses `where` (Windows) or `which` (Unix) to search PATH for the binary
+ * extracted from the editor command string.
+ *
+ * @param editorCommand - Editor command from config (e.g., "code --wait", "vim")
+ * @returns true if the editor binary is found on PATH, false otherwise
+ */
+export function validateEditorAvailable(editorCommand: string): boolean {
+    const { bin } = parseEditorCommand(editorCommand);
+    const checkCommand = process.platform === "win32" ? "where" : "which";
+    const result = spawnSync(checkCommand, [bin], { stdio: "pipe" });
+    return result.status === 0;
+}
+
+/**
  * Prepares an editor command for Windows compatibility.
  *
  * On Windows, the @inquirer/external-editor package spawns the editor without
@@ -67,6 +83,12 @@ export async function editorWithConfig(
 
     try {
         if (customEditor) {
+            if (!validateEditorAvailable(customEditor)) {
+                throw new Error(
+                    `Editor '${customEditor}' not found. Update your editor setting with: merlin config`
+                );
+            }
+
             // On Windows, wrap with cmd /c for proper shell resolution of .cmd files
             const editorCommand =
                 process.platform === "win32"
@@ -330,6 +352,11 @@ export function editWithGitCommitMessage(
 
     if (result.error) {
         throw new Error(`Failed to launch editor: ${result.error.message}`);
+    }
+    if (result.status !== 0) {
+        throw new Error(
+            `Editor ${bin} failed or was not found (exit code ${result.status})`
+        );
     }
 
     // Read the file content and strip comments
