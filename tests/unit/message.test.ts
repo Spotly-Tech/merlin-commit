@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import { buildCommitMessage, formatPreview } from "../../src/lib/message.js";
 
 describe("buildCommitMessage", () => {
@@ -34,7 +35,9 @@ describe("buildCommitMessage", () => {
             subject: "change API",
             breaking: "API endpoints changed",
         });
-        expect(result).toBe("feat!: change API\n\nBREAKING CHANGE: API endpoints changed");
+        expect(result).toBe(
+            "feat!: change API\n\nBREAKING CHANGE: API endpoints changed"
+        );
     });
 
     it("builds commit with scope and breaking change indicator", () => {
@@ -81,7 +84,9 @@ describe("buildCommitMessage", () => {
             subject: "change API",
             breaking: "BREAKING CHANGE: API endpoints changed",
         });
-        expect(result).toBe("feat!: change API\n\nBREAKING CHANGE: API endpoints changed");
+        expect(result).toBe(
+            "feat!: change API\n\nBREAKING CHANGE: API endpoints changed"
+        );
     });
 
     it("strips case-insensitive breaking change prefix", () => {
@@ -90,7 +95,9 @@ describe("buildCommitMessage", () => {
             subject: "change API",
             breaking: "breaking change: API endpoints changed",
         });
-        expect(result).toBe("feat!: change API\n\nBREAKING CHANGE: API endpoints changed");
+        expect(result).toBe(
+            "feat!: change API\n\nBREAKING CHANGE: API endpoints changed"
+        );
     });
 
     it("skips breaking change when only prefix is provided", () => {
@@ -122,8 +129,12 @@ describe("formatPreview", () => {
     });
 
     it("adds warning emoji to BREAKING CHANGE", () => {
-        const result = formatPreview("feat: change api\n\nBREAKING CHANGE: removed old endpoint");
-        expect(result).toBe("feat: change api\n\n⚠️  BREAKING CHANGE: removed old endpoint");
+        const result = formatPreview(
+            "feat: change api\n\nBREAKING CHANGE: removed old endpoint"
+        );
+        expect(result).toBe(
+            "feat: change api\n\n⚠️  BREAKING CHANGE: removed old endpoint"
+        );
     });
 
     it("adds link emoji to issue references (Fixes)", () => {
@@ -154,6 +165,11 @@ describe("formatPreview", () => {
     it("handles related to keyword", () => {
         const result = formatPreview("feat: new\n\nrelated to #50");
         expect(result).toBe("feat: new\n\n🔗 related to #50");
+    });
+
+    it("adds link emoji to references keyword", () => {
+        const result = formatPreview("fix: bug\n\nReferences #123");
+        expect(result).toBe("fix: bug\n\n🔗 References #123");
     });
 
     it("handles issue references mid-line", () => {
