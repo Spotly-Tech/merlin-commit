@@ -229,10 +229,22 @@ export type WizardMessages = {
         breaking: string;
 
         /**
+         * Editor label shown when writing breaking change description.
+         * @example "⚠️  Describe the breaking change:"
+         */
+        editorBreaking: string;
+
+        /**
          * Prompt for referencing optional issues.
          * @example "🔗 Does this resolve any quests?"
          */
         issues: string;
+
+        /**
+         * Editor label shown when writing issue references.
+         * @example "🔗 Enter issue references:"
+         */
+        editorIssues: string;
 
         /**
          * Prompt for final commit confirmation.
