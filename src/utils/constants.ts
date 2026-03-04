@@ -108,7 +108,9 @@ export const WIZARD_MESSAGES: WizardMessages = {
         subject: "📝 Describe your spell briefly:",
         body: "📖 Would you like to weave a detailed tale?",
         breaking: "⚠️  Does this spell shatter ancient contracts?",
+        editorBreaking: "⚠️  Inscribe the shattered covenant:",
         issues: "🔗 Does this resolve any quests?",
+        editorIssues: "🔗 Name the quests you have resolved:",
         confirm: "🔮 Shall Merlin cast this spell?",
     },
     success: {
@@ -190,7 +192,9 @@ export const STANDARD_MESSAGES: WizardMessages = {
         subject: "Short description:",
         body: "Add a detailed description?",
         breaking: "Are there any breaking changes?",
+        editorBreaking: "Describe the breaking change:",
         issues: "Reference any issues? (e.g., fixes #123)",
+        editorIssues: "Enter issue references:",
         confirm: "Create this commit?",
     },
     success: {
