@@ -2,6 +2,7 @@ import { confirm, input, select } from "@inquirer/prompts";
 
 import type { CommitAnswers, MerlinConfig, WizardMessages } from "../types/index.js";
 import {
+    colors,
     EMOJI_COLUMN_WIDTH,
     VALUE_COLUMN_WIDTH,
     VARIATION_SELECTOR,
@@ -95,13 +96,17 @@ export async function promptUser(
     });
     // If user wants detailed body, open editor with git commit context
     if (wantsDetailedBody) {
-        const stagedFiles = await getStagedFiles();
-        answers.body = editBody({
-            type: answers.type,
-            scope: answers.scope,
-            subject: answers.subject,
-            stagedFiles,
-        });
+        try {
+            const stagedFiles = await getStagedFiles();
+            answers.body = editBody({
+                type: answers.type,
+                scope: answers.scope,
+                subject: answers.subject,
+                stagedFiles,
+            });
+        } catch {
+            console.warn(colors.warning(`\n${messages.errors.editorFailed}\n`));
+        }
     }
 
     // Prompt for optional breaking changes using external editor
@@ -111,12 +116,19 @@ export async function promptUser(
     });
     // If user indicates breaking changes, open editor with comment template
     if (hasBreakingChanges) {
-        const breakingDescription = await editBreaking();
-        // Strip "BREAKING CHANGE:" prefix if user typed it (prevents duplication
-        // since buildCommitMessage() adds the prefix automatically)
-        const cleanDescription = breakingDescription.replace(/^BREAKING CHANGE:\s*/i, "");
-        if (cleanDescription) {
-            answers.breaking = cleanDescription;
+        try {
+            const breakingDescription = await editBreaking();
+            // Strip "BREAKING CHANGE:" prefix if user typed it (prevents duplication
+            // since buildCommitMessage() adds the prefix automatically)
+            const cleanDescription = breakingDescription.replace(
+                /^BREAKING CHANGE:\s*/i,
+                ""
+            );
+            if (cleanDescription) {
+                answers.breaking = cleanDescription;
+            }
+        } catch {
+            console.warn(colors.warning(`\n${messages.errors.editorFailed}\n`));
         }
     }
 
@@ -127,9 +139,13 @@ export async function promptUser(
     });
     // If user wants to reference issues, open editor with comment template
     if (hasIssues) {
-        const issueReferences = await editIssues();
-        if (issueReferences) {
-            answers.issues = issueReferences;
+        try {
+            const issueReferences = await editIssues();
+            if (issueReferences) {
+                answers.issues = issueReferences;
+            }
+        } catch {
+            console.warn(colors.warning(`\n${messages.errors.editorFailed}\n`));
         }
     }
 

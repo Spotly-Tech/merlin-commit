@@ -315,6 +315,106 @@ describe("promptUser", () => {
         });
     });
 
+    describe("editor failure fallback", () => {
+        it("continues without body when body editor throws", async () => {
+            vi.mocked(select).mockResolvedValueOnce("feat");
+            vi.mocked(input)
+                .mockResolvedValueOnce("api")
+                .mockResolvedValueOnce("add endpoint");
+            vi.mocked(confirm)
+                .mockResolvedValueOnce(true) // wants body
+                .mockResolvedValueOnce(false)
+                .mockResolvedValueOnce(false);
+
+            const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+            const dependencies = createMockDependencies({
+                editBody: vi.fn().mockImplementation(() => {
+                    throw new Error("Editor 'vim' not found");
+                }),
+            });
+
+            const answers = await promptUser(dependencies);
+
+            expect(answers.body).toBeUndefined();
+            expect(warnSpy).toHaveBeenCalledOnce();
+            warnSpy.mockRestore();
+        });
+
+        it("continues without breaking when breaking editor throws", async () => {
+            vi.mocked(select).mockResolvedValueOnce("feat");
+            vi.mocked(input)
+                .mockResolvedValueOnce("")
+                .mockResolvedValueOnce("change API");
+            vi.mocked(confirm)
+                .mockResolvedValueOnce(false)
+                .mockResolvedValueOnce(true) // wants breaking
+                .mockResolvedValueOnce(false);
+
+            const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+            const dependencies = createMockDependencies({
+                editBreaking: vi.fn().mockRejectedValue(new Error("Editor not found")),
+            });
+
+            const answers = await promptUser(dependencies);
+
+            expect(answers.breaking).toBeUndefined();
+            expect(warnSpy).toHaveBeenCalledOnce();
+            warnSpy.mockRestore();
+        });
+
+        it("continues without issues when issues editor throws", async () => {
+            vi.mocked(select).mockResolvedValueOnce("fix");
+            vi.mocked(input)
+                .mockResolvedValueOnce("")
+                .mockResolvedValueOnce("resolve bug");
+            vi.mocked(confirm)
+                .mockResolvedValueOnce(false)
+                .mockResolvedValueOnce(false)
+                .mockResolvedValueOnce(true); // wants issues
+
+            const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+            const dependencies = createMockDependencies({
+                editIssues: vi.fn().mockRejectedValue(new Error("Editor not found")),
+            });
+
+            const answers = await promptUser(dependencies);
+
+            expect(answers.issues).toBeUndefined();
+            expect(warnSpy).toHaveBeenCalledOnce();
+            warnSpy.mockRestore();
+        });
+
+        it("still returns valid commit answers when all editors fail", async () => {
+            vi.mocked(select).mockResolvedValueOnce("feat");
+            vi.mocked(input)
+                .mockResolvedValueOnce("auth")
+                .mockResolvedValueOnce("add login");
+            vi.mocked(confirm)
+                .mockResolvedValueOnce(true)
+                .mockResolvedValueOnce(true)
+                .mockResolvedValueOnce(true);
+
+            const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+            const dependencies = createMockDependencies({
+                editBody: vi.fn().mockImplementation(() => {
+                    throw new Error("Editor not found");
+                }),
+                editBreaking: vi.fn().mockRejectedValue(new Error("Editor not found")),
+                editIssues: vi.fn().mockRejectedValue(new Error("Editor not found")),
+            });
+
+            const answers = await promptUser(dependencies);
+
+            expect(answers.type).toBe("feat");
+            expect(answers.subject).toBe("add login");
+            expect(answers.body).toBeUndefined();
+            expect(answers.breaking).toBeUndefined();
+            expect(answers.issues).toBeUndefined();
+            expect(warnSpy).toHaveBeenCalledTimes(3);
+            warnSpy.mockRestore();
+        });
+    });
+
     describe("full flow with all fields", () => {
         it("returns complete CommitAnswers with all optional fields", async () => {
             vi.mocked(select).mockResolvedValueOnce("feat");
