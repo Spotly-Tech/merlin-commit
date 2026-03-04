@@ -67,9 +67,17 @@ export async function commitCommand(options: CommitOptions): Promise<void> {
             editBody: (context) =>
                 editWithGitCommitMessage(context, config.editor, gitDir),
             editBreaking: () =>
-                editorWithCommentTemplate(buildBreakingChangeTemplate(), config.editor),
+                editorWithCommentTemplate(
+                    buildBreakingChangeTemplate(),
+                    config.editor,
+                    messages.prompts.editorBreaking
+                ),
             editIssues: () =>
-                editorWithCommentTemplate(buildIssueReferenceTemplate(), config.editor),
+                editorWithCommentTemplate(
+                    buildIssueReferenceTemplate(),
+                    config.editor,
+                    messages.prompts.editorIssues
+                ),
         });
         const message = buildCommitMessage(userAnswers);
 

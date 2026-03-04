@@ -288,11 +288,12 @@ export function buildIssueReferenceTemplate(): string {
  */
 export async function editorWithCommentTemplate(
     template: string,
-    customEditor?: string
+    customEditor?: string,
+    label: string = ""
 ): Promise<string> {
     const rawResult = await editorWithConfig(
         {
-            message: "",
+            message: label,
             default: template,
             waitForUserInput: false,
         },
