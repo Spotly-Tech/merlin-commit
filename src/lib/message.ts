@@ -77,7 +77,10 @@ export function buildCommitMessage(answers: CommitAnswers): string {
  *
  * Processes a commit message line-by-line to add contextual icons:
  * - ⚠️ prefix for breaking change declarations
- * - 🔗 prefix for issue references (Fixes, Closes, Resolves)
+ * - 🔗 prefix for issue references (Fixes, Closes, Resolves, Refs, References)
+ *
+ * These icons are display-only and are NOT included in the actual git commit
+ * message. The raw commit message (from buildCommitMessage) is used for git.
  *
  * This improves readability when displaying commit previews in the terminal
  * before final confirmation.
@@ -109,7 +112,9 @@ export function formatPreview(message: string): string {
 
         if (line.startsWith("BREAKING CHANGE:")) {
             formattedLines.push(`⚠️  ${line}`);
-        } else if (line.match(/(fixes|closes|resolves|refs|related to) #\d+/i)) {
+        } else if (
+            line.match(/(fixes|closes|resolves|refs|references|related to) #\d+/i)
+        ) {
             formattedLines.push(`🔗 ${line}`);
         } else {
             formattedLines.push(line);

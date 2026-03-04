@@ -87,6 +87,11 @@ export async function commitCommand(options: CommitOptions): Promise<void> {
         console.log(colors.muted("-".repeat(60)));
         console.log(formatPreview(message));
         console.log(colors.muted("-".repeat(60)));
+        console.log(
+            colors.muted(
+                "(⚠️  and 🔗 indicators are visual only - not included in commit)"
+            )
+        );
         console.log();
 
         // Dry run mode
