@@ -283,6 +283,8 @@ async function interactiveConfigMenu(): Promise<void> {
  * - Default: Interactive menu for modifying individual settings
  *
  * @param options - Command line options
+ * @param options.show - Display current config as formatted JSON and exit
+ * @param options.reset - Reset all settings to defaults after confirmation
  *
  * @example
  * // Show current config

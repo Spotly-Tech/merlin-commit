@@ -6,7 +6,7 @@ import { editor } from "@inquirer/prompts";
 import type { StagedFile } from "./git.js";
 
 /**
- * Options for the editor prompt, matching @inquirer/prompts editor() signature.
+ * Options for the editor prompt, matching `@inquirer/prompts` editor() signature.
  */
 type EditorOptions = {
     message: string;
@@ -34,7 +34,7 @@ export function validateEditorAvailable(editorCommand: string): boolean {
 /**
  * Prepares an editor command for Windows compatibility.
  *
- * On Windows, the @inquirer/external-editor package spawns the editor without
+ * On Windows, the `@inquirer/external-editor` package spawns the editor without
  * `shell: true`, which means .cmd/.bat files (like VS Code's `code.cmd`) won't
  * be found. This function wraps the command with `cmd /c` to ensure proper
  * shell resolution.
@@ -53,9 +53,9 @@ function prepareEditorForWindows(editorCommand: string): string {
 }
 
 /**
- * Wrapper around @inquirer/prompts editor() that respects the user's configured editor.
+ * Wrapper around `@inquirer/prompts` editor() that respects the user's configured editor.
  *
- * The @inquirer/editor package uses environment variables ($VISUAL or $EDITOR) to
+ * The `@inquirer/prompts` editor() uses environment variables ($VISUAL or $EDITOR) to
  * determine which editor to launch. This wrapper temporarily sets process.env.VISUAL
  * to the user's configured editor before calling editor(), then restores the original
  * environment variables afterward.
@@ -63,7 +63,7 @@ function prepareEditorForWindows(editorCommand: string): string {
  * On Windows, editor commands are automatically wrapped with `cmd /c` to ensure
  * proper resolution of .cmd/.bat files (required for VS Code, etc.).
  *
- * @param options - Standard @inquirer/prompts editor options
+ * @param options - Standard `@inquirer/prompts` editor options
  * @param customEditor - Path to editor command from config (e.g., "code --wait", "vim")
  * @returns Promise resolving to the text entered in the editor
  *
@@ -314,12 +314,12 @@ export async function editorWithCommentTemplate(
  * @param context - Commit context for the template
  * @param editorCommand - Editor command from config (e.g., "code --wait")
  * @param gitDir - Path to the .git directory (from getGitDirectory())
- * @returns Promise resolving to the text entered (comments stripped)
+ * @returns The text entered in the editor with comment lines stripped
  *
  * @example
  * ```typescript
  * const gitDir = await getGitDirectory();
- * const body = await editWithGitCommitMessage(
+ * const body = editWithGitCommitMessage(
  *     { type: "feat", scope: "auth", subject: "add login", stagedFiles },
  *     "code --wait",
  *     gitDir

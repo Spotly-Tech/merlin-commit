@@ -26,7 +26,7 @@ import { colors } from "../utils/constants.js";
  * Performs the following setup steps:
  * 1. Validates git repository and package.json exist
  * 2. Detects existing setup files
- * 3. Installs dependencies (husky, \@commitlint/cli, \@commitlint/config-conventional)
+ * 3. Installs dependencies (husky, `@commitlint/cli`, `@commitlint/config-conventional`)
  * 4. Initializes husky
  * 5. Creates commitlint configuration
  * 6. Creates commit-msg hook
