@@ -18,14 +18,30 @@ import {
  * Dependencies injected by the command layer, avoiding direct lib-to-lib imports.
  */
 export type PromptDependencies = {
+    /** Resolved user config with all defaults applied. */
     config: Required<MerlinConfig>;
+    /** Theme-specific prompt messages and labels. */
     messages: WizardMessages;
+    /** Returns the list of currently staged files for the editor context. */
     getStagedFiles: () => Promise<StagedFile[]>;
+    /** Opens the commit body editor synchronously and returns the entered text. */
     editBody: (context: CommitEditorContext) => string;
+    /** Opens the breaking changes editor and returns the entered text. */
     editBreaking: () => Promise<string>;
+    /** Opens the issue references editor and returns the entered text. */
     editIssues: () => Promise<string>;
 };
 
+/**
+ * Runs the interactive commit prompt sequence, collecting all commit fields.
+ *
+ * Prompts for type, scope, subject, optional body (via editor), optional breaking
+ * changes (via editor), and optional issue references (via editor). Editor failures
+ * are caught and warned about without aborting the flow.
+ *
+ * @param dependencies - Injected dependencies (config, messages, editor launchers)
+ * @returns Populated CommitAnswers with all user-provided values
+ */
 export async function promptUser(
     dependencies: PromptDependencies
 ): Promise<CommitAnswers> {
