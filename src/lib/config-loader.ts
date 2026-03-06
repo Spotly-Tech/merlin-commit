@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 
-import type { MerlinConfig, WizardMessages } from "../types/index.js";
+import type { MerlinConfig, ThemeMessages } from "../types/index.js";
 import { loadUserConfig, validateConfig } from "../utils/config.js";
 import {
     DEFAULT_CONFIG,
@@ -49,7 +49,7 @@ export function loadConfig(repoRoot?: string | null): Required<MerlinConfig> {
  * @param repoRoot - Repository root path for project-level config, or null/undefined to skip
  * @returns Message object containing all UI text for prompts, errors, and tips
  */
-export function getMessages(repoRoot?: string | null): WizardMessages {
+export function getMessages(repoRoot?: string | null): ThemeMessages {
     const config = loadConfig(repoRoot);
     return config.theme === "wizard" ? WIZARD_MESSAGES : STANDARD_MESSAGES;
 }

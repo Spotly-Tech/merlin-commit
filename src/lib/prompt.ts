@@ -1,6 +1,6 @@
 import { confirm, input, select } from "@inquirer/prompts";
 
-import type { CommitAnswers, MerlinConfig, WizardMessages } from "../types/index.js";
+import type { CommitAnswers, MerlinConfig, ThemeMessages } from "../types/index.js";
 import {
     colors,
     EMOJI_COLUMN_WIDTH,
@@ -21,7 +21,7 @@ export type PromptDependencies = {
     /** Resolved user config with all defaults applied. */
     config: Required<MerlinConfig>;
     /** Theme-specific prompt messages and labels. */
-    messages: WizardMessages;
+    messages: ThemeMessages;
     /** Returns the list of currently staged files for the editor context. */
     getStagedFiles: () => Promise<StagedFile[]>;
     /** Opens the commit body editor synchronously and returns the entered text. */
