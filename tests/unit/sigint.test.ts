@@ -1,10 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { setupSigintHandler } from "../../src/lib/sigint.js";
-import type { WizardMessages } from "../../src/types/index.js";
+import type { ThemeMessages } from "../../src/types/index.js";
 
 const messages = {
     warnings: { cancel: "Operation cancelled" },
-} as WizardMessages;
+} as ThemeMessages;
 
 describe("setupSigintHandler", () => {
     let removeHandler: () => void = () => {};

@@ -3,7 +3,7 @@ import { confirm, input, select } from "@inquirer/prompts";
 import { getMessages, loadConfig } from "../lib/config-loader.js";
 import { getRepoRoot } from "../lib/git.js";
 import { setupSigintHandler } from "../lib/sigint.js";
-import type { MerlinConfig, WizardMessages } from "../types/index.js";
+import type { MerlinConfig, ThemeMessages } from "../types/index.js";
 import { resetConfig, saveConfig } from "../utils/config.js";
 import { colors } from "../utils/constants.js";
 import { createNonEmptyValidator, createRangeValidator } from "../utils/validators.js";
@@ -196,7 +196,7 @@ async function showConfig(): Promise<void> {
 /**
  * Reset configuration to defaults with user confirmation.
  */
-async function resetConfigWithConfirmation(messages: WizardMessages): Promise<void> {
+async function resetConfigWithConfirmation(messages: ThemeMessages): Promise<void> {
     console.log(colors.warning(`\n${messages.warnings.resetConfig}`));
 
     const confirmed = await confirm({
