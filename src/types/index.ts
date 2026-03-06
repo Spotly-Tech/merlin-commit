@@ -132,7 +132,7 @@ export type MerlinConfig = {
  * All user-facing messages for a themed commit interface.
  * Different message sets enable wizard or standard themes.
  */
-export type WizardMessages = {
+export type ThemeMessages = {
     /**
      * Messages specific to the commit command.
      */

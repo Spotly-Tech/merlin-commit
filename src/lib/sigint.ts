@@ -1,4 +1,4 @@
-import type { WizardMessages } from "../types/index.js";
+import type { ThemeMessages } from "../types/index.js";
 import { colors } from "../utils/constants.js";
 
 /**
@@ -10,7 +10,7 @@ import { colors } from "../utils/constants.js";
  * @returns Cleanup function to remove the SIGINT handler
  */
 export function setupSigintHandler(
-    messages: WizardMessages,
+    messages: ThemeMessages,
     cleanup?: () => void
 ): () => void {
     const handleSigint = () => {

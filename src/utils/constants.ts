@@ -1,6 +1,6 @@
 import chalk from "chalk";
 
-import type { CommitType, MerlinConfig, WizardMessages } from "../types/index.js";
+import type { CommitType, MerlinConfig, ThemeMessages } from "../types/index.js";
 
 export const colors = {
     primary: chalk.cyan,
@@ -88,7 +88,7 @@ export const EMOJI_COLUMN_WIDTH = 4;
 // U+FE0F - terminals render these emojis 1 column narrower than standard emojis
 export const VARIATION_SELECTOR = "\uFE0F";
 
-export const WIZARD_MESSAGES: WizardMessages = {
+export const WIZARD_MESSAGES: ThemeMessages = {
     commit: {
         intro: "🧙 Merlin is ready to guide your commit",
         exit: "🔮 Your spell is woven into history.",
@@ -172,7 +172,7 @@ export const WIZARD_MESSAGES: WizardMessages = {
     },
 };
 
-export const STANDARD_MESSAGES: WizardMessages = {
+export const STANDARD_MESSAGES: ThemeMessages = {
     commit: {
         intro: "Ready to create a commit",
         exit: "Commit complete",
