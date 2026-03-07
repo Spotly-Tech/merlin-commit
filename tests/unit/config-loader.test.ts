@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { getMessages, loadConfig } from "../../src/lib/config-loader.js";
 import {
@@ -23,8 +23,28 @@ const USER_CONFIG_PATH = join("/mock/home", ".merlinrc.json");
 
 describe("config-loader", () => {
     describe("loadConfig", () => {
+        let savedEditor: string | undefined;
+        let savedVisual: string | undefined;
+
         beforeEach(() => {
             vi.clearAllMocks();
+            savedEditor = process.env.EDITOR;
+            savedVisual = process.env.VISUAL;
+            delete process.env.EDITOR;
+            delete process.env.VISUAL;
+        });
+
+        afterEach(() => {
+            if (savedEditor !== undefined) {
+                process.env.EDITOR = savedEditor;
+            } else {
+                delete process.env.EDITOR;
+            }
+            if (savedVisual !== undefined) {
+                process.env.VISUAL = savedVisual;
+            } else {
+                delete process.env.VISUAL;
+            }
         });
 
         it("returns DEFAULT_CONFIG when no user config and no repo", () => {
@@ -145,6 +165,47 @@ describe("config-loader", () => {
             const config = loadConfig(repoRoot);
 
             expect(config.theme).toBe("standard");
+        });
+
+        describe("editor resolution", () => {
+            it("uses EDITOR env var when set and no editor in user or project config", () => {
+                process.env.EDITOR = "code";
+                vi.mocked(existsSync).mockReturnValue(false);
+
+                const config = loadConfig();
+
+                expect(config.editor).toBe("code");
+            });
+
+            it("uses VISUAL env var when EDITOR is not set", () => {
+                process.env.VISUAL = "nano";
+                vi.mocked(existsSync).mockReturnValue(false);
+
+                const config = loadConfig();
+
+                expect(config.editor).toBe("nano");
+            });
+
+            it("falls back to platform default when no env vars are set", () => {
+                vi.mocked(existsSync).mockReturnValue(false);
+                const expectedEditor = process.platform === "win32" ? "notepad" : "vim";
+
+                const config = loadConfig();
+
+                expect(config.editor).toBe(expectedEditor);
+            });
+
+            it("user config editor takes precedence over env vars", () => {
+                process.env.EDITOR = "code";
+                vi.mocked(existsSync).mockReturnValue(true);
+                vi.mocked(readFileSync).mockReturnValue(
+                    JSON.stringify({ editor: "emacs" })
+                );
+
+                const config = loadConfig();
+
+                expect(config.editor).toBe("emacs");
+            });
         });
     });
 

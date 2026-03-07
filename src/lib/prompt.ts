@@ -2,6 +2,7 @@ import { confirm, input, select } from "@inquirer/prompts";
 
 import type { CommitAnswers, MerlinConfig, ThemeMessages } from "../types/index.js";
 import {
+    BREAKING_CHANGE_PREFIX_REGEX,
     colors,
     EMOJI_COLUMN_WIDTH,
     VALUE_COLUMN_WIDTH,
@@ -137,7 +138,7 @@ export async function promptUser(
             // Strip "BREAKING CHANGE:" prefix if user typed it (prevents duplication
             // since buildCommitMessage() adds the prefix automatically)
             const cleanDescription = breakingDescription.replace(
-                /^BREAKING CHANGE:\s*/i,
+                BREAKING_CHANGE_PREFIX_REGEX,
                 ""
             );
             if (cleanDescription) {
