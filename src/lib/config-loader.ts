@@ -10,6 +10,19 @@ import {
 } from "../utils/constants.js";
 
 /**
+ * Resolves the default editor by reading environment variables at call time.
+ * Called lazily inside loadConfig() so tests can control the value by setting
+ * process.env.EDITOR before calling loadConfig().
+ */
+function resolveDefaultEditor(): string {
+    return (
+        process.env.EDITOR ||
+        process.env.VISUAL ||
+        (process.platform === "win32" ? "notepad" : "vim")
+    );
+}
+
+/**
  * Loads and validates project-level config from <repoRoot>/.merlinrc.json.
  * Returns only the validated fields (not merged with defaults).
  */
@@ -40,7 +53,14 @@ function loadProjectConfig(repoRoot: string): Partial<MerlinConfig> {
 export function loadConfig(repoRoot?: string | null): Required<MerlinConfig> {
     const userConfig = loadUserConfig();
     const projectConfig = repoRoot ? loadProjectConfig(repoRoot) : {};
-    return { ...DEFAULT_CONFIG, ...userConfig, ...projectConfig };
+    const merged = { ...DEFAULT_CONFIG, ...userConfig, ...projectConfig };
+    // Resolve editor from env vars at call time when no explicit editor is configured.
+    // userConfig/projectConfig take precedence; only fall through to resolveDefaultEditor()
+    // when neither specifies an editor, so tests can control the value via process.env.EDITOR.
+    return {
+        ...merged,
+        editor: userConfig.editor ?? projectConfig.editor ?? resolveDefaultEditor(),
+    };
 }
 
 /**

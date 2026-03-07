@@ -1,4 +1,5 @@
 import type { CommitAnswers } from "../types/index.js";
+import { BREAKING_CHANGE_PREFIX_REGEX } from "../utils/constants.js";
 
 /**
  * Constructs a conventional commit message from user answers.
@@ -44,7 +45,7 @@ export function buildCommitMessage(answers: CommitAnswers): string {
     }
 
     const hasBreakingDescription = answers.breaking
-        ? answers.breaking.replace(/^BREAKING CHANGE:\s*/i, "").length > 0
+        ? answers.breaking.replace(BREAKING_CHANGE_PREFIX_REGEX, "").length > 0
         : false;
 
     if (hasBreakingDescription) {
@@ -60,7 +61,10 @@ export function buildCommitMessage(answers: CommitAnswers): string {
     if (answers.breaking) {
         // Strip "BREAKING CHANGE:" prefix if present to prevent duplication,
         // since this function always adds the prefix
-        const breakingDescription = answers.breaking.replace(/^BREAKING CHANGE:\s*/i, "");
+        const breakingDescription = answers.breaking.replace(
+            BREAKING_CHANGE_PREFIX_REGEX,
+            ""
+        );
         if (breakingDescription) {
             message += `\n\nBREAKING CHANGE: ${breakingDescription}`;
         }
