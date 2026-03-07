@@ -2,6 +2,12 @@ import chalk from "chalk";
 
 import type { CommitType, MerlinConfig, ThemeMessages } from "../types/index.js";
 
+/**
+ * Regex that matches the "BREAKING CHANGE:" prefix (case-insensitive).
+ * Used to strip user-typed prefixes before buildCommitMessage() adds its own.
+ */
+export const BREAKING_CHANGE_PREFIX_REGEX = /^BREAKING CHANGE:\s*/i;
+
 export const colors = {
     primary: chalk.cyan,
     header: chalk.bold.cyan,
@@ -261,10 +267,7 @@ export const DEFAULT_CONFIG: Required<MerlinConfig> = {
     maxSubjectLength: 72,
     maxScopeLength: 20,
 
-    editor:
-        process.env.EDITOR ||
-        process.env.VISUAL ||
-        (process.platform === "win32" ? "notepad" : "vim"),
+    editor: process.platform === "win32" ? "notepad" : "vim",
     autoAdd: false,
     theme: "wizard",
 };
