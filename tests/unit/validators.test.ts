@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import {
     composeValidators,
     createMaxLengthValidator,
@@ -31,7 +32,12 @@ describe("validators", () => {
         it("returns error for non-numeric input", () => {
             expect(validate("abc")).toBe("Please enter a valid number");
             expect(validate("")).toBe("Please enter a valid number");
-            expect(validate("12.5")).toBe(true); // parseInt truncates to 12
+        });
+
+        it("returns error for decimal inputs", () => {
+            expect(validate("12.5")).toBe("Please enter a whole number");
+            expect(validate("10.0")).toBe("Please enter a whole number");
+            expect(validate("99.9")).toBe("Please enter a whole number");
         });
     });
 
@@ -67,12 +73,17 @@ describe("validators", () => {
 
         it("returns error for strings exceeding limit", () => {
             expect(validate("12345678901")).toBe("Subject must be 10 characters or less");
-            expect(validate("a".repeat(100))).toBe("Subject must be 10 characters or less");
+            expect(validate("a".repeat(100))).toBe(
+                "Subject must be 10 characters or less"
+            );
         });
     });
 
     describe("createPatternValidator", () => {
-        const validate = createPatternValidator(/^[a-z-]+$/, "Must be lowercase with hyphens only");
+        const validate = createPatternValidator(
+            /^[a-z-]+$/,
+            "Must be lowercase with hyphens only"
+        );
 
         it("returns true for matching patterns", () => {
             expect(validate("hello")).toBe(true);
