@@ -610,3 +610,59 @@ export type InitOptions = {
      */
     install?: boolean;
 };
+
+/**
+ * Command-line options for the `merlin commit` command.
+ * Controls commit behavior such as preview mode and hook bypassing.
+ */
+export type CommitOptions = {
+    /**
+     * When true, preview the commit message without creating a commit.
+     * @default false
+     */
+    dryRun?: boolean;
+
+    /**
+     * When true, amend the most recent commit instead of creating a new one.
+     * @default false
+     */
+    amend?: boolean;
+
+    /**
+     * When true, skip pre-commit and commit-msg git hooks.
+     * @default false
+     */
+    noVerify?: boolean;
+};
+
+/**
+ * Command-line options for the `merlin config` command.
+ * Controls whether to display or reset configuration.
+ */
+export type ConfigOptions = {
+    /**
+     * When true, display the current configuration and exit without opening the menu.
+     * @default false
+     */
+    show?: boolean;
+
+    /**
+     * When true, reset configuration to defaults and exit without opening the menu.
+     * @default false
+     */
+    reset?: boolean;
+};
+
+/**
+ * Identifies which action the user selected from the config menu.
+ * Each value maps to a setting key or a navigation action.
+ */
+export type ConfigMenuAction =
+    | "theme"
+    | "maxSubjectLength"
+    | "maxScopeLength"
+    | "editor"
+    | "autoAdd"
+    | "show"
+    | "reset"
+    | "exit";

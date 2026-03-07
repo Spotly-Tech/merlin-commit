@@ -3,25 +3,15 @@ import { confirm, input, select } from "@inquirer/prompts";
 import { getMessages, loadConfig } from "../lib/config-loader.js";
 import { getRepoRoot } from "../lib/git.js";
 import { setupSigintHandler } from "../lib/sigint.js";
-import type { MerlinConfig, ThemeMessages } from "../types/index.js";
+import type {
+    ConfigMenuAction,
+    ConfigOptions,
+    MerlinConfig,
+    ThemeMessages,
+} from "../types/index.js";
 import { resetConfig, saveConfig } from "../utils/config.js";
 import { colors } from "../utils/constants.js";
 import { createNonEmptyValidator, createRangeValidator } from "../utils/validators.js";
-
-type ConfigOptions = {
-    show?: boolean;
-    reset?: boolean;
-};
-
-type MenuChoice =
-    | "theme"
-    | "maxSubjectLength"
-    | "maxScopeLength"
-    | "editor"
-    | "autoAdd"
-    | "show"
-    | "reset"
-    | "exit";
 
 /**
  * Builds menu choices with current configuration values displayed.
@@ -53,35 +43,35 @@ function buildMenuChoices(config: Required<MerlinConfig>) {
 
     return [
         {
-            value: "theme" as MenuChoice,
+            value: "theme" as ConfigMenuAction,
             name: `${prefix.theme} Theme                    [${config.theme}]`,
         },
         {
-            value: "maxSubjectLength" as MenuChoice,
+            value: "maxSubjectLength" as ConfigMenuAction,
             name: `${prefix.maxSubjectLength} Max subject length        [${config.maxSubjectLength}]`,
         },
         {
-            value: "maxScopeLength" as MenuChoice,
+            value: "maxScopeLength" as ConfigMenuAction,
             name: `${prefix.maxScopeLength} Max scope length          [${config.maxScopeLength}]`,
         },
         {
-            value: "editor" as MenuChoice,
+            value: "editor" as ConfigMenuAction,
             name: `${prefix.editor} Default editor            [${config.editor}]`,
         },
         {
-            value: "autoAdd" as MenuChoice,
+            value: "autoAdd" as ConfigMenuAction,
             name: `${prefix.autoAdd} Auto-add unstaged files   [${config.autoAdd}]`,
         },
         {
-            value: "show" as MenuChoice,
+            value: "show" as ConfigMenuAction,
             name: `${prefix.show} Show current config`,
         },
         {
-            value: "reset" as MenuChoice,
+            value: "reset" as ConfigMenuAction,
             name: `${prefix.reset} Reset to defaults`,
         },
         {
-            value: "exit" as MenuChoice,
+            value: "exit" as ConfigMenuAction,
             name: `${prefix.exit} Exit`,
         },
     ];
@@ -228,7 +218,7 @@ async function interactiveConfigMenu(): Promise<void> {
         const messages = getMessages(repoRoot);
 
         const menuChoices = buildMenuChoices(config);
-        const choice = await select<MenuChoice>({
+        const choice = await select<ConfigMenuAction>({
             message:
                 config.theme === "wizard"
                     ? "What would you like to configure?"
