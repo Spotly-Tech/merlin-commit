@@ -15,10 +15,16 @@ import type { Validator } from "../types/index.js";
  */
 export function createRangeValidator(min: number, max: number): Validator {
     return (input: string) => {
-        const num = parseInt(input, 10);
-        if (isNaN(num)) return "Please enter a valid number";
-        if (num < min) return `Value must be at least ${min}`;
-        if (num > max) return `Value must be at most ${max}`;
+        const trimmed = input.trim();
+        if (trimmed === "" || Number.isNaN(Number(trimmed))) {
+            return "Please enter a valid number";
+        }
+        if (trimmed.includes(".")) {
+            return "Please enter a whole number";
+        }
+        const parsed = Number(trimmed);
+        if (parsed < min) return `Value must be at least ${min}`;
+        if (parsed > max) return `Value must be at most ${max}`;
         return true;
     };
 }
