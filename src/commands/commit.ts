@@ -20,13 +20,8 @@ import {
 import { buildCommitMessage, formatPreview } from "../lib/message.js";
 import { promptUser } from "../lib/prompt.js";
 import { setupSigintHandler } from "../lib/sigint.js";
+import type { CommitOptions } from "../types/index.js";
 import { colors } from "../utils/constants.js";
-
-type CommitOptions = {
-    dryRun?: boolean;
-    amend?: boolean;
-    noVerify?: boolean;
-};
 
 export async function commitCommand(options: CommitOptions): Promise<void> {
     const repoRoot = await getRepoRoot();
