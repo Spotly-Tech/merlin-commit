@@ -20,6 +20,10 @@ import { setupSigintHandler } from "../lib/sigint.js";
 import type { InitOptions } from "../types/index.js";
 import { colors } from "../utils/constants.js";
 
+type ExistingSetup = Awaited<ReturnType<typeof detectExistingSetup>>;
+type Messages = ReturnType<typeof getMessages>;
+type Spinner = ReturnType<typeof ora>;
+
 /**
  * Init command handler that sets up husky and commitlint for conventional commits.
  *
@@ -57,11 +61,6 @@ export async function initCommand(options: InitOptions): Promise<void> {
     const removeSigintHandler = setupSigintHandler(messages, () => spinner.stop());
 
     try {
-        // Track which setup steps actually completed
-        let huskyInitialized = false;
-        let commitlintCreated = false;
-        let hookCreated = false;
-
         // Show intro
         console.log(colors.header(`\n${messages.init.intro}\n`));
 
@@ -106,7 +105,6 @@ export async function initCommand(options: InitOptions): Promise<void> {
             });
 
             if (shouldInstall) {
-                // Filter deps based on options
                 let deps = [...INIT_DEPENDENCIES];
                 if (options.huskyOnly) {
                     deps = deps.filter((d) => d === "husky");
@@ -131,234 +129,45 @@ export async function initCommand(options: InitOptions): Promise<void> {
             }
         }
 
-        // Initialize Husky (unless --commitlint-only)
-        if (!options.commitlintOnly) {
-            const isHuskyInstalled = await isPackageInstalled("husky");
+        const huskyInitialized = await runHuskySetup(
+            options,
+            existing,
+            messages,
+            spinner
+        );
+        const commitlintCreated = await runCommitlintSetup(
+            options,
+            existing,
+            messages,
+            spinner
+        );
 
-            if (!isHuskyInstalled) {
-                console.log(
-                    colors.warning(
-                        "  ⚠️  Skipping Husky initialization — husky not installed"
-                    )
-                );
-            } else {
-                let shouldInit = true;
-
-                if (existing.husky) {
-                    shouldInit = await confirm({
-                        message: `${messages.init.overwrite} (.husky/)`,
-                        default: false,
-                    });
-                    if (!shouldInit) {
-                        console.log(
-                            colors.muted(`  ${messages.init.skipExisting} .husky/`)
-                        );
-                    }
-                }
-
-                if (shouldInit) {
-                    spinner.start(messages.init.initializingHusky);
-                    try {
-                        await initializeHusky();
-                        spinner.succeed();
-                        huskyInitialized = true;
-                    } catch (error) {
-                        spinner.fail(colors.error(messages.errors.huskyFailed));
-                        console.error(colors.muted(`\n${(error as Error).message}\n`));
-                        process.exit(1);
-                    }
-                }
-            }
-        }
-
-        // Create commitlint config (unless --husky-only)
-        if (!options.huskyOnly) {
-            const isCommitlintInstalled = await isPackageInstalled("@commitlint/cli");
-
-            if (!isCommitlintInstalled) {
-                console.log(
-                    colors.warning(
-                        "  ⚠️  Skipping commitlint config — @commitlint/cli not installed"
-                    )
-                );
-            } else {
-                let shouldCreate = true;
-
-                if (existing.commitlintConfig) {
-                    shouldCreate = await confirm({
-                        message: `${messages.init.overwrite} (commitlint.config.js)`,
-                        default: false,
-                    });
-                    if (!shouldCreate) {
-                        console.log(
-                            colors.muted(
-                                `  ${messages.init.skipExisting} commitlint.config.js`
-                            )
-                        );
-                    }
-                }
-
-                if (shouldCreate) {
-                    spinner.start(messages.init.creatingCommitlint);
-                    try {
-                        await createCommitlintConfig();
-                        spinner.succeed();
-                        commitlintCreated = true;
-                    } catch (error) {
-                        spinner.fail(colors.error(messages.errors.configFailed));
-                        console.error(colors.muted(`\n${(error as Error).message}\n`));
-                        process.exit(1);
-                    }
-                }
-            }
-        }
-
-        // Create commit-msg hook (only if both husky AND commitlint are available)
-        // Skip if: huskyOnly (no commitlint to run) or commitlintOnly without existing husky
+        let hookCreated = false;
         if (!options.huskyOnly && (!options.commitlintOnly || existing.husky)) {
-            const isHookViable =
-                (huskyInitialized || existing.husky) &&
-                (await isPackageInstalled("@commitlint/cli"));
-
-            if (!isHookViable) {
-                console.log(
-                    colors.warning(
-                        "  ⚠️  Skipping commit-msg hook — missing dependencies"
-                    )
-                );
-            } else {
-                let shouldCreate = true;
-
-                if (existing.commitMsgHook) {
-                    shouldCreate = await confirm({
-                        message: `${messages.init.overwrite} (.husky/commit-msg)`,
-                        default: false,
-                    });
-                    if (!shouldCreate) {
-                        console.log(
-                            colors.muted(
-                                `  ${messages.init.skipExisting} .husky/commit-msg`
-                            )
-                        );
-                    }
-                }
-
-                if (shouldCreate) {
-                    spinner.start(messages.init.creatingHook);
-                    try {
-                        await createCommitMsgHook();
-                        spinner.succeed();
-                        hookCreated = true;
-                    } catch (error) {
-                        spinner.fail(colors.error(messages.errors.hookFailed));
-                        console.error(colors.muted(`\n${(error as Error).message}\n`));
-                        process.exit(1);
-                    }
-                }
-            }
+            hookCreated = await runHookSetup(
+                huskyInitialized,
+                existing,
+                messages,
+                spinner
+            );
         }
 
-        // Setup git alias (optional)
-        let aliasCreated = false;
-        const wantsAlias = await confirm({
-            message: messages.init.setupAlias,
-            default: true,
-        });
-
-        if (wantsAlias) {
-            const existingAlias = await checkGitAlias();
-
-            let shouldCreate = true;
-            if (existingAlias) {
-                console.log(
-                    colors.warning(`\n${messages.warnings.aliasExists}: ${existingAlias}`)
-                );
-                shouldCreate = await confirm({
-                    message: messages.init.overwrite,
-                    default: false,
-                });
-            }
-
-            if (shouldCreate) {
-                const scope = await select({
-                    message: messages.init.aliasScope,
-                    choices: [
-                        {
-                            value: "global" as const,
-                            name: messages.init.aliasScopeGlobal,
-                        },
-                        { value: "local" as const, name: messages.init.aliasScopeLocal },
-                    ],
-                });
-
-                spinner.start(messages.init.creatingAlias);
-                try {
-                    await setupGitAlias(scope);
-                    spinner.succeed();
-                    aliasCreated = true;
-                } catch (error) {
-                    spinner.fail(colors.error(messages.errors.aliasFailed));
-                    console.error(colors.muted(`\n${(error as Error).message}`));
-                    // Non-fatal: continue to success summary
-                }
-            }
-        }
-
-        // Create project config (optional)
-        let projectConfigCreated = false;
-        const wantsProjectConfig = await confirm({
-            message: messages.init.createProjectConfig,
-            default: !existing.merlinConfig,
-        });
-
-        if (wantsProjectConfig) {
-            let shouldCreate = true;
-
-            if (existing.merlinConfig) {
-                shouldCreate = await confirm({
-                    message: `${messages.init.overwrite} (.merlinrc.json)`,
-                    default: false,
-                });
-                if (!shouldCreate) {
-                    console.log(
-                        colors.muted(`  ${messages.init.skipExisting} .merlinrc.json`)
-                    );
-                }
-            }
-
-            if (shouldCreate) {
-                spinner.start(messages.init.creatingProjectConfig);
-                try {
-                    await createProjectConfig();
-                    spinner.succeed();
-                    projectConfigCreated = true;
-                } catch (error) {
-                    spinner.fail(colors.error(messages.errors.configFailed));
-                    console.error(colors.muted(`\n${(error as Error).message}`));
-                    // Non-fatal: continue to success summary
-                }
-            }
-        }
+        const aliasCreated = await runAliasSetup(messages, spinner);
+        const projectConfigCreated = await runProjectConfigSetup(
+            existing,
+            messages,
+            spinner
+        );
 
         // Success summary
         console.log(colors.success(`\n✨ ${messages.success.init}`));
         console.log(colors.muted("\nCreated/updated:"));
-
-        if (huskyInitialized) {
-            console.log(colors.muted("  • .husky/ directory"));
-        }
-        if (commitlintCreated) {
-            console.log(colors.muted("  • commitlint.config.js"));
-        }
-        if (hookCreated) {
-            console.log(colors.muted("  • .husky/commit-msg hook"));
-        }
-        if (aliasCreated) {
-            console.log(colors.muted("  • git merlin alias"));
-        }
-        if (projectConfigCreated) {
+        if (huskyInitialized) console.log(colors.muted("  • .husky/ directory"));
+        if (commitlintCreated) console.log(colors.muted("  • commitlint.config.js"));
+        if (hookCreated) console.log(colors.muted("  • .husky/commit-msg hook"));
+        if (aliasCreated) console.log(colors.muted("  • git merlin alias"));
+        if (projectConfigCreated)
             console.log(colors.muted("  • .merlinrc.json (project config)"));
-        }
 
         console.log(colors.primary(`\n${messages.tips.nextSteps}`));
         console.log(colors.muted("  1. Stage your changes: git add ."));
@@ -377,5 +186,216 @@ export async function initCommand(options: InitOptions): Promise<void> {
         process.exit(1);
     } finally {
         removeSigintHandler();
+    }
+}
+
+async function runHuskySetup(
+    options: InitOptions,
+    existing: ExistingSetup,
+    messages: Messages,
+    spinner: Spinner
+): Promise<boolean> {
+    if (options.commitlintOnly) {
+        return false;
+    }
+
+    const isHuskyInstalled = await isPackageInstalled("husky");
+    if (!isHuskyInstalled) {
+        console.log(
+            colors.warning("  ⚠️  Skipping Husky initialization — husky not installed")
+        );
+        return false;
+    }
+
+    if (existing.husky) {
+        const shouldInit = await confirm({
+            message: `${messages.init.overwrite} (.husky/)`,
+            default: false,
+        });
+        if (!shouldInit) {
+            console.log(colors.muted(`  ${messages.init.skipExisting} .husky/`));
+            return false;
+        }
+    }
+
+    spinner.start(messages.init.initializingHusky);
+    try {
+        await initializeHusky();
+        spinner.succeed();
+        return true;
+    } catch (error) {
+        spinner.fail(colors.error(messages.errors.huskyFailed));
+        console.error(colors.muted(`\n${(error as Error).message}\n`));
+        process.exit(1);
+    }
+}
+
+async function runCommitlintSetup(
+    options: InitOptions,
+    existing: ExistingSetup,
+    messages: Messages,
+    spinner: Spinner
+): Promise<boolean> {
+    if (options.huskyOnly) {
+        return false;
+    }
+
+    const isCommitlintInstalled = await isPackageInstalled("@commitlint/cli");
+    if (!isCommitlintInstalled) {
+        console.log(
+            colors.warning(
+                "  ⚠️  Skipping commitlint config — @commitlint/cli not installed"
+            )
+        );
+        return false;
+    }
+
+    if (existing.commitlintConfig) {
+        const shouldCreate = await confirm({
+            message: `${messages.init.overwrite} (commitlint.config.js)`,
+            default: false,
+        });
+        if (!shouldCreate) {
+            console.log(
+                colors.muted(`  ${messages.init.skipExisting} commitlint.config.js`)
+            );
+            return false;
+        }
+    }
+
+    spinner.start(messages.init.creatingCommitlint);
+    try {
+        await createCommitlintConfig();
+        spinner.succeed();
+        return true;
+    } catch (error) {
+        spinner.fail(colors.error(messages.errors.configFailed));
+        console.error(colors.muted(`\n${(error as Error).message}\n`));
+        process.exit(1);
+    }
+}
+
+async function runHookSetup(
+    huskyInitialized: boolean,
+    existing: ExistingSetup,
+    messages: Messages,
+    spinner: Spinner
+): Promise<boolean> {
+    const isHookViable =
+        (huskyInitialized || existing.husky) &&
+        (await isPackageInstalled("@commitlint/cli"));
+
+    if (!isHookViable) {
+        console.log(
+            colors.warning("  ⚠️  Skipping commit-msg hook — missing dependencies")
+        );
+        return false;
+    }
+
+    if (existing.commitMsgHook) {
+        const shouldCreate = await confirm({
+            message: `${messages.init.overwrite} (.husky/commit-msg)`,
+            default: false,
+        });
+        if (!shouldCreate) {
+            console.log(
+                colors.muted(`  ${messages.init.skipExisting} .husky/commit-msg`)
+            );
+            return false;
+        }
+    }
+
+    spinner.start(messages.init.creatingHook);
+    try {
+        await createCommitMsgHook();
+        spinner.succeed();
+        return true;
+    } catch (error) {
+        spinner.fail(colors.error(messages.errors.hookFailed));
+        console.error(colors.muted(`\n${(error as Error).message}\n`));
+        process.exit(1);
+    }
+}
+
+async function runAliasSetup(messages: Messages, spinner: Spinner): Promise<boolean> {
+    const wantsAlias = await confirm({
+        message: messages.init.setupAlias,
+        default: true,
+    });
+
+    if (!wantsAlias) {
+        return false;
+    }
+
+    const existingAlias = await checkGitAlias();
+    if (existingAlias) {
+        console.log(
+            colors.warning(`\n${messages.warnings.aliasExists}: ${existingAlias}`)
+        );
+        const shouldOverwrite = await confirm({
+            message: messages.init.overwrite,
+            default: false,
+        });
+        if (!shouldOverwrite) {
+            return false;
+        }
+    }
+
+    const scope = await select({
+        message: messages.init.aliasScope,
+        choices: [
+            { value: "global" as const, name: messages.init.aliasScopeGlobal },
+            { value: "local" as const, name: messages.init.aliasScopeLocal },
+        ],
+    });
+
+    spinner.start(messages.init.creatingAlias);
+    try {
+        await setupGitAlias(scope);
+        spinner.succeed();
+        return true;
+    } catch (error) {
+        spinner.fail(colors.error(messages.errors.aliasFailed));
+        console.error(colors.muted(`\n${(error as Error).message}`));
+        // Non-fatal: continue to success summary
+        return false;
+    }
+}
+
+async function runProjectConfigSetup(
+    existing: ExistingSetup,
+    messages: Messages,
+    spinner: Spinner
+): Promise<boolean> {
+    const wantsProjectConfig = await confirm({
+        message: messages.init.createProjectConfig,
+        default: !existing.merlinConfig,
+    });
+
+    if (!wantsProjectConfig) {
+        return false;
+    }
+
+    if (existing.merlinConfig) {
+        const shouldCreate = await confirm({
+            message: `${messages.init.overwrite} (.merlinrc.json)`,
+            default: false,
+        });
+        if (!shouldCreate) {
+            console.log(colors.muted(`  ${messages.init.skipExisting} .merlinrc.json`));
+            return false;
+        }
+    }
+
+    spinner.start(messages.init.creatingProjectConfig);
+    try {
+        await createProjectConfig();
+        spinner.succeed();
+        return true;
+    } catch (error) {
+        spinner.fail(colors.error(messages.errors.configFailed));
+        console.error(colors.muted(`\n${(error as Error).message}`));
+        // Non-fatal: continue to success summary
+        return false;
     }
 }
