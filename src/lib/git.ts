@@ -1,5 +1,19 @@
 import { execa } from "execa";
 
+type SystemError = Error & { code: string };
+
+function isEnoentError(error: unknown): error is SystemError {
+    return (
+        error instanceof Error &&
+        "code" in error &&
+        (error as SystemError).code === "ENOENT"
+    );
+}
+
+function throwGitUnavailable(error: SystemError): never {
+    throw new Error(`git is not available on this system: ${error.message}`);
+}
+
 /**
  * Checks if the current directory is inside a git repository.
  *
@@ -18,9 +32,10 @@ export async function isGitRepo(): Promise<boolean> {
     try {
         await execa("git", ["rev-parse", "--git-dir"]);
         return true;
-    } catch {
-        // Intentional: non-repo directories and git failures both return false.
-        // The command layer handles this with a user-facing error message.
+    } catch (error) {
+        if (isEnoentError(error)) {
+            throwGitUnavailable(error);
+        }
         return false;
     }
 }
@@ -44,9 +59,10 @@ export async function hasStagedChanges(): Promise<boolean> {
     try {
         const { stdout } = await execa("git", ["diff", "--cached", "--name-only"]);
         return stdout.trim().length > 0;
-    } catch {
-        // Intentional: git failures return false so the command layer
-        // can prompt the user to stage files instead of crashing.
+    } catch (error) {
+        if (isEnoentError(error)) {
+            throwGitUnavailable(error);
+        }
         return false;
     }
 }
@@ -69,9 +85,10 @@ export async function getUnstagedFiles(): Promise<string[]> {
     try {
         const { stdout } = await execa("git", ["diff", "--name-only"]);
         return stdout.trim().split("\n").filter(Boolean);
-    } catch {
-        // Intentional: returns empty array on failure so callers
-        // treat it as "no unstaged files" rather than an error.
+    } catch (error) {
+        if (isEnoentError(error)) {
+            throwGitUnavailable(error);
+        }
         return [];
     }
 }
@@ -252,9 +269,10 @@ export async function getStagedFilesWithStatus(): Promise<StagedFile[]> {
                 const path = pathParts.join("\t"); // Handle paths with tabs (rare but possible)
                 return { status, path };
             });
-    } catch {
-        // Intentional: returns empty array on failure so the editor
-        // template gracefully omits the staged files section.
+    } catch (error) {
+        if (isEnoentError(error)) {
+            throwGitUnavailable(error);
+        }
         return [];
     }
 }
