@@ -1,4 +1,6 @@
+import { execa } from "execa";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import {
     addFiles,
     amendCommit,
@@ -10,8 +12,6 @@ import {
     hasStagedChanges,
     isGitRepo,
 } from "../../src/lib/git.js";
-
-import { execa } from "execa";
 
 // Mock execa
 vi.mock("execa", () => ({
@@ -33,11 +33,21 @@ describe("isGitRepo", () => {
     });
 
     it("returns false when not in a git repository", async () => {
-        vi.mocked(execa).mockRejectedValue(new Error("not a git repo"));
+        const gitError = Object.assign(new Error("not a git repo"), { exitCode: 128 });
+        vi.mocked(execa).mockRejectedValue(gitError);
 
         const result = await isGitRepo();
 
         expect(result).toBe(false);
+    });
+
+    it("re-throws when git is not installed (ENOENT)", async () => {
+        const enoentError = Object.assign(new Error("spawn git ENOENT"), {
+            code: "ENOENT",
+        });
+        vi.mocked(execa).mockRejectedValue(enoentError);
+
+        await expect(isGitRepo()).rejects.toThrow("git is not available on this system");
     });
 });
 
@@ -74,11 +84,23 @@ describe("hasStagedChanges", () => {
     });
 
     it("returns false on git error", async () => {
-        vi.mocked(execa).mockRejectedValue(new Error("git error"));
+        const gitError = Object.assign(new Error("git error"), { exitCode: 128 });
+        vi.mocked(execa).mockRejectedValue(gitError);
 
         const result = await hasStagedChanges();
 
         expect(result).toBe(false);
+    });
+
+    it("re-throws when git is not installed (ENOENT)", async () => {
+        const enoentError = Object.assign(new Error("spawn git ENOENT"), {
+            code: "ENOENT",
+        });
+        vi.mocked(execa).mockRejectedValue(enoentError);
+
+        await expect(hasStagedChanges()).rejects.toThrow(
+            "git is not available on this system"
+        );
     });
 });
 
@@ -115,11 +137,23 @@ describe("getUnstagedFiles", () => {
     });
 
     it("returns empty array on git error", async () => {
-        vi.mocked(execa).mockRejectedValue(new Error("git error"));
+        const gitError = Object.assign(new Error("git error"), { exitCode: 128 });
+        vi.mocked(execa).mockRejectedValue(gitError);
 
         const result = await getUnstagedFiles();
 
         expect(result).toEqual([]);
+    });
+
+    it("re-throws when git is not installed (ENOENT)", async () => {
+        const enoentError = Object.assign(new Error("spawn git ENOENT"), {
+            code: "ENOENT",
+        });
+        vi.mocked(execa).mockRejectedValue(enoentError);
+
+        await expect(getUnstagedFiles()).rejects.toThrow(
+            "git is not available on this system"
+        );
     });
 });
 
@@ -164,7 +198,11 @@ describe("commit", () => {
         const result = await commit("feat: add new feature");
 
         expect(result).toBe("[main abc1234] feat: add new feature");
-        expect(execa).toHaveBeenCalledWith("git", ["commit", "-m", "feat: add new feature"]);
+        expect(execa).toHaveBeenCalledWith("git", [
+            "commit",
+            "-m",
+            "feat: add new feature",
+        ]);
     });
 
     it("creates commit with --no-verify flag", async () => {
@@ -310,11 +348,23 @@ describe("getStagedFilesWithStatus", () => {
     });
 
     it("returns empty array on git error", async () => {
-        vi.mocked(execa).mockRejectedValue(new Error("git error"));
+        const gitError = Object.assign(new Error("git error"), { exitCode: 128 });
+        vi.mocked(execa).mockRejectedValue(gitError);
 
         const result = await getStagedFilesWithStatus();
 
         expect(result).toEqual([]);
+    });
+
+    it("re-throws when git is not installed (ENOENT)", async () => {
+        const enoentError = Object.assign(new Error("spawn git ENOENT"), {
+            code: "ENOENT",
+        });
+        vi.mocked(execa).mockRejectedValue(enoentError);
+
+        await expect(getStagedFilesWithStatus()).rejects.toThrow(
+            "git is not available on this system"
+        );
     });
 
     it("defaults unknown status codes to modified", async () => {
