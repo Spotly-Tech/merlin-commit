@@ -9,7 +9,13 @@ export default defineConfig({
             provider: "v8",
             reporter: ["text", "html"],
             include: ["src/**/*.ts"],
-            exclude: ["src/**/*.test.ts", "src/cli.ts", "tests/**"],
+            exclude: ["src/**/*.test.ts", "tests/**"],
+            thresholds: {
+                lines: 80,
+                statements: 80,
+                functions: 80,
+                branches: 75,
+            },
         },
     },
 });
