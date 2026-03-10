@@ -3,9 +3,13 @@ import { confirm, input, select } from "@inquirer/prompts";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { configCommand } from "../../src/commands/config.js";
-import { getMessages, loadConfig } from "../../src/lib/config-loader";
+import {
+    clearConfig,
+    getMessages,
+    loadConfig,
+    persistConfig,
+} from "../../src/lib/config-loader";
 import { getRepoRoot } from "../../src/lib/git";
-import { resetConfig, saveConfig } from "../../src/utils/config";
 import { DEFAULT_CONFIG, WIZARD_MESSAGES } from "../../src/utils/constants.js";
 
 // Mock @inquirer/prompts
@@ -15,21 +19,17 @@ vi.mock("@inquirer/prompts", () => ({
     confirm: vi.fn(),
 }));
 
-// Mock config-loader (loadConfig, getMessages) - now synchronous
+// Mock config-loader (loadConfig, getMessages, persistConfig, clearConfig)
 vi.mock("../../src/lib/config-loader", () => ({
     loadConfig: vi.fn(),
     getMessages: vi.fn(),
+    persistConfig: vi.fn(),
+    clearConfig: vi.fn(),
 }));
 
 // Mock git module (getRepoRoot)
 vi.mock("../../src/lib/git", () => ({
     getRepoRoot: vi.fn(),
-}));
-
-// Mock sync config utilities (saveConfig, resetConfig)
-vi.mock("../../src/utils/config", () => ({
-    saveConfig: vi.fn(),
-    resetConfig: vi.fn(),
 }));
 
 // Mock console methods
@@ -107,7 +107,7 @@ describe("configCommand", () => {
 
             await configCommand({ reset: true });
 
-            expect(resetConfig).toHaveBeenCalled();
+            expect(clearConfig).toHaveBeenCalled();
             expect(consoleSpy.log).toHaveBeenCalledWith(
                 expect.stringContaining(WIZARD_MESSAGES.success.config)
             );
@@ -118,7 +118,7 @@ describe("configCommand", () => {
 
             await configCommand({ reset: true });
 
-            expect(resetConfig).not.toHaveBeenCalled();
+            expect(clearConfig).not.toHaveBeenCalled();
             expect(consoleSpy.log).toHaveBeenCalledWith(
                 expect.stringContaining("Reset cancelled")
             );
@@ -218,7 +218,7 @@ describe("configCommand", () => {
 
             await configCommand({});
 
-            expect(saveConfig).toHaveBeenCalledWith({ theme: "standard" });
+            expect(persistConfig).toHaveBeenCalledWith({ theme: "standard" });
         });
 
         it("offers wizard and standard theme choices", async () => {
@@ -252,7 +252,7 @@ describe("configCommand", () => {
 
             await configCommand({});
 
-            expect(saveConfig).toHaveBeenCalledWith({ maxSubjectLength: 100 });
+            expect(persistConfig).toHaveBeenCalledWith({ maxSubjectLength: 100 });
         });
 
         it("validates minimum value", async () => {
@@ -309,7 +309,7 @@ describe("configCommand", () => {
 
             await configCommand({});
 
-            expect(saveConfig).toHaveBeenCalledWith({ maxScopeLength: 30 });
+            expect(persistConfig).toHaveBeenCalledWith({ maxScopeLength: 30 });
         });
 
         it("validates minimum value (5)", async () => {
@@ -352,7 +352,7 @@ describe("configCommand", () => {
 
             await configCommand({});
 
-            expect(saveConfig).toHaveBeenCalledWith({ editor: "code --wait" });
+            expect(persistConfig).toHaveBeenCalledWith({ editor: "code --wait" });
         });
 
         it("rejects empty editor string", async () => {
@@ -378,7 +378,7 @@ describe("configCommand", () => {
 
             await configCommand({});
 
-            expect(saveConfig).toHaveBeenCalledWith({ editor: "vim" });
+            expect(persistConfig).toHaveBeenCalledWith({ editor: "vim" });
         });
     });
 
@@ -391,7 +391,7 @@ describe("configCommand", () => {
 
             await configCommand({});
 
-            expect(saveConfig).toHaveBeenCalledWith({ autoAdd: true });
+            expect(persistConfig).toHaveBeenCalledWith({ autoAdd: true });
         });
 
         it("uses current value as default", async () => {
@@ -433,7 +433,7 @@ describe("configCommand", () => {
 
             await configCommand({});
 
-            expect(resetConfig).toHaveBeenCalled();
+            expect(clearConfig).toHaveBeenCalled();
         });
     });
 

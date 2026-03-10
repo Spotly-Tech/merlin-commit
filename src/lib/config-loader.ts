@@ -2,7 +2,12 @@ import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 
 import type { MerlinConfig, ThemeMessages } from "../types/index.js";
-import { loadUserConfig, validateConfig } from "../utils/config.js";
+import {
+    loadUserConfig,
+    resetConfig,
+    saveConfig,
+    validateConfig,
+} from "../utils/config.js";
 import {
     DEFAULT_CONFIG,
     STANDARD_MESSAGES,
@@ -61,6 +66,28 @@ export function loadConfig(repoRoot?: string | null): Required<MerlinConfig> {
         ...merged,
         editor: userConfig.editor ?? projectConfig.editor ?? resolveDefaultEditor(),
     };
+}
+
+/**
+ * Persists a partial configuration update to the user config file.
+ *
+ * Routes config writes through the lib layer so commands do not import
+ * directly from utils/. Delegates to saveConfig in utils/config.ts.
+ *
+ * @param config - Partial configuration fields to save
+ */
+export function persistConfig(config: Partial<MerlinConfig>): void {
+    saveConfig(config);
+}
+
+/**
+ * Resets user configuration to default settings.
+ *
+ * Routes config resets through the lib layer so commands do not import
+ * directly from utils/. Delegates to resetConfig in utils/config.ts.
+ */
+export function clearConfig(): void {
+    resetConfig();
 }
 
 /**
