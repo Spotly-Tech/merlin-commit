@@ -1,23 +1,16 @@
-import { existsSync, readFileSync, writeFileSync } from "fs";
-import { homedir } from "os";
-import { join } from "path";
-
 import type { CommitType, MerlinConfig } from "../types/index.js";
-import { DEFAULT_CONFIG } from "./constants.js";
-
-const USER_CONFIG_PATH = join(homedir(), ".merlinrc.json");
 
 /**
  * Validates a single commit type object.
  */
 function isValidCommitType(type: unknown): type is CommitType {
     if (typeof type !== "object" || type === null) return false;
-    const t = type as Record<string, unknown>;
+    const commitType = type as Record<string, unknown>;
     return (
-        typeof t.value === "string" &&
-        typeof t.name === "string" &&
-        typeof t.description === "string" &&
-        typeof t.emoji === "string"
+        typeof commitType.value === "string" &&
+        typeof commitType.name === "string" &&
+        typeof commitType.description === "string" &&
+        typeof commitType.emoji === "string"
     );
 }
 
@@ -67,87 +60,4 @@ export function validateConfig(userConfig: unknown): Partial<MerlinConfig> {
     }
 
     return validated;
-}
-
-/**
- * Loads and validates user-level config from ~/.merlinrc.json.
- * Returns only the validated fields (not merged with defaults).
- *
- * @returns Validated partial config from user's home directory
- */
-export function loadUserConfig(): Partial<MerlinConfig> {
-    if (!existsSync(USER_CONFIG_PATH)) {
-        return {};
-    }
-
-    try {
-        const rawConfig = JSON.parse(readFileSync(USER_CONFIG_PATH, "utf-8"));
-        return validateConfig(rawConfig);
-    } catch {
-        return {};
-    }
-}
-
-/**
- * Saves user configuration to the global Merlin config file.
- *
- * Merges provided configuration options with existing settings and writes the
- * result to `~/.merlinrc.json`. This allows users to customize Merlin's behavior
- * persistently across all projects. Creates the file if it doesn't exist.
- *
- * @param config - Partial configuration object with settings to save
- *
- * @example
- * // Change theme to standard
- * saveConfig({ theme: 'standard' });
- *
- * @example
- * // Customize multiple settings
- * saveConfig({
- *   maxSubjectLength: 50,
- *   autoAdd: true,
- *   editor: 'code --wait'
- * });
- *
- * @example
- * // Add custom commit types
- * saveConfig({
- *   types: [
- *     { value: 'feature', name: 'New Feature', description: 'A new feature', emoji: '✨' },
- *     { value: 'bugfix', name: 'Bug Fix', description: 'A bug fix', emoji: '🐛' }
- *   ]
- * });
- */
-export function saveConfig(config: Partial<MerlinConfig>): void {
-    const currentConfig = loadUserConfig();
-    const newConfig = { ...DEFAULT_CONFIG, ...currentConfig, ...config };
-    writeFileSync(USER_CONFIG_PATH, JSON.stringify(newConfig, null, 4));
-}
-
-/**
- * Resets user configuration to default settings.
- *
- * Overwrites the global Merlin configuration file (`~/.merlinrc.json`) with
- * default values, effectively removing all user customizations. If the config
- * file doesn't exist, this function does nothing. This is useful for troubleshooting
- * or when users want to start fresh with default settings.
- *
- * @example
- * // Reset all settings to defaults
- * resetConfig();
- * // Now loadConfig() will return DEFAULT_CONFIG values
- *
- * @example
- * // Typical usage with confirmation
- * const messages = getMessages();
- * const confirmed = await confirm(messages.warnings.resetConfig);
- * if (confirmed) {
- *   resetConfig();
- *   console.log(messages.success.config);
- * }
- */
-export function resetConfig(): void {
-    if (existsSync(USER_CONFIG_PATH)) {
-        writeFileSync(USER_CONFIG_PATH, JSON.stringify(DEFAULT_CONFIG, null, 4));
-    }
 }

@@ -6,7 +6,10 @@ import {
     clearConfig,
     getMessages,
     loadConfig,
+    loadUserConfig,
     persistConfig,
+    resetConfig,
+    saveConfig,
 } from "../../src/lib/config-loader.js";
 import {
     DEFAULT_CONFIG,
@@ -27,6 +30,112 @@ vi.mock("os", () => ({
 const USER_CONFIG_PATH = join("/mock/home", ".merlinrc.json");
 
 describe("config-loader", () => {
+    describe("loadUserConfig", () => {
+        beforeEach(() => {
+            vi.clearAllMocks();
+        });
+
+        it("returns empty object when config file does not exist", () => {
+            vi.mocked(existsSync).mockReturnValue(false);
+
+            const config = loadUserConfig();
+
+            expect(config).toEqual({});
+        });
+
+        it("returns validated partial config from existing file", () => {
+            vi.mocked(existsSync).mockReturnValue(true);
+            vi.mocked(readFileSync).mockReturnValue(
+                JSON.stringify({ theme: "standard", maxSubjectLength: 50 })
+            );
+
+            const config = loadUserConfig();
+
+            expect(config).toEqual({ theme: "standard", maxSubjectLength: 50 });
+            expect(config.maxScopeLength).toBeUndefined();
+            expect(config.editor).toBeUndefined();
+        });
+
+        it("reads from the correct path", () => {
+            vi.mocked(existsSync).mockReturnValue(false);
+
+            loadUserConfig();
+
+            expect(existsSync).toHaveBeenCalledWith(USER_CONFIG_PATH);
+        });
+
+        it("emits console.warn and returns empty object when JSON is invalid", () => {
+            vi.mocked(existsSync).mockReturnValue(true);
+            vi.mocked(readFileSync).mockReturnValue("not valid json");
+            const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+            const config = loadUserConfig();
+
+            expect(config).toEqual({});
+            expect(warnSpy).toHaveBeenCalledWith(
+                "merlin: ~/.merlinrc.json could not be parsed - using defaults"
+            );
+            warnSpy.mockRestore();
+        });
+    });
+
+    describe("saveConfig", () => {
+        beforeEach(() => {
+            vi.clearAllMocks();
+        });
+
+        it("saves merged config to file", () => {
+            vi.mocked(existsSync).mockReturnValue(false);
+
+            saveConfig({ theme: "standard" });
+
+            expect(writeFileSync).toHaveBeenCalledWith(
+                USER_CONFIG_PATH,
+                expect.stringContaining('"theme": "standard"')
+            );
+        });
+
+        it("merges with existing config", () => {
+            vi.mocked(existsSync).mockReturnValue(true);
+            vi.mocked(readFileSync).mockReturnValue(
+                JSON.stringify({ maxSubjectLength: 50 })
+            );
+
+            saveConfig({ theme: "standard" });
+
+            const writtenContent = vi.mocked(writeFileSync).mock.calls[0][1] as string;
+            const parsed = JSON.parse(writtenContent);
+
+            expect(parsed.theme).toBe("standard");
+            expect(parsed.maxSubjectLength).toBe(50);
+        });
+    });
+
+    describe("resetConfig", () => {
+        beforeEach(() => {
+            vi.clearAllMocks();
+        });
+
+        it("writes default config when file exists", () => {
+            vi.mocked(existsSync).mockReturnValue(true);
+
+            resetConfig();
+
+            expect(writeFileSync).toHaveBeenCalledWith(
+                USER_CONFIG_PATH,
+                JSON.stringify(DEFAULT_CONFIG, null, 4)
+            );
+        });
+
+        it("does nothing when file does not exist", () => {
+            vi.mocked(existsSync).mockReturnValue(false);
+
+            resetConfig();
+
+            expect(writeFileSync).not.toHaveBeenCalled();
+        });
+    });
+
     describe("loadConfig", () => {
         let savedEditor: string | undefined;
         let savedVisual: string | undefined;
