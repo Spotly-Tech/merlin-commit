@@ -1,18 +1,16 @@
-import { existsSync, readFileSync } from "fs";
+import { existsSync, readFileSync, writeFileSync } from "fs";
+import { homedir } from "os";
 import { join } from "path";
 
 import type { MerlinConfig, ThemeMessages } from "../types/index.js";
-import {
-    loadUserConfig,
-    resetConfig,
-    saveConfig,
-    validateConfig,
-} from "../utils/config.js";
+import { validateConfig } from "../utils/config.js";
 import {
     DEFAULT_CONFIG,
     STANDARD_MESSAGES,
     WIZARD_MESSAGES,
 } from "../utils/constants.js";
+
+const USER_CONFIG_PATH = join(homedir(), ".merlinrc.json");
 
 /**
  * Resolves the default editor by reading environment variables at call time.
@@ -25,6 +23,26 @@ function resolveDefaultEditor(): string {
         process.env.VISUAL ||
         (process.platform === "win32" ? "notepad" : "vim")
     );
+}
+
+/**
+ * Loads and validates user-level config from ~/.merlinrc.json.
+ * Returns only the validated fields (not merged with defaults).
+ *
+ * @returns Validated partial config from user's home directory
+ */
+export function loadUserConfig(): Partial<MerlinConfig> {
+    if (!existsSync(USER_CONFIG_PATH)) {
+        return {};
+    }
+
+    try {
+        const rawConfig = JSON.parse(readFileSync(USER_CONFIG_PATH, "utf-8"));
+        return validateConfig(rawConfig);
+    } catch {
+        console.warn("merlin: ~/.merlinrc.json could not be parsed - using defaults");
+        return {};
+    }
 }
 
 /**
@@ -69,10 +87,35 @@ export function loadConfig(repoRoot?: string | null): Required<MerlinConfig> {
 }
 
 /**
- * Persists a partial configuration update to the user config file.
+ * Saves user configuration to the global Merlin config file.
  *
- * Routes config writes through the lib layer so commands do not import
- * directly from utils/. Delegates to saveConfig in utils/config.ts.
+ * Merges provided configuration options with existing settings and writes the
+ * result to `~/.merlinrc.json`. This allows users to customize Merlin's behavior
+ * persistently across all projects. Creates the file if it doesn't exist.
+ *
+ * @param config - Partial configuration object with settings to save
+ */
+export function saveConfig(config: Partial<MerlinConfig>): void {
+    const currentConfig = loadUserConfig();
+    const newConfig = { ...DEFAULT_CONFIG, ...currentConfig, ...config };
+    writeFileSync(USER_CONFIG_PATH, JSON.stringify(newConfig, null, 4));
+}
+
+/**
+ * Resets user configuration to default settings.
+ *
+ * Overwrites the global Merlin configuration file (`~/.merlinrc.json`) with
+ * default values, effectively removing all user customizations. If the config
+ * file doesn't exist, this function does nothing.
+ */
+export function resetConfig(): void {
+    if (existsSync(USER_CONFIG_PATH)) {
+        writeFileSync(USER_CONFIG_PATH, JSON.stringify(DEFAULT_CONFIG, null, 4));
+    }
+}
+
+/**
+ * Persists a partial configuration update to the user config file.
  *
  * @param config - Partial configuration fields to save
  */
@@ -83,8 +126,7 @@ export function persistConfig(config: Partial<MerlinConfig>): void {
 /**
  * Resets user configuration to default settings.
  *
- * Routes config resets through the lib layer so commands do not import
- * directly from utils/. Delegates to resetConfig in utils/config.ts.
+ * Convenience alias used by commands to avoid importing resetConfig directly.
  */
 export function clearConfig(): void {
     resetConfig();
