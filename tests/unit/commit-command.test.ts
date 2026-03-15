@@ -223,6 +223,9 @@ describe("commitCommand", () => {
             expect(consoleSpy.log).toHaveBeenCalledWith(
                 expect.stringContaining(WIZARD_MESSAGES.success.dryRun)
             );
+            expect(consoleSpy.log).toHaveBeenCalledWith(
+                expect.stringContaining(WIZARD_MESSAGES.commit.dryRunExit)
+            );
             expect(mockExit).toHaveBeenCalledWith(0);
         });
 
