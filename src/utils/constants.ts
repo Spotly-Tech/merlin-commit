@@ -98,6 +98,7 @@ export const WIZARD_MESSAGES: ThemeMessages = {
     commit: {
         intro: "🧙 Merlin is ready to guide your commit",
         exit: "🔮 Your spell is woven into history.",
+        dryRunExit: "🔮 The vision fades - no spell was cast.",
     },
     config: {
         intro: "🧙 Merlin opens the tome of settings",
@@ -182,6 +183,7 @@ export const STANDARD_MESSAGES: ThemeMessages = {
     commit: {
         intro: "Ready to create a commit",
         exit: "Commit complete",
+        dryRunExit: "Dry run complete - no commit was created.",
     },
     config: {
         intro: "Configuration settings",

@@ -92,7 +92,7 @@ export async function commitCommand(options: CommitOptions): Promise<void> {
         // Dry run mode
         if (options.dryRun) {
             console.log(colors.info(`\n${messages.success.dryRun}`));
-            console.log(colors.muted(`${messages.commit.exit}\n`));
+            console.log(colors.muted(`${messages.commit.dryRunExit}\n`));
             process.exit(0);
         }
 

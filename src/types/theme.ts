@@ -20,6 +20,13 @@ export type ThemeMessages = {
          * @example "Commit complete" (standard)
          */
         exit: string;
+
+        /**
+         * Farewell message after dry-run preview (no commit created).
+         * @example "🔮 The vision fades - no spell was cast." (wizard)
+         * @example "Dry run complete - no commit was created." (standard)
+         */
+        dryRunExit: string;
     };
 
     /**
