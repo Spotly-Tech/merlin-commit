@@ -28,9 +28,9 @@ export type PromptDependencies = {
     /** Opens the commit body editor synchronously and returns the entered text. */
     editBody: (context: CommitEditorContext) => string;
     /** Opens the breaking changes editor and returns the entered text. */
-    editBreaking: () => Promise<string>;
+    editBreaking: () => string;
     /** Opens the issue references editor and returns the entered text. */
-    editIssues: () => Promise<string>;
+    editIssues: () => string;
 };
 
 /**
@@ -134,7 +134,7 @@ export async function promptUser(
     // If user indicates breaking changes, open editor with comment template
     if (hasBreakingChanges) {
         try {
-            const breakingDescription = await editBreaking();
+            const breakingDescription = editBreaking();
             // Strip "BREAKING CHANGE:" prefix if user typed it (prevents duplication
             // since buildCommitMessage() adds the prefix automatically)
             const cleanDescription = breakingDescription.replace(
@@ -157,7 +157,7 @@ export async function promptUser(
     // If user wants to reference issues, open editor with comment template
     if (hasIssues) {
         try {
-            const issueReferences = await editIssues();
+            const issueReferences = editIssues();
             if (issueReferences) {
                 answers.issues = issueReferences;
             }
