@@ -1,19 +1,8 @@
 import { spawnSync } from "child_process";
 import { readFileSync, writeFileSync } from "fs";
 import path from "path";
-import { editor } from "@inquirer/prompts";
 
 import type { StagedFile } from "./git.js";
-
-/**
- * Options for the editor prompt, matching `@inquirer/prompts` editor() signature.
- */
-type EditorOptions = {
-    message: string;
-    default?: string;
-    validate?: (text: string) => boolean | string | Promise<boolean | string>;
-    waitForUserInput?: boolean;
-};
 
 /**
  * Checks whether the editor binary is available on PATH before launching.
@@ -29,92 +18,6 @@ export function validateEditorAvailable(editorCommand: string): boolean {
     const checkCommand = process.platform === "win32" ? "where" : "which";
     const result = spawnSync(checkCommand, [bin], { stdio: "pipe" });
     return result.status === 0;
-}
-
-/**
- * Prepares an editor command for Windows compatibility.
- *
- * On Windows, the `@inquirer/external-editor` package spawns the editor without
- * `shell: true`, which means .cmd/.bat files (like VS Code's `code.cmd`) won't
- * be found. This function wraps the command with `cmd /c` to ensure proper
- * shell resolution.
- *
- * @param editorCommand - The original editor command (e.g., "code --wait")
- * @returns The Windows-compatible command (e.g., "cmd /c code --wait")
- */
-function prepareEditorForWindows(editorCommand: string): string {
-    // Already using cmd, no need to wrap
-    if (editorCommand.toLowerCase().startsWith("cmd ")) {
-        return editorCommand;
-    }
-
-    // Wrap with cmd /c for proper shell resolution
-    return `cmd /c ${editorCommand}`;
-}
-
-/**
- * Wrapper around `@inquirer/prompts` editor() that respects the user's configured editor.
- *
- * The `@inquirer/prompts` editor() uses environment variables ($VISUAL or $EDITOR) to
- * determine which editor to launch. This wrapper temporarily sets process.env.VISUAL
- * to the user's configured editor before calling editor(), then restores the original
- * environment variables afterward.
- *
- * On Windows, editor commands are automatically wrapped with `cmd /c` to ensure
- * proper resolution of .cmd/.bat files (required for VS Code, etc.).
- *
- * @param options - Standard `@inquirer/prompts` editor options
- * @param customEditor - Path to editor command from config (e.g., "code --wait", "vim")
- * @returns Promise resolving to the text entered in the editor
- *
- * @example
- * const config = loadConfig();
- * const body = await editorWithConfig(
- *     { message: "Enter description:", waitForUserInput: false },
- *     config.editor
- * );
- */
-export async function editorWithConfig(
-    options: EditorOptions,
-    customEditor?: string
-): Promise<string> {
-    const originalVisual = process.env.VISUAL;
-    const originalEditor = process.env.EDITOR;
-
-    try {
-        if (customEditor) {
-            if (!validateEditorAvailable(customEditor)) {
-                throw new Error(
-                    `Editor '${customEditor}' not found. Update your editor setting with: merlin config`
-                );
-            }
-
-            // On Windows, wrap with cmd /c for proper shell resolution of .cmd files
-            const editorCommand =
-                process.platform === "win32"
-                    ? prepareEditorForWindows(customEditor)
-                    : customEditor;
-
-            // Set VISUAL (takes precedence over EDITOR in most systems)
-            process.env.VISUAL = editorCommand;
-        }
-
-        const result = await editor(options);
-        return result;
-    } finally {
-        // Always restore original environment variables to avoid side effects
-        if (originalVisual !== undefined) {
-            process.env.VISUAL = originalVisual;
-        } else {
-            delete process.env.VISUAL;
-        }
-
-        if (originalEditor !== undefined) {
-            process.env.EDITOR = originalEditor;
-        } else {
-            delete process.env.EDITOR;
-        }
-    }
 }
 
 /**
@@ -267,49 +170,66 @@ export function buildIssueReferenceTemplate(): string {
 }
 
 /**
- * Opens an editor with a comment template and strips comments from the result.
+ * Opens the user's editor with .git/COMMIT_EDITMSG for any comment-template input.
  *
- * Generic function that works with any template containing `#` comment lines.
- * Used by both breaking changes and issue references editors. Comment lines
- * are stripped from the result, and empty content (only comments) returns
- * an empty string.
+ * Writes the template to COMMIT_EDITMSG so editors apply git commit message
+ * syntax highlighting (comment lines appear grey). After the editor closes,
+ * reads the file back and strips comment lines.
  *
  * @param template - Template string with `#` comment lines for user guidance
- * @param customEditor - Path to editor command from config (e.g., "code --wait", "vim")
- * @returns Promise resolving to user content with comments stripped, or empty string
+ * @param editorCommand - Editor command from config (e.g., "code --wait", "vim")
+ * @param gitDir - Path to the .git directory (from getGitDirectory())
+ * @returns User content with comment lines stripped, or empty string
  *
  * @example
  * ```typescript
- * const description = await editorWithCommentTemplate(
+ * const description = editWithCommitEditMsg(
  *     buildBreakingChangeTemplate(),
- *     config.editor
+ *     "code --wait",
+ *     gitDir
  * );
  * ```
  */
-export async function editorWithCommentTemplate(
+export function editWithCommitEditMsg(
     template: string,
-    customEditor?: string,
-    label: string = ""
-): Promise<string> {
-    const rawResult = await editorWithConfig(
-        {
-            message: label,
-            default: template,
-            waitForUserInput: false,
-        },
-        customEditor
-    );
+    editorCommand: string,
+    gitDir: string
+): string {
+    const commitMsgPath = path.resolve(gitDir, "COMMIT_EDITMSG");
 
-    return stripCommentLines(rawResult);
+    writeFileSync(commitMsgPath, template, "utf8");
+
+    const { bin, args } = parseEditorCommand(editorCommand);
+
+    // On Windows, we need shell:true for .cmd files (e.g. VS Code's code.cmd)
+    const isWindows = process.platform === "win32";
+    const spawnOptions = {
+        stdio: "inherit" as const,
+        shell: isWindows,
+    };
+
+    // Use args array on all platforms to prevent shell injection.
+    // With shell:true on Windows, spawnSync escapes each arg individually.
+    const result = spawnSync(bin, [...args, commitMsgPath], spawnOptions);
+
+    if (result.error) {
+        throw new Error(`Failed to launch editor: ${result.error.message}`);
+    }
+    if (result.status !== 0) {
+        throw new Error(
+            `Editor ${bin} failed or was not found (exit code ${result.status})`
+        );
+    }
+
+    const content = readFileSync(commitMsgPath, "utf8");
+    return stripCommentLines(content);
 }
 
 /**
  * Opens the user's editor with .git/COMMIT_EDITMSG for writing commit body.
  *
- * This provides a native git experience with:
- * - Automatic syntax highlighting in editors that recognize COMMIT_EDITMSG
- * - Git-style comments showing commit context and staged files
- * - Comment lines are stripped from the final result
+ * Builds a context-aware template showing commit type, scope, subject, and
+ * staged files, then delegates to editWithCommitEditMsg.
  *
  * @param context - Commit context for the template
  * @param editorCommand - Editor command from config (e.g., "code --wait")
@@ -331,36 +251,6 @@ export function editWithGitCommitMessage(
     editorCommand: string,
     gitDir: string
 ): string {
-    const commitMsgPath = path.resolve(gitDir, "COMMIT_EDITMSG");
-
-    // Write template with context comments
     const template = buildCommitMessageTemplate(context);
-    writeFileSync(commitMsgPath, template, "utf8");
-
-    // Parse editor command
-    const { bin, args } = parseEditorCommand(editorCommand);
-
-    // On Windows, we need to use shell for .cmd files
-    const isWindows = process.platform === "win32";
-    const spawnOptions = {
-        stdio: "inherit" as const,
-        shell: isWindows,
-    };
-
-    // Use args array on all platforms to prevent shell injection.
-    // With shell:true on Windows, spawnSync escapes each arg individually.
-    const result = spawnSync(bin, [...args, commitMsgPath], spawnOptions);
-
-    if (result.error) {
-        throw new Error(`Failed to launch editor: ${result.error.message}`);
-    }
-    if (result.status !== 0) {
-        throw new Error(
-            `Editor ${bin} failed or was not found (exit code ${result.status})`
-        );
-    }
-
-    // Read the file content and strip comments
-    const content = readFileSync(commitMsgPath, "utf8");
-    return stripCommentLines(content);
+    return editWithCommitEditMsg(template, editorCommand, gitDir);
 }
