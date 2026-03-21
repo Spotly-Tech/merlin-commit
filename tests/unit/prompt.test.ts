@@ -31,8 +31,8 @@ function createMockDependencies(
         messages: WIZARD_MESSAGES,
         getStagedFiles: vi.fn().mockResolvedValue([]),
         editBody: vi.fn().mockReturnValue(""),
-        editBreaking: vi.fn().mockResolvedValue(""),
-        editIssues: vi.fn().mockResolvedValue(""),
+        editBreaking: vi.fn().mockReturnValue(""),
+        editIssues: vi.fn().mockReturnValue(""),
         ...overrides,
     };
 }
@@ -195,7 +195,7 @@ describe("promptUser", () => {
                 .mockResolvedValueOnce(true) // has breaking
                 .mockResolvedValueOnce(false); // no issues
 
-            const mockEditBreaking = vi.fn().mockResolvedValue("removed endpoint");
+            const mockEditBreaking = vi.fn().mockReturnValue("removed endpoint");
             const dependencies = createMockDependencies({
                 editBreaking: mockEditBreaking,
             });
@@ -219,7 +219,7 @@ describe("promptUser", () => {
             const dependencies = createMockDependencies({
                 editBreaking: vi
                     .fn()
-                    .mockResolvedValue("BREAKING CHANGE: removed old endpoint"),
+                    .mockReturnValue("BREAKING CHANGE: removed old endpoint"),
             });
 
             const answers = await promptUser(dependencies);
@@ -238,7 +238,7 @@ describe("promptUser", () => {
                 .mockResolvedValueOnce(false);
 
             const dependencies = createMockDependencies({
-                editBreaking: vi.fn().mockResolvedValue(""),
+                editBreaking: vi.fn().mockReturnValue(""),
             });
 
             const answers = await promptUser(dependencies);
@@ -271,7 +271,7 @@ describe("promptUser", () => {
                 .mockResolvedValueOnce(false) // no breaking
                 .mockResolvedValueOnce(true); // has issues
 
-            const mockEditIssues = vi.fn().mockResolvedValue("fixes #123");
+            const mockEditIssues = vi.fn().mockReturnValue("fixes #123");
             const dependencies = createMockDependencies({
                 editIssues: mockEditIssues,
             });
@@ -293,7 +293,7 @@ describe("promptUser", () => {
                 .mockResolvedValueOnce(true);
 
             const dependencies = createMockDependencies({
-                editIssues: vi.fn().mockResolvedValue(""),
+                editIssues: vi.fn().mockReturnValue(""),
             });
 
             const answers = await promptUser(dependencies);
@@ -352,7 +352,9 @@ describe("promptUser", () => {
 
             const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
             const dependencies = createMockDependencies({
-                editBreaking: vi.fn().mockRejectedValue(new Error("Editor not found")),
+                editBreaking: vi.fn().mockImplementation(() => {
+                    throw new Error("Editor not found");
+                }),
             });
 
             const answers = await promptUser(dependencies);
@@ -374,7 +376,9 @@ describe("promptUser", () => {
 
             const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
             const dependencies = createMockDependencies({
-                editIssues: vi.fn().mockRejectedValue(new Error("Editor not found")),
+                editIssues: vi.fn().mockImplementation(() => {
+                    throw new Error("Editor not found");
+                }),
             });
 
             const answers = await promptUser(dependencies);
@@ -399,8 +403,12 @@ describe("promptUser", () => {
                 editBody: vi.fn().mockImplementation(() => {
                     throw new Error("Editor not found");
                 }),
-                editBreaking: vi.fn().mockRejectedValue(new Error("Editor not found")),
-                editIssues: vi.fn().mockRejectedValue(new Error("Editor not found")),
+                editBreaking: vi.fn().mockImplementation(() => {
+                    throw new Error("Editor not found");
+                }),
+                editIssues: vi.fn().mockImplementation(() => {
+                    throw new Error("Editor not found");
+                }),
             });
 
             const answers = await promptUser(dependencies);
@@ -428,8 +436,8 @@ describe("promptUser", () => {
 
             const dependencies = createMockDependencies({
                 editBody: vi.fn().mockReturnValue("Added OAuth2 login"),
-                editBreaking: vi.fn().mockResolvedValue("old session API removed"),
-                editIssues: vi.fn().mockResolvedValue("closes #42, #43"),
+                editBreaking: vi.fn().mockReturnValue("old session API removed"),
+                editIssues: vi.fn().mockReturnValue("closes #42, #43"),
             });
 
             const answers = await promptUser(dependencies);

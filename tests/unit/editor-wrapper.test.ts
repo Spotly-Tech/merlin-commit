@@ -1,21 +1,14 @@
 import { spawnSync } from "child_process";
 import { readFileSync, writeFileSync } from "fs";
-import { editor } from "@inquirer/prompts";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
     buildBreakingChangeTemplate,
     buildIssueReferenceTemplate,
-    editorWithCommentTemplate,
-    editorWithConfig,
+    editWithCommitEditMsg,
     editWithGitCommitMessage,
     validateEditorAvailable,
 } from "../../src/lib/editor-wrapper.js";
-
-// Mock @inquirer/prompts editor
-vi.mock("@inquirer/prompts", () => ({
-    editor: vi.fn(),
-}));
 
 vi.mock("child_process", () => ({
     spawnSync: vi.fn(),
@@ -93,72 +86,6 @@ describe("buildIssueReferenceTemplate", () => {
     });
 });
 
-describe("editorWithCommentTemplate", () => {
-    beforeEach(() => {
-        vi.clearAllMocks();
-    });
-
-    it("strips comment lines from editor result", async () => {
-        vi.mocked(editor).mockResolvedValue(
-            "User typed this\n# This is a comment\n# Another comment"
-        );
-
-        const result = await editorWithCommentTemplate("# template");
-
-        expect(result).toBe("User typed this");
-    });
-
-    it("returns empty string when only comments are saved", async () => {
-        vi.mocked(editor).mockResolvedValue(
-            "# Comment line 1\n# Comment line 2\n# Comment line 3"
-        );
-
-        const result = await editorWithCommentTemplate("# template");
-
-        expect(result).toBe("");
-    });
-
-    it("returns empty string when editor returns empty content", async () => {
-        vi.mocked(editor).mockResolvedValue("");
-
-        const result = await editorWithCommentTemplate("# template");
-
-        expect(result).toBe("");
-    });
-
-    it("preserves multi-line user content", async () => {
-        vi.mocked(editor).mockResolvedValue(
-            "First line\nSecond line\n# comment\nThird line"
-        );
-
-        const result = await editorWithCommentTemplate("# template");
-
-        expect(result).toBe("First line\nSecond line\nThird line");
-    });
-
-    it("trims whitespace from result", async () => {
-        vi.mocked(editor).mockResolvedValue("\n  User content  \n\n# comment\n\n");
-
-        const result = await editorWithCommentTemplate("# template");
-
-        expect(result).toBe("User content");
-    });
-
-    it("passes template as default option to editor", async () => {
-        const template = "# My template content";
-        vi.mocked(editor).mockResolvedValue("");
-
-        await editorWithCommentTemplate(template);
-
-        expect(editor).toHaveBeenCalledWith(
-            expect.objectContaining({
-                default: template,
-                waitForUserInput: false,
-            })
-        );
-    });
-});
-
 describe("validateEditorAvailable", () => {
     beforeEach(() => {
         vi.clearAllMocks();
@@ -190,77 +117,122 @@ describe("validateEditorAvailable", () => {
     });
 });
 
-describe("editorWithConfig", () => {
+describe("editWithCommitEditMsg", () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        // Default: editor binary is available on PATH
-        vi.mocked(spawnSync).mockReturnValue({ status: 0 } as never);
     });
 
-    it("calls editor with provided options when no custom editor", async () => {
-        vi.mocked(editor).mockResolvedValue("user input");
+    it("writes template to COMMIT_EDITMSG and returns stripped result", () => {
+        vi.mocked(spawnSync).mockReturnValue({
+            status: 0,
+            error: undefined,
+        } as never);
+        vi.mocked(readFileSync).mockReturnValue(
+            "User typed this\n# This is a comment\n# Another comment"
+        );
 
-        const result = await editorWithConfig({ message: "Enter text:" });
+        const result = editWithCommitEditMsg("# template", "vim", ".git");
 
-        expect(result).toBe("user input");
-        expect(editor).toHaveBeenCalledWith(
-            expect.objectContaining({ message: "Enter text:" })
+        expect(writeFileSync).toHaveBeenCalledWith(
+            expect.stringContaining("COMMIT_EDITMSG"),
+            "# template",
+            "utf8"
+        );
+        expect(result).toBe("User typed this");
+    });
+
+    it("returns empty string when only comments are saved", () => {
+        vi.mocked(spawnSync).mockReturnValue({
+            status: 0,
+            error: undefined,
+        } as never);
+        vi.mocked(readFileSync).mockReturnValue(
+            "# Comment line 1\n# Comment line 2\n# Comment line 3"
+        );
+
+        const result = editWithCommitEditMsg("# template", "vim", ".git");
+
+        expect(result).toBe("");
+    });
+
+    it("preserves multi-line user content", () => {
+        vi.mocked(spawnSync).mockReturnValue({
+            status: 0,
+            error: undefined,
+        } as never);
+        vi.mocked(readFileSync).mockReturnValue(
+            "First line\nSecond line\n# comment\nThird line"
+        );
+
+        const result = editWithCommitEditMsg("# template", "vim", ".git");
+
+        expect(result).toBe("First line\nSecond line\nThird line");
+    });
+
+    it("trims whitespace from result", () => {
+        vi.mocked(spawnSync).mockReturnValue({
+            status: 0,
+            error: undefined,
+        } as never);
+        vi.mocked(readFileSync).mockReturnValue("\n  User content  \n\n# comment\n\n");
+
+        const result = editWithCommitEditMsg("# template", "vim", ".git");
+
+        expect(result).toBe("User content");
+    });
+
+    it("passes file path as args array element to prevent shell injection", () => {
+        vi.mocked(spawnSync).mockReturnValue({
+            status: 0,
+            error: undefined,
+        } as never);
+        vi.mocked(readFileSync).mockReturnValue("body\n");
+
+        editWithCommitEditMsg("# template", "vim", ".git");
+
+        const [bin, args] = vi.mocked(spawnSync).mock.calls[0];
+        expect(bin).toBe("vim");
+        expect(args).toEqual(
+            expect.arrayContaining([expect.stringContaining("COMMIT_EDITMSG")])
         );
     });
 
-    it("skips cmd wrapping when editor already starts with cmd on Windows", async () => {
-        const originalPlatform = process.platform;
-        Object.defineProperty(process, "platform", { value: "win32" });
+    it("passes editor args as array even for multi-word editor commands", () => {
+        vi.mocked(spawnSync).mockReturnValue({
+            status: 0,
+            error: undefined,
+        } as never);
+        vi.mocked(readFileSync).mockReturnValue("body\n");
 
-        let capturedVisual: string | undefined;
-        vi.mocked(editor).mockImplementation(async () => {
-            capturedVisual = process.env.VISUAL;
-            return "result";
-        });
+        editWithCommitEditMsg("# template", "code --wait", ".git");
 
-        await editorWithConfig({ message: "test" }, "cmd /c notepad");
-
-        // Should NOT double-wrap with cmd /c
-        expect(capturedVisual).toBe("cmd /c notepad");
-
-        Object.defineProperty(process, "platform", { value: originalPlatform });
+        const [bin, args] = vi.mocked(spawnSync).mock.calls[0];
+        expect(bin).toBe("code");
+        expect(args).toContain("--wait");
+        expect(args).toEqual(
+            expect.arrayContaining([expect.stringContaining("COMMIT_EDITMSG")])
+        );
     });
 
-    it("wraps non-cmd editor with cmd /c on Windows", async () => {
-        const originalPlatform = process.platform;
-        Object.defineProperty(process, "platform", { value: "win32" });
+    it("throws when editor fails to launch", () => {
+        vi.mocked(spawnSync).mockReturnValue({
+            error: new Error("ENOENT"),
+        } as never);
 
-        let capturedVisual: string | undefined;
-        vi.mocked(editor).mockImplementation(async () => {
-            capturedVisual = process.env.VISUAL;
-            return "result";
-        });
-
-        await editorWithConfig({ message: "test" }, "code --wait");
-
-        expect(capturedVisual).toBe("cmd /c code --wait");
-
-        Object.defineProperty(process, "platform", { value: originalPlatform });
+        expect(() =>
+            editWithCommitEditMsg("# template", "nonexistent-editor", ".git")
+        ).toThrow("Failed to launch editor");
     });
 
-    it("restores environment variables after using custom editor", async () => {
-        const originalVisual = process.env.VISUAL;
-        const originalEditor = process.env.EDITOR;
+    it("throws when editor exits with non-zero status", () => {
+        vi.mocked(spawnSync).mockReturnValue({
+            status: 1,
+            error: undefined,
+        } as never);
 
-        vi.mocked(editor).mockResolvedValue("result");
-
-        await editorWithConfig({ message: "test" }, "nano");
-
-        expect(process.env.VISUAL).toBe(originalVisual);
-        expect(process.env.EDITOR).toBe(originalEditor);
-    });
-
-    it("throws when custom editor binary is not found on PATH", async () => {
-        vi.mocked(spawnSync).mockReturnValue({ status: 1 } as never);
-
-        await expect(
-            editorWithConfig({ message: "test" }, "nonexistent-editor")
-        ).rejects.toThrow("Editor 'nonexistent-editor' not found");
+        expect(() => editWithCommitEditMsg("# template", "vim", ".git")).toThrow(
+            "Editor vim failed or was not found (exit code 1)"
+        );
     });
 });
 

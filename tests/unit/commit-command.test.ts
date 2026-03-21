@@ -48,7 +48,7 @@ vi.mock("../../src/lib/config-loader", () => ({
 
 vi.mock("../../src/lib/editor-wrapper", () => ({
     editWithGitCommitMessage: vi.fn(),
-    editorWithCommentTemplate: vi.fn(),
+    editWithCommitEditMsg: vi.fn(),
     buildBreakingChangeTemplate: vi.fn(),
     buildIssueReferenceTemplate: vi.fn(),
 }));
