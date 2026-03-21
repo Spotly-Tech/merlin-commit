@@ -5,7 +5,7 @@ import { getMessages, loadConfig } from "../lib/config-loader.js";
 import {
     buildBreakingChangeTemplate,
     buildIssueReferenceTemplate,
-    editorWithCommentTemplate,
+    editWithCommitEditMsg,
     editWithGitCommitMessage,
 } from "../lib/editor-wrapper.js";
 import {
@@ -62,16 +62,16 @@ export async function commitCommand(options: CommitOptions): Promise<void> {
             editBody: (context) =>
                 editWithGitCommitMessage(context, config.editor, gitDir),
             editBreaking: () =>
-                editorWithCommentTemplate(
+                editWithCommitEditMsg(
                     buildBreakingChangeTemplate(),
                     config.editor,
-                    messages.prompts.editorBreaking
+                    gitDir
                 ),
             editIssues: () =>
-                editorWithCommentTemplate(
+                editWithCommitEditMsg(
                     buildIssueReferenceTemplate(),
                     config.editor,
-                    messages.prompts.editorIssues
+                    gitDir
                 ),
         });
         const message = buildCommitMessage(userAnswers);
