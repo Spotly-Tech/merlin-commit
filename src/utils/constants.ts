@@ -91,7 +91,7 @@ export const COMMIT_TYPES: CommitType[] = [
 // Target terminal column widths for aligning commit type selector labels
 export const VALUE_COLUMN_WIDTH = 12;
 export const EMOJI_COLUMN_WIDTH = 4;
-// U+FE0F - terminals render these emojis 1 column narrower than standard emojis
+// U+FE0F variation selector - VS16 emojis render at different widths across terminals
 export const VARIATION_SELECTOR = "\uFE0F";
 
 export const WIZARD_MESSAGES: ThemeMessages = {

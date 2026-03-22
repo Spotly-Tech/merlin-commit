@@ -17,6 +17,11 @@ import {
     WIZARD_MESSAGES,
 } from "../../src/utils/constants.js";
 
+vi.mock("../../src/lib/terminal.js", () => ({
+    normalizeVS16Spacing: (text: string) => text,
+    isWideEmojiTerminal: () => false,
+}));
+
 vi.mock("fs", () => ({
     existsSync: vi.fn(),
     readFileSync: vi.fn(),
@@ -396,7 +401,7 @@ describe("config-loader", () => {
 
             const messages = getMessages();
 
-            expect(messages).toBe(WIZARD_MESSAGES);
+            expect(messages).toEqual(WIZARD_MESSAGES);
         });
 
         it("returns standard messages when merged theme is standard", () => {
