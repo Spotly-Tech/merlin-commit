@@ -9,6 +9,7 @@ import {
     STANDARD_MESSAGES,
     WIZARD_MESSAGES,
 } from "../utils/constants.js";
+import { normalizeVS16Spacing } from "./terminal.js";
 
 const USER_CONFIG_PATH = join(homedir(), ".merlinrc.json");
 
@@ -133,12 +134,36 @@ export function clearConfig(): void {
 }
 
 /**
+ * Recursively normalizes VS16 emoji spacing in all string values of a nested object.
+ * Used to adjust emoji spacing in ThemeMessages based on the current terminal.
+ */
+function normalizeThemeStrings<T>(object: T): T {
+    if (typeof object === "string") {
+        return normalizeVS16Spacing(object) as T;
+    }
+    if (typeof object === "object" && object !== null) {
+        const result = {} as Record<string, unknown>;
+        for (const [key, value] of Object.entries(object)) {
+            result[key] = normalizeThemeStrings(value);
+        }
+        return result as T;
+    }
+    return object;
+}
+
+/**
  * Retrieves the appropriate message set based on the merged theme config.
+ *
+ * For the wizard theme, VS16 emoji spacing is normalized at runtime based on
+ * terminal detection. Standard theme has no VS16 emojis and skips normalization.
  *
  * @param repoRoot - Repository root path for project-level config, or null/undefined to skip
  * @returns Message object containing all UI text for prompts, errors, and tips
  */
 export function getMessages(repoRoot?: string | null): ThemeMessages {
     const config = loadConfig(repoRoot);
-    return config.theme === "wizard" ? WIZARD_MESSAGES : STANDARD_MESSAGES;
+    if (config.theme !== "wizard") {
+        return STANDARD_MESSAGES;
+    }
+    return normalizeThemeStrings(WIZARD_MESSAGES);
 }

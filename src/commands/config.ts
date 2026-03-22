@@ -8,6 +8,7 @@ import {
 } from "../lib/config-loader.js";
 import { getRepoRoot } from "../lib/git.js";
 import { setupSigintHandler } from "../lib/sigint.js";
+import { normalizeVS16Spacing } from "../lib/terminal.js";
 import type {
     ConfigMenuAction,
     ConfigOptions,
@@ -45,7 +46,7 @@ function buildMenuChoices(config: Required<MerlinConfig>) {
               exit: "•",
           };
 
-    return [
+    const choices = [
         {
             value: "theme" as ConfigMenuAction,
             name: `${prefix.theme} Theme                    [${config.theme}]`,
@@ -79,6 +80,11 @@ function buildMenuChoices(config: Required<MerlinConfig>) {
             name: `${prefix.exit} Exit`,
         },
     ];
+
+    return choices.map((choice) => ({
+        ...choice,
+        name: normalizeVS16Spacing(choice.name),
+    }));
 }
 
 /**

@@ -18,6 +18,11 @@ import { promptUser } from "../../src/lib/prompt";
 import { setupSigintHandler } from "../../src/lib/sigint";
 import { DEFAULT_CONFIG, WIZARD_MESSAGES } from "../../src/utils/constants.js";
 
+vi.mock("../../src/lib/terminal.js", () => ({
+    normalizeVS16Spacing: (text: string) => text,
+    isWideEmojiTerminal: () => false,
+}));
+
 vi.mock("@inquirer/prompts", () => ({
     confirm: vi.fn(),
 }));
