@@ -1,6 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { buildCommitMessage, formatPreview } from "../../src/lib/message.js";
+
+vi.mock("../../src/lib/terminal.js", () => ({
+    normalizeVS16Spacing: (text: string) => text,
+    isWideEmojiTerminal: () => false,
+}));
 
 describe("buildCommitMessage", () => {
     it("builds basic commit with type and subject", () => {

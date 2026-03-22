@@ -17,6 +17,7 @@ import {
     setupGitAlias,
 } from "../lib/setup.js";
 import { setupSigintHandler } from "../lib/sigint.js";
+import { normalizeVS16Spacing } from "../lib/terminal.js";
 import type { InitOptions } from "../types/index.js";
 import { colors } from "../utils/constants.js";
 
@@ -202,7 +203,11 @@ async function runHuskySetup(
     const isHuskyInstalled = await isPackageInstalled("husky");
     if (!isHuskyInstalled) {
         console.log(
-            colors.warning("  ⚠️  Skipping Husky initialization — husky not installed")
+            colors.warning(
+                normalizeVS16Spacing(
+                    "  ⚠️  Skipping Husky initialization - husky not installed"
+                )
+            )
         );
         return false;
     }
@@ -244,7 +249,9 @@ async function runCommitlintSetup(
     if (!isCommitlintInstalled) {
         console.log(
             colors.warning(
-                "  ⚠️  Skipping commitlint config — @commitlint/cli not installed"
+                normalizeVS16Spacing(
+                    "  ⚠️  Skipping commitlint config - @commitlint/cli not installed"
+                )
             )
         );
         return false;
@@ -287,7 +294,11 @@ async function runHookSetup(
 
     if (!isHookViable) {
         console.log(
-            colors.warning("  ⚠️  Skipping commit-msg hook — missing dependencies")
+            colors.warning(
+                normalizeVS16Spacing(
+                    "  ⚠️  Skipping commit-msg hook - missing dependencies"
+                )
+            )
         );
         return false;
     }

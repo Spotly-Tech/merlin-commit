@@ -20,6 +20,7 @@ import {
 import { buildCommitMessage, formatPreview } from "../lib/message.js";
 import { promptUser } from "../lib/prompt.js";
 import { setupSigintHandler } from "../lib/sigint.js";
+import { normalizeVS16Spacing } from "../lib/terminal.js";
 import type { CommitOptions } from "../types/index.js";
 import { colors } from "../utils/constants.js";
 
@@ -84,7 +85,9 @@ export async function commitCommand(options: CommitOptions): Promise<void> {
         console.log(colors.muted("-".repeat(60)));
         console.log(
             colors.muted(
-                "(⚠️  and 🔗 indicators are visual only - not included in commit)"
+                normalizeVS16Spacing(
+                    "(⚠️  and 🔗 indicators are visual only - not included in commit)"
+                )
             )
         );
         console.log();
@@ -98,7 +101,11 @@ export async function commitCommand(options: CommitOptions): Promise<void> {
 
         // Show warning for --no-verify
         if (options.noVerify) {
-            console.log(colors.warning(`⚠️  ${messages.warnings.noVerify}\n`));
+            console.log(
+                colors.warning(
+                    normalizeVS16Spacing(`⚠️  ${messages.warnings.noVerify}\n`)
+                )
+            );
         }
 
         // Confirm commit

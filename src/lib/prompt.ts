@@ -10,6 +10,7 @@ import {
 } from "../utils/constants.js";
 import type { CommitEditorContext } from "./editor-wrapper.js";
 import type { StagedFile } from "./git.js";
+import { isWideEmojiTerminal } from "./terminal.js";
 import {
     createCharacterCounterTransformer,
     createOptionalCharacterCounterTransformer,
@@ -62,8 +63,11 @@ export async function promptUser(
                 Math.max(1, VALUE_COLUMN_WIDTH - type.value.length)
             );
             const hasVariationSelector = type.emoji.includes(VARIATION_SELECTOR);
+            const isWideTerminal = isWideEmojiTerminal();
             const emojiPadding = " ".repeat(
-                hasVariationSelector ? EMOJI_COLUMN_WIDTH - 1 : EMOJI_COLUMN_WIDTH - 2
+                hasVariationSelector && !isWideTerminal
+                    ? EMOJI_COLUMN_WIDTH - 1
+                    : EMOJI_COLUMN_WIDTH - 2
             );
             const label = isWizardTheme
                 ? `${type.value}:${valuePadding}${type.emoji}${emojiPadding}${type.name}`
