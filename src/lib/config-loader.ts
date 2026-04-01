@@ -59,6 +59,9 @@ function loadProjectConfig(repoRoot: string): Partial<MerlinConfig> {
         const rawConfig = JSON.parse(readFileSync(projectConfigPath, "utf-8"));
         return validateConfig(rawConfig);
     } catch {
+        console.warn(
+            "merlin: .merlinrc.json could not be parsed - ignoring project config"
+        );
         return {};
     }
 }
