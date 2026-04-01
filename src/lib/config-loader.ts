@@ -119,24 +119,6 @@ export function resetConfig(): void {
 }
 
 /**
- * Persists a partial configuration update to the user config file.
- *
- * @param config - Partial configuration fields to save
- */
-export function persistConfig(config: Partial<MerlinConfig>): void {
-    saveConfig(config);
-}
-
-/**
- * Resets user configuration to default settings.
- *
- * Convenience alias used by commands to avoid importing resetConfig directly.
- */
-export function clearConfig(): void {
-    resetConfig();
-}
-
-/**
  * Recursively normalizes VS16 emoji spacing in all string values of a nested object.
  * Used to adjust emoji spacing in ThemeMessages based on the current terminal.
  */

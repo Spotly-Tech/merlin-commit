@@ -3,11 +3,9 @@ import { join } from "path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-    clearConfig,
     getMessages,
     loadConfig,
     loadUserConfig,
-    persistConfig,
     resetConfig,
     saveConfig,
 } from "../../src/lib/config-loader.js";
@@ -325,68 +323,6 @@ describe("config-loader", () => {
 
                 expect(config.editor).toBe("emacs");
             });
-        });
-    });
-
-    describe("persistConfig", () => {
-        beforeEach(() => {
-            vi.clearAllMocks();
-            vi.mocked(existsSync).mockReturnValue(true);
-            vi.mocked(readFileSync).mockReturnValue(JSON.stringify({}));
-        });
-
-        it("writes the merged config to the user config file", () => {
-            persistConfig({ theme: "standard" });
-
-            expect(writeFileSync).toHaveBeenCalledWith(
-                USER_CONFIG_PATH,
-                expect.stringContaining('"theme": "standard"')
-            );
-        });
-
-        it("merges the provided fields with DEFAULT_CONFIG", () => {
-            persistConfig({ maxSubjectLength: 50 });
-
-            const writtenJson = vi.mocked(writeFileSync).mock.calls[0][1] as string;
-            const written = JSON.parse(writtenJson);
-
-            expect(written.maxSubjectLength).toBe(50);
-            expect(written.theme).toBeDefined();
-        });
-
-        it("writes multiple fields in a single call", () => {
-            persistConfig({ theme: "standard", autoAdd: true });
-
-            const writtenJson = vi.mocked(writeFileSync).mock.calls[0][1] as string;
-            const written = JSON.parse(writtenJson);
-
-            expect(written.theme).toBe("standard");
-            expect(written.autoAdd).toBe(true);
-        });
-    });
-
-    describe("clearConfig", () => {
-        beforeEach(() => {
-            vi.clearAllMocks();
-        });
-
-        it("writes DEFAULT_CONFIG to the user config file when it exists", () => {
-            vi.mocked(existsSync).mockReturnValue(true);
-
-            clearConfig();
-
-            expect(writeFileSync).toHaveBeenCalledWith(
-                USER_CONFIG_PATH,
-                expect.any(String)
-            );
-        });
-
-        it("does not write when user config file does not exist", () => {
-            vi.mocked(existsSync).mockReturnValue(false);
-
-            clearConfig();
-
-            expect(writeFileSync).not.toHaveBeenCalled();
         });
     });
 

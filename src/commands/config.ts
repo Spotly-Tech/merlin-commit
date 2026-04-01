@@ -1,10 +1,10 @@
 import { confirm, input, select } from "@inquirer/prompts";
 
 import {
-    clearConfig,
     getMessages,
     loadConfig,
-    persistConfig,
+    resetConfig,
+    saveConfig,
 } from "../lib/config-loader.js";
 import { getRepoRoot } from "../lib/git.js";
 import { setupSigintHandler } from "../lib/sigint.js";
@@ -106,7 +106,7 @@ async function configureTheme(config: Required<MerlinConfig>): Promise<void> {
         default: config.theme,
     });
 
-    persistConfig({ theme });
+    saveConfig({ theme });
     console.log(colors.success(`\nTheme set to: ${theme}`));
 }
 
@@ -121,7 +121,7 @@ async function configureMaxSubjectLength(config: Required<MerlinConfig>): Promis
         validate: createRangeValidator(10, 200),
     });
 
-    persistConfig({ maxSubjectLength: parseInt(value, 10) });
+    saveConfig({ maxSubjectLength: parseInt(value, 10) });
     console.log(colors.success(`\nMax subject length set to: ${value}`));
 }
 
@@ -136,7 +136,7 @@ async function configureMaxScopeLength(config: Required<MerlinConfig>): Promise<
         validate: createRangeValidator(5, 50),
     });
 
-    persistConfig({ maxScopeLength: parseInt(value, 10) });
+    saveConfig({ maxScopeLength: parseInt(value, 10) });
     console.log(colors.success(`\nMax scope length set to: ${value}`));
 }
 
@@ -151,7 +151,7 @@ async function configureEditor(config: Required<MerlinConfig>): Promise<void> {
         validate: createNonEmptyValidator("Editor command"),
     });
 
-    persistConfig({ editor: editor.trim() });
+    saveConfig({ editor: editor.trim() });
     console.log(colors.success(`\nEditor set to: ${editor.trim()}`));
 }
 
@@ -165,7 +165,7 @@ async function configureAutoAdd(config: Required<MerlinConfig>): Promise<void> {
         default: config.autoAdd,
     });
 
-    persistConfig({ autoAdd });
+    saveConfig({ autoAdd });
     console.log(colors.success(`\nAuto-add set to: ${autoAdd}`));
 }
 
@@ -205,7 +205,7 @@ async function resetConfigWithConfirmation(messages: ThemeMessages): Promise<voi
     });
 
     if (confirmed) {
-        clearConfig();
+        resetConfig();
         console.log(colors.success(`\n${messages.success.config}`));
     } else {
         console.log(colors.muted("\nReset cancelled."));

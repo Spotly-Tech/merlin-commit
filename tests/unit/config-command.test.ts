@@ -4,10 +4,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { configCommand } from "../../src/commands/config.js";
 import {
-    clearConfig,
     getMessages,
     loadConfig,
-    persistConfig,
+    resetConfig,
+    saveConfig,
 } from "../../src/lib/config-loader";
 import { getRepoRoot } from "../../src/lib/git";
 import { DEFAULT_CONFIG, WIZARD_MESSAGES } from "../../src/utils/constants.js";
@@ -19,12 +19,12 @@ vi.mock("@inquirer/prompts", () => ({
     confirm: vi.fn(),
 }));
 
-// Mock config-loader (loadConfig, getMessages, persistConfig, clearConfig)
+// Mock config-loader (loadConfig, getMessages, saveConfig, resetConfig)
 vi.mock("../../src/lib/config-loader", () => ({
     loadConfig: vi.fn(),
     getMessages: vi.fn(),
-    persistConfig: vi.fn(),
-    clearConfig: vi.fn(),
+    saveConfig: vi.fn(),
+    resetConfig: vi.fn(),
 }));
 
 // Mock git module (getRepoRoot)
@@ -107,7 +107,7 @@ describe("configCommand", () => {
 
             await configCommand({ reset: true });
 
-            expect(clearConfig).toHaveBeenCalled();
+            expect(resetConfig).toHaveBeenCalled();
             expect(consoleSpy.log).toHaveBeenCalledWith(
                 expect.stringContaining(WIZARD_MESSAGES.success.config)
             );
@@ -118,7 +118,7 @@ describe("configCommand", () => {
 
             await configCommand({ reset: true });
 
-            expect(clearConfig).not.toHaveBeenCalled();
+            expect(resetConfig).not.toHaveBeenCalled();
             expect(consoleSpy.log).toHaveBeenCalledWith(
                 expect.stringContaining("Reset cancelled")
             );
@@ -218,7 +218,7 @@ describe("configCommand", () => {
 
             await configCommand({});
 
-            expect(persistConfig).toHaveBeenCalledWith({ theme: "standard" });
+            expect(saveConfig).toHaveBeenCalledWith({ theme: "standard" });
         });
 
         it("offers wizard and standard theme choices", async () => {
@@ -252,7 +252,7 @@ describe("configCommand", () => {
 
             await configCommand({});
 
-            expect(persistConfig).toHaveBeenCalledWith({ maxSubjectLength: 100 });
+            expect(saveConfig).toHaveBeenCalledWith({ maxSubjectLength: 100 });
         });
 
         it("validates minimum value", async () => {
@@ -309,7 +309,7 @@ describe("configCommand", () => {
 
             await configCommand({});
 
-            expect(persistConfig).toHaveBeenCalledWith({ maxScopeLength: 30 });
+            expect(saveConfig).toHaveBeenCalledWith({ maxScopeLength: 30 });
         });
 
         it("validates minimum value (5)", async () => {
@@ -352,7 +352,7 @@ describe("configCommand", () => {
 
             await configCommand({});
 
-            expect(persistConfig).toHaveBeenCalledWith({ editor: "code --wait" });
+            expect(saveConfig).toHaveBeenCalledWith({ editor: "code --wait" });
         });
 
         it("rejects empty editor string", async () => {
@@ -378,7 +378,7 @@ describe("configCommand", () => {
 
             await configCommand({});
 
-            expect(persistConfig).toHaveBeenCalledWith({ editor: "vim" });
+            expect(saveConfig).toHaveBeenCalledWith({ editor: "vim" });
         });
     });
 
@@ -391,7 +391,7 @@ describe("configCommand", () => {
 
             await configCommand({});
 
-            expect(persistConfig).toHaveBeenCalledWith({ autoAdd: true });
+            expect(saveConfig).toHaveBeenCalledWith({ autoAdd: true });
         });
 
         it("uses current value as default", async () => {
@@ -433,7 +433,7 @@ describe("configCommand", () => {
 
             await configCommand({});
 
-            expect(clearConfig).toHaveBeenCalled();
+            expect(resetConfig).toHaveBeenCalled();
         });
     });
 
