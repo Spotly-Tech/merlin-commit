@@ -52,16 +52,25 @@ export function createCharacterCounterTransformer(
  * Creates a transformer that displays a character counter only when there is input.
  * Useful for optional fields where an empty counter is distracting.
  *
+ * Color thresholds:
+ * - Gray: Normal input (below warning threshold)
+ * - Yellow: Approaching limit (above warning threshold percentage of max)
+ * - Red: Exceeds limit
+ *
  * @param maxLength - Maximum allowed string length
+ * @param warningThreshold - Percentage (0-1) at which to show yellow warning (default: 0.9)
  * @returns Transformer function for use with Inquirer prompts
  *
  * @example
  * const transform = createOptionalCharacterCounterTransformer(20);
  * transform("", { isFinal: false });  // "" (no counter for empty input)
  * transform("auth", { isFinal: false });  // "(4/20) auth" in gray
+ * transform("a".repeat(16), { isFinal: false });  // "(16/20) aaa..." in yellow
+ * transform("a".repeat(25), { isFinal: false });  // "(25/20) aaa..." in red
  */
 export function createOptionalCharacterCounterTransformer(
-    maxLength: number
+    maxLength: number,
+    warningThreshold = 0.75
 ): Transformer {
     return (value: string, { isFinal }: { isFinal: boolean }) => {
         if (isFinal || !value) return value;
@@ -73,6 +82,9 @@ export function createOptionalCharacterCounterTransformer(
         // See: https://github.com/SBoudrias/Inquirer.js/issues/669
         if (count > maxLength) {
             return `${colors.error(counter)} ${value}`;
+        }
+        if (count > maxLength * warningThreshold) {
+            return `${colors.warning(counter)} ${value}`;
         }
         return `${colors.muted(counter)} ${value}`;
     };
