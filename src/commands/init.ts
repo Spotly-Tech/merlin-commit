@@ -174,8 +174,6 @@ export async function initCommand(options: InitOptions): Promise<void> {
         console.log(colors.muted("  1. Stage your changes: git add ."));
         console.log(colors.muted("  2. Create a commit: merlin (or git merlin)"));
         console.log(colors.muted(`\n${messages.init.exit}\n`));
-
-        process.exit(0);
     } catch (error) {
         if ((error as Error).name === "ExitPromptError") {
             spinner.stop();

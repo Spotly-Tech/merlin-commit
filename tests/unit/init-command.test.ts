@@ -744,7 +744,7 @@ describe("initCommand", () => {
     });
 
     describe("success", () => {
-        it("exits with code 0 after full workflow", async () => {
+        it("returns naturally after full workflow", async () => {
             setupHappyPath();
 
             await initCommand({});
@@ -752,7 +752,6 @@ describe("initCommand", () => {
             expect(consoleSpy.log).toHaveBeenCalledWith(
                 expect.stringContaining(WIZARD_MESSAGES.success.init)
             );
-            expect(mockExit).toHaveBeenCalledWith(0);
         });
 
         it("displays init-specific exit message, not commit exit", async () => {
