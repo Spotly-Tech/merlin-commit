@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import {
     createCharacterCounterTransformer,
     createOptionalCharacterCounterTransformer,
@@ -106,17 +107,35 @@ describe("transformers", () => {
             expect(result).toBe(`${colors.error("(25/20)")} ${input}`);
         });
 
-        it("shows gray counter at exactly max length", () => {
-            const input = "a".repeat(20);
+        it("shows yellow counter when approaching limit (>75%)", () => {
+            // 75% of 20 = 15, so 16+ should be yellow
+            const input = "a".repeat(16);
             const result = transform(input, { isFinal: false });
-            expect(result).toBe(`${colors.muted("(20/20)")} ${input}`);
+            expect(result).toBe(`${colors.warning("(16/20)")} ${input}`);
         });
 
-        it("does not show yellow warning (no threshold)", () => {
-            // Unlike the required field transformer, optional fields don't have yellow warning
-            const input = "a".repeat(19); // 95% of 20
+        it("shows yellow counter at exactly max length", () => {
+            const input = "a".repeat(20);
             const result = transform(input, { isFinal: false });
-            expect(result).toBe(`${colors.muted("(19/20)")} ${input}`);
+            expect(result).toBe(`${colors.warning("(20/20)")} ${input}`);
+        });
+
+        it("shows gray counter just below 75% threshold", () => {
+            // 15 chars = 75%, threshold is >, so 15 stays gray
+            const input = "a".repeat(15);
+            const result = transform(input, { isFinal: false });
+            expect(result).toBe(`${colors.muted("(15/20)")} ${input}`);
+        });
+
+        it("respects custom warning threshold", () => {
+            const customTransform = createOptionalCharacterCounterTransformer(20, 0.5);
+
+            // 50% of 20 = 10, so 10 stays gray, 11+ is yellow
+            const belowThreshold = customTransform("a".repeat(10), { isFinal: false });
+            expect(belowThreshold).toBe(`${colors.muted("(10/20)")} ${"a".repeat(10)}`);
+
+            const aboveThreshold = customTransform("a".repeat(11), { isFinal: false });
+            expect(aboveThreshold).toBe(`${colors.warning("(11/20)")} ${"a".repeat(11)}`);
         });
 
         it("places counter before value for correct cursor position", () => {
