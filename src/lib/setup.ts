@@ -32,7 +32,11 @@ type DetectedSetup = {
  * Hook content for commit-msg that runs commitlint validation.
  * Uses Husky v9 format; cross-platform execution handled by Husky's shim.
  */
-const COMMIT_MSG_HOOK_CONTENT = `npx --no -- commitlint --edit $1`;
+const COMMIT_MSG_HOOK_CONTENT = `
+#!/bin/bash
+
+npx --no-install commitlint --edit "$1"
+`;
 
 /**
  * ESM commitlint configuration extending conventional commits.
