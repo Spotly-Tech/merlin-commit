@@ -1,9 +1,9 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-
-import { execa } from "execa";
 import { existsSync } from "fs";
 import { chmod, writeFile } from "fs/promises";
 import { platform } from "node:os";
+import { execa } from "execa";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import {
     checkGitAlias,
     createCommitlintConfig,
@@ -93,9 +93,7 @@ describe("detectExistingSetup", () => {
     });
 
     it("returns mixed result when partial setup exists", async () => {
-        vi.mocked(existsSync).mockImplementation(
-            (path) => path === ".merlinrc.json"
-        );
+        vi.mocked(existsSync).mockImplementation((path) => path === ".merlinrc.json");
 
         const result = await detectExistingSetup();
 
@@ -123,9 +121,7 @@ describe("detectExistingSetup", () => {
     });
 
     it("detects .commitlintrc pattern", async () => {
-        vi.mocked(existsSync).mockImplementation(
-            (path) => path === ".commitlintrc"
-        );
+        vi.mocked(existsSync).mockImplementation((path) => path === ".commitlintrc");
 
         const result = await detectExistingSetup();
 
@@ -138,9 +134,7 @@ describe("detectExistingSetup", () => {
     });
 
     it("detects .commitlintrc.yml pattern", async () => {
-        vi.mocked(existsSync).mockImplementation(
-            (path) => path === ".commitlintrc.yml"
-        );
+        vi.mocked(existsSync).mockImplementation((path) => path === ".commitlintrc.yml");
 
         const result = await detectExistingSetup();
 
@@ -248,7 +242,7 @@ describe("createCommitMsgHook", () => {
 
         expect(writeFile).toHaveBeenCalledWith(
             expect.stringContaining("commit-msg"),
-            "npx --no -- commitlint --edit $1",
+            expect.stringContaining('npx --no-install commitlint --edit "$1"'),
             "utf-8"
         );
     });
@@ -258,10 +252,7 @@ describe("createCommitMsgHook", () => {
 
         await createCommitMsgHook();
 
-        expect(chmod).toHaveBeenCalledWith(
-            expect.stringContaining("commit-msg"),
-            0o755
-        );
+        expect(chmod).toHaveBeenCalledWith(expect.stringContaining("commit-msg"), 0o755);
     });
 
     it("skips chmod on Windows", async () => {
@@ -300,11 +291,7 @@ describe("checkGitAlias", () => {
         const result = await checkGitAlias();
 
         expect(result).toBe("!merlin");
-        expect(execa).toHaveBeenCalledWith("git", [
-            "config",
-            "--get",
-            "alias.merlin",
-        ]);
+        expect(execa).toHaveBeenCalledWith("git", ["config", "--get", "alias.merlin"]);
     });
 
     it("returns null when alias does not exist", async () => {
@@ -403,9 +390,7 @@ describe("isPackageInstalled", () => {
         const result = await isPackageInstalled("husky");
 
         expect(result).toBe(true);
-        expect(existsSync).toHaveBeenCalledWith(
-            expect.stringContaining("husky")
-        );
+        expect(existsSync).toHaveBeenCalledWith(expect.stringContaining("husky"));
     });
 
     it("returns false when package is missing from node_modules", async () => {
