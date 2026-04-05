@@ -260,8 +260,6 @@ export async function setupGitAlias(scope: "global" | "local"): Promise<void> {
 export async function createProjectConfig(): Promise<void> {
     const projectConfig = {
         theme: DEFAULT_CONFIG.theme,
-        maxSubjectLength: DEFAULT_CONFIG.maxSubjectLength,
-        maxScopeLength: DEFAULT_CONFIG.maxScopeLength,
     };
 
     await writeFile(
