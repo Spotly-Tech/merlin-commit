@@ -82,3 +82,20 @@ export type ConfigMenuAction =
     | "show"
     | "reset"
     | "exit";
+
+/**
+ * Configurable fields that can appear in the project config menu.
+ * Excludes 'types' since custom commit types are not yet user-configurable.
+ */
+export type ConfigurableField =
+    | "theme"
+    | "maxSubjectLength"
+    | "maxScopeLength"
+    | "editor"
+    | "autoAdd";
+
+/**
+ * Action selected from the project config menu - either a configurable
+ * field name or exit.
+ */
+export type ProjectConfigMenuAction = ConfigurableField | "exit";
