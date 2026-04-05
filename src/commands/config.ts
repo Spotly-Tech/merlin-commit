@@ -115,10 +115,12 @@ async function configureTheme(
             {
                 value: "wizard" as const,
                 name: "wizard   - Magical experience with themed messages",
+                short: "wizard",
             },
             {
                 value: "standard" as const,
                 name: "standard - Minimalist, professional interface",
+                short: "standard",
             },
         ],
         default: config.theme,
@@ -327,15 +329,13 @@ async function ensureProjectConfigExists(
  * .merlinrc.json ("Project overrides") and fields available to add
  * ("Add override"). Selecting an override offers change or remove.
  */
-async function runProjectConfigMenu(
-    repoRoot: string,
-    messages: ThemeMessages
-): Promise<void> {
+async function runProjectConfigMenu(repoRoot: string): Promise<void> {
     const save: SaveFn = (config) => saveProjectConfig(config, repoRoot);
 
     let running = true;
     while (running) {
         const config = loadConfig(repoRoot);
+        const messages = getMessages(repoRoot);
         const projectConfig = loadProjectConfig(repoRoot);
         const configuredFields = ALL_CONFIGURABLE_FIELDS.filter(
             (field) => field in projectConfig
@@ -344,8 +344,10 @@ async function runProjectConfigMenu(
             (field) => !(field in projectConfig)
         );
 
-        const choices: ({ value: ProjectConfigMenuAction; name: string } | Separator)[] =
-            [];
+        const choices: (
+            | { value: ProjectConfigMenuAction; name: string; short?: string }
+            | Separator
+        )[] = [];
 
         if (configuredFields.length > 0) {
             choices.push(new Separator(" "));
@@ -353,7 +355,8 @@ async function runProjectConfigMenu(
             for (const field of configuredFields) {
                 choices.push({
                     value: field,
-                    name: `  ${field}  [${String(config[field])}]`,
+                    name: `${field}: [${String(config[field])}]`,
+                    short: field,
                 });
             }
         }
@@ -362,13 +365,13 @@ async function runProjectConfigMenu(
             choices.push(new Separator(" "));
             choices.push(new Separator("─ Add override ──────────────────────"));
             for (const field of availableFields) {
-                choices.push({ value: field, name: `  ${field}` });
+                choices.push({ value: field, name: `${field}` });
             }
         }
 
         choices.push(new Separator(" "));
         choices.push(new Separator("─────────────────────────────────────"));
-        choices.push({ value: "exit", name: "  Exit" });
+        choices.push({ value: "exit", name: "Exit" });
 
         const choice = await select<ProjectConfigMenuAction>({
             message: messages.config.projectMenu,
@@ -386,7 +389,7 @@ async function runProjectConfigMenu(
         const isConfigured = configuredFields.includes(choice);
         if (isConfigured) {
             const action = await select({
-                message: `${choice} [${String(config[choice])}]:`,
+                message: `${messages.config.projectFieldAction} ${choice}:`,
                 choices: [
                     { value: "change", name: "Change value" },
                     { value: "remove", name: "Remove from project config" },
@@ -416,8 +419,7 @@ async function runProjectConfigMenu(
 async function interactiveConfigMenu(): Promise<void> {
     const repoRoot = await getRepoRoot();
     const initialMessages = getMessages(repoRoot);
-    console.log(colors.header(`\n${initialMessages.config.intro}`));
-    console.log(colors.muted(`${initialMessages.config.subtitle}\n`));
+    console.log(colors.header(`\n${initialMessages.config.intro}\n`));
 
     const scope = await selectConfigScope(repoRoot, initialMessages);
 
@@ -429,7 +431,7 @@ async function interactiveConfigMenu(): Promise<void> {
         if (!hasProjectConfig) {
             return;
         }
-        await runProjectConfigMenu(repoRoot!, initialMessages);
+        await runProjectConfigMenu(repoRoot!);
         return;
     }
 

@@ -41,13 +41,6 @@ export type ThemeMessages = {
         intro: string;
 
         /**
-         * Subtitle shown below the intro message.
-         * @example "🔧 Adjust your enchantments" (wizard)
-         * @example "Configure Merlin's settings" (standard)
-         */
-        subtitle: string;
-
-        /**
          * Farewell message when config menu exits.
          * @example "📜 Merlin's tome of secrets has been closed." (wizard)
          * @example "Configuration closed" (standard)
@@ -102,6 +95,14 @@ export type ThemeMessages = {
          * @example "Project configuration:" (standard)
          */
         projectMenu: string;
+
+        /**
+         * Prefix for the action prompt when a configured field is selected.
+         * The field name is appended after this prefix.
+         * @example "🔮 What fate shall befall" (wizard) → "🔮 What fate shall befall theme:"
+         * @example "Action for" (standard) → "Action for theme:"
+         */
+        projectFieldAction: string;
     };
 
     /**

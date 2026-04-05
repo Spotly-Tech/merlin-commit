@@ -102,7 +102,6 @@ export const WIZARD_MESSAGES: ThemeMessages = {
     },
     config: {
         intro: "🧙 Merlin opens the tome of settings",
-        subtitle: "🔧 Adjust your enchantments",
         exit: "📜 Merlin's tome of secrets has been closed.",
         scopeSelector: "🔮 Choose which tome to inscribe:",
         scopeUser: "📜 Personal tome (all realms - ~/.merlinrc.json)",
@@ -111,6 +110,7 @@ export const WIZARD_MESSAGES: ThemeMessages = {
         createProjectConfig: "📜 Inscribe a .merlinrc.json for this realm?",
         projectConfigCreated: "📜 Realm enchantments inscribed",
         projectMenu: "🔮 Which realm enchantment to modify?",
+        projectFieldAction: "🔮 What fate shall befall",
     },
     checking: {
         repo: "🔮 Verifying the sacred repository",
@@ -197,7 +197,6 @@ export const STANDARD_MESSAGES: ThemeMessages = {
     },
     config: {
         intro: "Configuration settings",
-        subtitle: "Configure Merlin's settings",
         exit: "Configuration closed",
         scopeSelector: "Edit configuration scope:",
         scopeUser: "User config (applies to all repos - ~/.merlinrc.json)",
@@ -206,6 +205,7 @@ export const STANDARD_MESSAGES: ThemeMessages = {
         createProjectConfig: "Create .merlinrc.json for this repo?",
         projectConfigCreated: "Created .merlinrc.json",
         projectMenu: "Project configuration:",
+        projectFieldAction: "Action for",
     },
     checking: {
         repo: "Checking git repository",
