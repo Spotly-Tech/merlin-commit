@@ -20,8 +20,8 @@ const USER_CONFIG_PATH = join(homedir(), ".merlinrc.json");
  */
 function resolveDefaultEditor(): string {
     return (
-        process.env.EDITOR ||
-        process.env.VISUAL ||
+        process.env.EDITOR ??
+        process.env.VISUAL ??
         (process.platform === "win32" ? "notepad" : "vim")
     );
 }
@@ -50,7 +50,7 @@ export function loadUserConfig(): Partial<MerlinConfig> {
  * Loads and validates project-level config from <repoRoot>/.merlinrc.json.
  * Returns only the validated fields (not merged with defaults).
  */
-function loadProjectConfig(repoRoot: string): Partial<MerlinConfig> {
+export function loadProjectConfig(repoRoot: string): Partial<MerlinConfig> {
     const projectConfigPath = join(repoRoot, ".merlinrc.json");
     if (!existsSync(projectConfigPath)) {
         return {};
@@ -116,6 +116,43 @@ export function resetConfig(): void {
     if (existsSync(USER_CONFIG_PATH)) {
         writeFileSync(USER_CONFIG_PATH, JSON.stringify(DEFAULT_CONFIG, null, 4));
     }
+}
+/**
+ * Saves project-level configuration to <repoRoot>/.merlinrc.json.
+ *
+ * Merges provided options with existing project config. Does NOT spread
+ * DEFAULT_CONFIG - project config should contain only explicitly set values
+ *
+ * @param config - Partial configuration to save
+ * @param repoRoot - Repository root directory path
+ */
+export function saveProjectConfig(config: Partial<MerlinConfig>, repoRoot: string): void {
+    const projectConfigPath = join(repoRoot, ".merlinrc.json");
+    const currentProjectConfig = loadProjectConfig(repoRoot);
+    const newConfig = { ...currentProjectConfig, ...config };
+
+    writeFileSync(projectConfigPath, `${JSON.stringify(newConfig, null, 4)}\n`);
+}
+
+/**
+ * Removes a single field from the project-level config,
+ * letting it fall back to the user or default tier.
+ *
+ * @param field - Config key to remove
+ * @param repoRoot - Repository root directory path
+ */
+export function removeProjectConfigField(
+    field: keyof MerlinConfig,
+    repoRoot: string
+): void {
+    const projectConfigPath = join(repoRoot, ".merlinrc.json");
+    const currentProjectConfig = loadProjectConfig(repoRoot);
+
+    delete (currentProjectConfig as Record<string, unknown>)[field];
+    writeFileSync(
+        projectConfigPath,
+        `${JSON.stringify(currentProjectConfig, null, 4)}\n`
+    );
 }
 
 /**
