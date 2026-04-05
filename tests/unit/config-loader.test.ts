@@ -128,7 +128,7 @@ describe("config-loader", () => {
 
             expect(writeFileSync).toHaveBeenCalledWith(
                 USER_CONFIG_PATH,
-                JSON.stringify(DEFAULT_CONFIG, null, 4)
+                `${JSON.stringify(DEFAULT_CONFIG, null, 4)}\n`
             );
         });
 

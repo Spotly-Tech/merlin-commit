@@ -422,8 +422,11 @@ async function interactiveConfigMenu(): Promise<void> {
     const scope = await selectConfigScope(repoRoot, initialMessages);
 
     if (scope === "project") {
-        const isExists = await ensureProjectConfigExists(repoRoot!, initialMessages);
-        if (!isExists) {
+        const hasProjectConfig = await ensureProjectConfigExists(
+            repoRoot!,
+            initialMessages
+        );
+        if (!hasProjectConfig) {
             return;
         }
         await runProjectConfigMenu(repoRoot!, initialMessages);
@@ -448,19 +451,11 @@ async function interactiveConfigMenu(): Promise<void> {
 
         switch (choice) {
             case "theme":
-                await configureTheme(config, saveConfig);
-                break;
             case "maxSubjectLength":
-                await configureMaxSubjectLength(config, saveConfig);
-                break;
             case "maxScopeLength":
-                await configureMaxScopeLength(config, saveConfig);
-                break;
             case "editor":
-                await configureEditor(config, saveConfig);
-                break;
             case "autoAdd":
-                await configureAutoAdd(config, saveConfig);
+                await dispatchConfigureAction(choice, config, saveConfig);
                 break;
             case "show":
                 await showConfig();

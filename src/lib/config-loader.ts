@@ -102,7 +102,7 @@ export function loadConfig(repoRoot?: string | null): Required<MerlinConfig> {
 export function saveConfig(config: Partial<MerlinConfig>): void {
     const currentConfig = loadUserConfig();
     const newConfig = { ...DEFAULT_CONFIG, ...currentConfig, ...config };
-    writeFileSync(USER_CONFIG_PATH, JSON.stringify(newConfig, null, 4));
+    writeFileSync(USER_CONFIG_PATH, `${JSON.stringify(newConfig, null, 4)}\n`);
 }
 
 /**
@@ -114,14 +114,14 @@ export function saveConfig(config: Partial<MerlinConfig>): void {
  */
 export function resetConfig(): void {
     if (existsSync(USER_CONFIG_PATH)) {
-        writeFileSync(USER_CONFIG_PATH, JSON.stringify(DEFAULT_CONFIG, null, 4));
+        writeFileSync(USER_CONFIG_PATH, `${JSON.stringify(DEFAULT_CONFIG, null, 4)}\n`);
     }
 }
 /**
  * Saves project-level configuration to <repoRoot>/.merlinrc.json.
  *
- * Merges provided options with existing project config. Does NOT spread
- * DEFAULT_CONFIG - project config should contain only explicitly set values
+ * Merges provided options with existing project config.
+ * Does NOT spread DEFAULT_CONFIG - project config should contain only explicitly set values
  *
  * @param config - Partial configuration to save
  * @param repoRoot - Repository root directory path
