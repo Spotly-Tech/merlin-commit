@@ -348,22 +348,12 @@ describe("createProjectConfig", () => {
         vi.clearAllMocks();
     });
 
-    it("writes .merlinrc.json with default config values", async () => {
+    it("writes .merlinrc.json with default config theme value", async () => {
         await createProjectConfig();
 
         expect(writeFile).toHaveBeenCalledWith(
             ".merlinrc.json",
             expect.stringContaining('"theme"'),
-            "utf-8"
-        );
-        expect(writeFile).toHaveBeenCalledWith(
-            ".merlinrc.json",
-            expect.stringContaining('"maxSubjectLength"'),
-            "utf-8"
-        );
-        expect(writeFile).toHaveBeenCalledWith(
-            ".merlinrc.json",
-            expect.stringContaining('"maxScopeLength"'),
             "utf-8"
         );
     });

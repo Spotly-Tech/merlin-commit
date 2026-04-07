@@ -6,8 +6,11 @@ import {
     getMessages,
     loadConfig,
     loadUserConfig,
+    removeProjectConfigField,
     resetConfig,
+    resetProjectConfig,
     saveConfig,
+    saveProjectConfig,
 } from "../../src/lib/config-loader.js";
 import {
     DEFAULT_CONFIG,
@@ -126,7 +129,7 @@ describe("config-loader", () => {
 
             expect(writeFileSync).toHaveBeenCalledWith(
                 USER_CONFIG_PATH,
-                JSON.stringify(DEFAULT_CONFIG, null, 4)
+                `${JSON.stringify(DEFAULT_CONFIG, null, 4)}\n`
             );
         });
 
@@ -323,6 +326,156 @@ describe("config-loader", () => {
 
                 expect(config.editor).toBe("emacs");
             });
+        });
+    });
+
+    describe("saveProjectConfig", () => {
+        const repoRoot = "/mock/repo";
+        const projectConfigPath = join(repoRoot, ".merlinrc.json");
+
+        beforeEach(() => {
+            vi.clearAllMocks();
+        });
+
+        it("writes only provided fields without spreading defaults", () => {
+            vi.mocked(existsSync).mockReturnValue(false);
+
+            saveProjectConfig({ theme: "standard" }, repoRoot);
+
+            const writtenContent = vi.mocked(writeFileSync).mock.calls[0][1] as string;
+            const parsed = JSON.parse(writtenContent);
+
+            expect(parsed).toEqual({ theme: "standard" });
+            expect(parsed.maxSubjectLength).toBeUndefined();
+        });
+
+        it("merges with existing project config", () => {
+            vi.mocked(existsSync).mockReturnValue(true);
+            vi.mocked(readFileSync).mockReturnValue(JSON.stringify({ theme: "wizard" }));
+
+            saveProjectConfig({ maxSubjectLength: 50 }, repoRoot);
+
+            const writtenContent = vi.mocked(writeFileSync).mock.calls[0][1] as string;
+            const parsed = JSON.parse(writtenContent);
+
+            expect(parsed.theme).toBe("wizard");
+            expect(parsed.maxSubjectLength).toBe(50);
+        });
+
+        it("writes to the correct path with trailing newline", () => {
+            vi.mocked(existsSync).mockReturnValue(false);
+
+            saveProjectConfig({ theme: "standard" }, repoRoot);
+
+            expect(writeFileSync).toHaveBeenCalledWith(
+                projectConfigPath,
+                expect.stringMatching(/\n$/)
+            );
+        });
+
+        it("overrides existing field when same key is provided", () => {
+            vi.mocked(existsSync).mockReturnValue(true);
+            vi.mocked(readFileSync).mockReturnValue(
+                JSON.stringify({ theme: "wizard", maxSubjectLength: 72 })
+            );
+
+            saveProjectConfig({ maxSubjectLength: 50 }, repoRoot);
+
+            const writtenContent = vi.mocked(writeFileSync).mock.calls[0][1] as string;
+            const parsed = JSON.parse(writtenContent);
+
+            expect(parsed.maxSubjectLength).toBe(50);
+            expect(parsed.theme).toBe("wizard");
+        });
+    });
+
+    describe("removeProjectConfigField", () => {
+        const repoRoot = "/mock/repo";
+        const projectConfigPath = join(repoRoot, ".merlinrc.json");
+
+        beforeEach(() => {
+            vi.clearAllMocks();
+        });
+
+        it("removes the specified field and preserves others", () => {
+            vi.mocked(existsSync).mockReturnValue(true);
+            vi.mocked(readFileSync).mockReturnValue(
+                JSON.stringify({ theme: "wizard", maxSubjectLength: 50 })
+            );
+
+            removeProjectConfigField("maxSubjectLength", repoRoot);
+
+            const writtenContent = vi.mocked(writeFileSync).mock.calls[0][1] as string;
+            const parsed = JSON.parse(writtenContent);
+
+            expect(parsed.theme).toBe("wizard");
+            expect(parsed.maxSubjectLength).toBeUndefined();
+        });
+
+        it("writes to the correct path with trailing newline", () => {
+            vi.mocked(existsSync).mockReturnValue(true);
+            vi.mocked(readFileSync).mockReturnValue(JSON.stringify({ theme: "wizard" }));
+
+            removeProjectConfigField("theme", repoRoot);
+
+            expect(writeFileSync).toHaveBeenCalledWith(
+                projectConfigPath,
+                expect.stringMatching(/\n$/)
+            );
+        });
+
+        it("writes empty object when removing the only field", () => {
+            vi.mocked(existsSync).mockReturnValue(true);
+            vi.mocked(readFileSync).mockReturnValue(JSON.stringify({ theme: "wizard" }));
+
+            removeProjectConfigField("theme", repoRoot);
+
+            const writtenContent = vi.mocked(writeFileSync).mock.calls[0][1] as string;
+            const parsed = JSON.parse(writtenContent);
+
+            expect(parsed).toEqual({});
+        });
+
+        it("does not throw when field is not present in config", () => {
+            vi.mocked(existsSync).mockReturnValue(true);
+            vi.mocked(readFileSync).mockReturnValue(JSON.stringify({ theme: "wizard" }));
+
+            expect(() =>
+                removeProjectConfigField("maxSubjectLength", repoRoot)
+            ).not.toThrow();
+        });
+    });
+
+    describe("resetProjectConfig", () => {
+        const repoRoot = "/mock/repo";
+        const projectConfigPath = join(repoRoot, ".merlinrc.json");
+
+        beforeEach(() => {
+            vi.clearAllMocks();
+        });
+
+        it("seeds the file with only the default theme when it exists", () => {
+            vi.mocked(existsSync).mockReturnValue(true);
+
+            resetProjectConfig(repoRoot);
+
+            const writtenContent = vi.mocked(writeFileSync).mock.calls[0][1] as string;
+            const parsed = JSON.parse(writtenContent);
+
+            expect(parsed).toEqual({ theme: DEFAULT_CONFIG.theme });
+            expect(writtenContent).toMatch(/\n$/);
+            expect(writeFileSync).toHaveBeenCalledWith(
+                projectConfigPath,
+                expect.any(String)
+            );
+        });
+
+        it("does nothing when the project config file does not exist", () => {
+            vi.mocked(existsSync).mockReturnValue(false);
+
+            resetProjectConfig(repoRoot);
+
+            expect(writeFileSync).not.toHaveBeenCalled();
         });
     });
 

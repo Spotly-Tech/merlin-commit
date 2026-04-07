@@ -46,6 +46,63 @@ export type ThemeMessages = {
          * @example "Configuration closed" (standard)
          */
         exit: string;
+
+        /**
+         * Prompt for choosing user vs project config scope.
+         * @example "🔮 Choose which tome to inscribe:" (wizard)
+         * @example "Edit configuration scope:" (standard)
+         */
+        scopeSelector: string;
+
+        /**
+         * Label for user config scope choice.
+         * @example "📜 Personal tome (all realms - ~/.merlinrc.json)" (wizard)
+         * @example "User config (applies to all repos - ~/.merlinrc.json)" (standard)
+         */
+        scopeUser: string;
+
+        /**
+         * Label for project config scope choice.
+         * @example "📁 Realm tome (this repository - .merlinrc.json)" (wizard)
+         * @example "Project config (applies to this repo - .merlinrc.json)" (standard)
+         */
+        scopeProject: string;
+
+        /**
+         * Message when no project config file exists yet.
+         * @example "📜 No realm enchantments found." (wizard)
+         * @example "No project config found." (standard)
+         */
+        noProjectConfig: string;
+
+        /**
+         * Prompt asking to create a project config file.
+         * @example "📜 Inscribe a .merlinrc.json for this realm?" (wizard)
+         * @example "Create .merlinrc.json for this repo?" (standard)
+         */
+        createProjectConfig: string;
+
+        /**
+         * Success message after creating project config.
+         * @example "📜 Realm enchantments inscribed" (wizard)
+         * @example "Created .merlinrc.json" (standard)
+         */
+        projectConfigCreated: string;
+
+        /**
+         * Prompt message for the project config menu.
+         * @example "🔮 Which realm enchantment to modify?" (wizard)
+         * @example "Project configuration:" (standard)
+         */
+        projectMenu: string;
+
+        /**
+         * Prefix for the action prompt when a configured field is selected.
+         * The field name is appended after this prefix.
+         * @example "🔮 What fate shall befall" (wizard) → "🔮 What fate shall befall theme:"
+         * @example "Action for" (standard) → "Action for theme:"
+         */
+        projectFieldAction: string;
     };
 
     /**
@@ -281,6 +338,13 @@ export type ThemeMessages = {
          * @example "⚠️  A binding for 'git merlin' already exists"
          */
         aliasExists: string;
+
+        /**
+         * Warning when project config is unavailable (no git repository).
+         * @example "⚠️  No sacred realm detected - realm enchantments are not available" (wizard)
+         * @example "No git repository detected - project config is not available" (standard)
+         */
+        noProjectConfig: string;
     };
 
     /**
