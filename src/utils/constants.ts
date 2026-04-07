@@ -103,6 +103,14 @@ export const WIZARD_MESSAGES: ThemeMessages = {
     config: {
         intro: "🧙 Merlin opens the tome of settings",
         exit: "📜 Merlin's tome of secrets has been closed.",
+        scopeSelector: "🔮 Choose which tome to inscribe:",
+        scopeUser: "📜 Personal tome (all realms - ~/.merlinrc.json)",
+        scopeProject: "📁 Realm tome (this repository - .merlinrc.json)",
+        noProjectConfig: "📜 No realm enchantments found.",
+        createProjectConfig: "📜 Inscribe a .merlinrc.json for this realm?",
+        projectConfigCreated: "📜 Realm enchantments inscribed",
+        projectMenu: "🔮 Which realm enchantment to modify?",
+        projectFieldAction: "🔮 What fate shall befall",
     },
     checking: {
         repo: "🔮 Verifying the sacred repository",
@@ -148,6 +156,8 @@ export const WIZARD_MESSAGES: ThemeMessages = {
         resetConfig: "⚠️  This will erase all of Merlin's learned wisdom",
         existingSetup: "⚠️  Existing enchantments detected:",
         aliasExists: "⚠️  A binding for 'git merlin' already exists",
+        noProjectConfig:
+            "⚠️  No sacred realm detected - realm enchantments are not available",
     },
     tips: {
         gitAdd: '💡 Summon scrolls with "git add <file>"',
@@ -188,6 +198,14 @@ export const STANDARD_MESSAGES: ThemeMessages = {
     config: {
         intro: "Configuration settings",
         exit: "Configuration closed",
+        scopeSelector: "Edit configuration scope:",
+        scopeUser: "User config (applies to all repos - ~/.merlinrc.json)",
+        scopeProject: "Project config (applies to this repo - .merlinrc.json)",
+        noProjectConfig: "No project config found.",
+        createProjectConfig: "Create .merlinrc.json for this repo?",
+        projectConfigCreated: "Created .merlinrc.json",
+        projectMenu: "Project configuration:",
+        projectFieldAction: "Action for",
     },
     checking: {
         repo: "Checking git repository",
@@ -233,6 +251,7 @@ export const STANDARD_MESSAGES: ThemeMessages = {
         resetConfig: "This will reset all configuration to defaults",
         existingSetup: "Existing setup detected:",
         aliasExists: "Git alias 'merlin' already exists",
+        noProjectConfig: "No git repository detected - project config is not available",
     },
     tips: {
         gitAdd: 'Use "git add <file>" to stage changes',

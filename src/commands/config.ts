@@ -1,10 +1,15 @@
-import { confirm, input, select } from "@inquirer/prompts";
+import { basename } from "path";
+import { confirm, input, select, Separator } from "@inquirer/prompts";
 
 import {
     getMessages,
     loadConfig,
+    loadProjectConfig,
+    removeProjectConfigField,
     resetConfig,
+    resetProjectConfig,
     saveConfig,
+    saveProjectConfig,
 } from "../lib/config-loader.js";
 import { getRepoRoot } from "../lib/git.js";
 import { setupSigintHandler } from "../lib/sigint.js";
@@ -12,161 +17,319 @@ import { normalizeVS16Spacing } from "../lib/terminal.js";
 import type {
     ConfigMenuAction,
     ConfigOptions,
+    ConfigurableField,
     MerlinConfig,
     ThemeMessages,
 } from "../types/index.js";
-import { colors } from "../utils/constants.js";
+import { colors, DEFAULT_CONFIG } from "../utils/constants.js";
 import { createNonEmptyValidator, createRangeValidator } from "../utils/validators.js";
 
+type SaveFn = (config: Partial<MerlinConfig>) => void;
+
+const ALL_CONFIGURABLE_FIELDS: ConfigurableField[] = [
+    "theme",
+    "maxSubjectLength",
+    "maxScopeLength",
+    "editor",
+    "autoAdd",
+];
+
+// Menu chrome (labels, prompts, section headers) is intentionally non-themable
+// - config is an admin screen where clarity beats flavor. Visual emoji prefixes
+// still vary by theme via FIELD_EMOJI_PREFIXES below. Feedback messages
+// (success.config, warnings.resetConfig, warnings.cancel) stay themed.
+
+const FIELD_LABELS = {
+    theme: "Theme",
+    maxSubjectLength: "Max subject length",
+    maxScopeLength: "Max scope length",
+    editor: "Default editor",
+    autoAdd: "Auto-add unstaged files",
+    showConfig: "Show current config",
+    resetConfig: "Reset to defaults",
+    exit: "Exit",
+};
+
+const SECTION_HEADERS = {
+    settings: "Settings",
+    projectOverrides: "Project overrides",
+    addOverride: "Add override",
+} as const;
+
+const MENU_PROMPT = "Select an option:";
+
+const FIELD_ACTION_LABELS = {
+    change: "Change value",
+    remove: "Remove from project config",
+} as const;
+
+const CONFIGURE_PROMPTS = {
+    theme: "Select theme:",
+    themeWizardLabel: "wizard   - Magical experience with themed messages",
+    themeStandardLabel: "standard - Minimalist, professional interface",
+    maxSubjectLength: "Maximum subject line length (10-200):",
+    maxScopeLength: "Maximum scope length (5-50):",
+    editor: "External editor command:",
+    autoAdd: "Automatically stage all changes before committing?",
+} as const;
+
+const SET_TO_PREFIX = {
+    theme: "Theme set to",
+    maxSubjectLength: "Max subject length set to",
+    maxScopeLength: "Max scope length set to",
+    editor: "Editor set to",
+    autoAdd: "Auto-add set to",
+} as const;
+
+const DISPLAY = {
+    currentConfigHeader: "Current Configuration:",
+    projectOverridesHeader: "Project Overrides",
+    noProjectOverrides: "No project overrides set.",
+    configFileLabel: "Config file:",
+    noProjectOverridesToReset: "No project overrides to reset.",
+    resetUserConfirm: "Are you sure you want to reset all settings?",
+    resetProjectConfirm: "Reset all project overrides (theme baseline will be kept)?",
+    resetCancelled: "Reset cancelled.",
+    removedFieldPrefix: "Removed",
+} as const;
+
+const FIELD_EMOJI_PREFIXES = {
+    wizard: {
+        theme: "🎨",
+        maxSubjectLength: "📏",
+        maxScopeLength: "🎯",
+        editor: "📝",
+        autoAdd: "🔄",
+        show: "👁️ ",
+        reset: "🗑️ ",
+        exit: "👋",
+    },
+    standard: {
+        theme: "•",
+        maxSubjectLength: "•",
+        maxScopeLength: "•",
+        editor: "•",
+        autoAdd: "•",
+        show: "•",
+        reset: "•",
+        exit: "•",
+    },
+};
+
+const LABEL_COLUMN_WIDTH = 24;
+
+type MenuChoice = {
+    value: ConfigMenuAction;
+    name: string;
+    short: string;
+};
+
 /**
- * Builds menu choices with current configuration values displayed.
- * Uses theme-aware prefixes (emojis for wizard, bullets for standard).
+ * Pads a label with spaces so the value column lines up across rows.
+ * Always returns at least one space so adjacent text never collides.
  */
-function buildMenuChoices(config: Required<MerlinConfig>) {
+function padTo(label: string): string {
+    const padding = LABEL_COLUMN_WIDTH - label.length;
+    return padding > 0 ? " ".repeat(padding) : " ";
+}
+
+/**
+ * Formats a single field choice with emoji prefix, human-readable label,
+ * column-aligned current value, and a clean `short` property.
+ */
+function formatFieldChoice(
+    field: ConfigurableField,
+    currentValue: string | number | boolean,
+    config: Required<MerlinConfig>
+): MenuChoice {
     const isWizardTheme = config.theme === "wizard";
     const prefix = isWizardTheme
-        ? {
-              theme: "🎨",
-              maxSubjectLength: "📏",
-              maxScopeLength: "🎯",
-              editor: "📝",
-              autoAdd: "🔄",
-              show: "👁️ ",
-              reset: "🗑️ ",
-              exit: "👋",
-          }
-        : {
-              theme: "•",
-              maxSubjectLength: "•",
-              maxScopeLength: "•",
-              editor: "•",
-              autoAdd: "•",
-              show: "•",
-              reset: "•",
-              exit: "•",
-          };
+        ? FIELD_EMOJI_PREFIXES.wizard[field]
+        : FIELD_EMOJI_PREFIXES.standard[field];
+    const label = FIELD_LABELS[field];
 
-    const choices = [
-        {
-            value: "theme" as ConfigMenuAction,
-            name: `${prefix.theme} Theme                    [${config.theme}]`,
-        },
-        {
-            value: "maxSubjectLength" as ConfigMenuAction,
-            name: `${prefix.maxSubjectLength} Max subject length        [${config.maxSubjectLength}]`,
-        },
-        {
-            value: "maxScopeLength" as ConfigMenuAction,
-            name: `${prefix.maxScopeLength} Max scope length          [${config.maxScopeLength}]`,
-        },
-        {
-            value: "editor" as ConfigMenuAction,
-            name: `${prefix.editor} Default editor            [${config.editor}]`,
-        },
-        {
-            value: "autoAdd" as ConfigMenuAction,
-            name: `${prefix.autoAdd} Auto-add unstaged files   [${config.autoAdd}]`,
-        },
-        {
-            value: "show" as ConfigMenuAction,
-            name: `${prefix.show} Show current config`,
-        },
-        {
-            value: "reset" as ConfigMenuAction,
-            name: `${prefix.reset} Reset to defaults`,
-        },
-        {
-            value: "exit" as ConfigMenuAction,
-            name: `${prefix.exit} Exit`,
-        },
+    return {
+        value: field,
+        name: normalizeVS16Spacing(`${prefix} ${label}${padTo(label)}[${currentValue}]`),
+        short: label,
+    };
+}
+
+/**
+ * Formats a field choice without a current value, used by the project menu's
+ * "Add override" section where the field is not yet configured.
+ */
+function formatFieldChoiceNoValue(
+    field: ConfigurableField,
+    config: Required<MerlinConfig>
+): MenuChoice {
+    const isWizardTheme = config.theme === "wizard";
+    const prefix = isWizardTheme
+        ? FIELD_EMOJI_PREFIXES.wizard[field]
+        : FIELD_EMOJI_PREFIXES.standard[field];
+    const label = FIELD_LABELS[field];
+
+    return {
+        value: field,
+        name: normalizeVS16Spacing(`${prefix} ${label}`),
+        short: label,
+    };
+}
+
+/**
+ * Formats a navigation/utility action choice (show, reset, exit).
+ */
+function formatActionChoice(
+    action: "show" | "reset" | "exit",
+    config: Required<MerlinConfig>
+): MenuChoice {
+    const isWizardTheme = config.theme === "wizard";
+    const prefixMap = isWizardTheme
+        ? FIELD_EMOJI_PREFIXES.wizard
+        : FIELD_EMOJI_PREFIXES.standard;
+    const labelMap: Record<"show" | "reset" | "exit", string> = {
+        show: FIELD_LABELS.showConfig,
+        reset: FIELD_LABELS.resetConfig,
+        exit: FIELD_LABELS.exit,
+    };
+
+    return {
+        value: action,
+        name: normalizeVS16Spacing(`${prefixMap[action]} ${labelMap[action]}`),
+        short: labelMap[action],
+    };
+}
+
+/**
+ * Builds a section header pair (blank spacer + titled rule) for menus.
+ */
+function createSection(title: string): [Separator, Separator] {
+    return [
+        new Separator(" "),
+        new Separator(`─ ${title} ${"─".repeat(Math.max(0, 35 - title.length))}`),
     ];
+}
 
-    return choices.map((choice) => ({
-        ...choice,
-        name: normalizeVS16Spacing(choice.name),
-    }));
+/**
+ * Builds the user-tier menu choices with section separators, current values,
+ * and `short` properties on every actionable choice.
+ */
+function buildUserMenuChoices(
+    config: Required<MerlinConfig>
+): (MenuChoice | Separator)[] {
+    const choices: (MenuChoice | Separator)[] = [];
+
+    choices.push(...createSection(SECTION_HEADERS.settings));
+    for (const field of ALL_CONFIGURABLE_FIELDS) {
+        choices.push(formatFieldChoice(field, config[field], config));
+    }
+
+    choices.push(new Separator(" "));
+    choices.push(new Separator("─────────────────────────────────────"));
+    choices.push(formatActionChoice("show", config));
+    choices.push(formatActionChoice("reset", config));
+    choices.push(formatActionChoice("exit", config));
+
+    return choices;
 }
 
 /**
  * Configure the UI theme (wizard or standard).
  */
-async function configureTheme(config: Required<MerlinConfig>): Promise<void> {
+async function configureTheme(
+    config: Required<MerlinConfig>,
+    save: SaveFn
+): Promise<void> {
     const theme = await select({
-        message: "Select theme:",
+        message: CONFIGURE_PROMPTS.theme,
         choices: [
             {
                 value: "wizard" as const,
-                name: "wizard   - Magical experience with themed messages",
+                name: CONFIGURE_PROMPTS.themeWizardLabel,
+                short: "wizard",
             },
             {
                 value: "standard" as const,
-                name: "standard - Minimalist, professional interface",
+                name: CONFIGURE_PROMPTS.themeStandardLabel,
+                short: "standard",
             },
         ],
         default: config.theme,
     });
 
-    saveConfig({ theme });
-    console.log(colors.success(`\nTheme set to: ${theme}`));
+    save({ theme });
+    console.log(colors.success(`\n${SET_TO_PREFIX.theme}: ${theme}`));
 }
 
 /**
  * Configure the maximum subject line length.
  * Validates input is a number between 10-200.
  */
-async function configureMaxSubjectLength(config: Required<MerlinConfig>): Promise<void> {
+async function configureMaxSubjectLength(
+    config: Required<MerlinConfig>,
+    save: SaveFn
+): Promise<void> {
     const value = await input({
-        message: "Maximum subject line length (10-200):",
+        message: CONFIGURE_PROMPTS.maxSubjectLength,
         default: String(config.maxSubjectLength),
         validate: createRangeValidator(10, 200),
     });
 
-    saveConfig({ maxSubjectLength: parseInt(value, 10) });
-    console.log(colors.success(`\nMax subject length set to: ${value}`));
+    save({ maxSubjectLength: parseInt(value, 10) });
+    console.log(colors.success(`\n${SET_TO_PREFIX.maxSubjectLength}: ${value}`));
 }
 
 /**
  * Configure the maximum scope length.
  * Validates input is a number between 5-50.
  */
-async function configureMaxScopeLength(config: Required<MerlinConfig>): Promise<void> {
+async function configureMaxScopeLength(
+    config: Required<MerlinConfig>,
+    save: SaveFn
+): Promise<void> {
     const value = await input({
-        message: "Maximum scope length (5-50):",
+        message: CONFIGURE_PROMPTS.maxScopeLength,
         default: String(config.maxScopeLength),
         validate: createRangeValidator(5, 50),
     });
 
-    saveConfig({ maxScopeLength: parseInt(value, 10) });
-    console.log(colors.success(`\nMax scope length set to: ${value}`));
+    save({ maxScopeLength: parseInt(value, 10) });
+    console.log(colors.success(`\n${SET_TO_PREFIX.maxScopeLength}: ${value}`));
 }
 
 /**
  * Configure the external editor command.
  * Validates input is not empty.
  */
-async function configureEditor(config: Required<MerlinConfig>): Promise<void> {
+async function configureEditor(
+    config: Required<MerlinConfig>,
+    save: SaveFn
+): Promise<void> {
     const editor = await input({
-        message: "External editor command:",
+        message: CONFIGURE_PROMPTS.editor,
         default: config.editor,
         validate: createNonEmptyValidator("Editor command"),
     });
 
-    saveConfig({ editor: editor.trim() });
-    console.log(colors.success(`\nEditor set to: ${editor.trim()}`));
+    save({ editor: editor.trim() });
+    console.log(colors.success(`\n${SET_TO_PREFIX.editor}: ${editor.trim()}`));
 }
 
 /**
  * Configure the auto-add setting.
  * Toggles whether to automatically stage changes before commit.
  */
-async function configureAutoAdd(config: Required<MerlinConfig>): Promise<void> {
+async function configureAutoAdd(
+    config: Required<MerlinConfig>,
+    save: SaveFn
+): Promise<void> {
     const autoAdd = await confirm({
-        message: "Automatically stage all changes before committing?",
+        message: CONFIGURE_PROMPTS.autoAdd,
         default: config.autoAdd,
     });
 
-    saveConfig({ autoAdd });
-    console.log(colors.success(`\nAuto-add set to: ${autoAdd}`));
+    save({ autoAdd });
+    console.log(colors.success(`\n${SET_TO_PREFIX.autoAdd}: ${autoAdd}`));
 }
 
 /**
@@ -176,7 +339,7 @@ async function showConfig(): Promise<void> {
     const repoRoot = await getRepoRoot();
     const config = loadConfig(repoRoot);
 
-    console.log(colors.header("\nCurrent Configuration:"));
+    console.log(colors.header(`\n${DISPLAY.currentConfigHeader}`));
     console.log(colors.muted("-".repeat(60)));
 
     const displayConfig = {
@@ -190,7 +353,67 @@ async function showConfig(): Promise<void> {
 
     console.log(colors.content(JSON.stringify(displayConfig, null, 2)));
     console.log(colors.muted("-".repeat(60)));
-    console.log(colors.muted(`Config file: ~/.merlinrc.json\n`));
+    console.log(colors.muted(`${DISPLAY.configFileLabel} ~/.merlinrc.json\n`));
+}
+
+/**
+ * Display the current project-level overrides as formatted JSON.
+ * Shows only fields explicitly set in <repoRoot>/.merlinrc.json, not the
+ * merged effective config.
+ */
+async function showProjectConfig(repoRoot: string): Promise<void> {
+    const projectConfig = loadProjectConfig(repoRoot);
+    const repoName = basename(repoRoot);
+
+    console.log(colors.header(`\n${DISPLAY.projectOverridesHeader} (${repoName}):`));
+    console.log(colors.muted("-".repeat(60)));
+
+    if (Object.keys(projectConfig).length === 0) {
+        console.log(colors.muted(DISPLAY.noProjectOverrides));
+    } else {
+        console.log(colors.content(JSON.stringify(projectConfig, null, 2)));
+    }
+
+    console.log(colors.muted("-".repeat(60)));
+    console.log(colors.muted(`${DISPLAY.configFileLabel} ${repoName}/.merlinrc.json\n`));
+}
+
+/**
+ * Reset project-level overrides with user confirmation.
+ *
+ * Semantics: resetProjectConfig (Option B) seeds the file with the theme
+ * baseline, so "reset" means "clear all overrides except theme". We early-
+ * return when the only field is already theme, because then a reset would
+ * be a no-op and the confirm prompt would be misleading.
+ */
+async function resetProjectConfigWithConfirmation(
+    repoRoot: string,
+    messages: ThemeMessages
+): Promise<void> {
+    const projectConfig = loadProjectConfig(repoRoot);
+    const fields = Object.keys(projectConfig);
+    const hasResettableOverrides =
+        fields.length > 1 || (fields.length === 1 && fields[0] !== "theme");
+
+    if (!hasResettableOverrides) {
+        console.log(colors.muted(`\n${DISPLAY.noProjectOverridesToReset}\n`));
+        return;
+    }
+
+    console.log(colors.warning(`\n${messages.warnings.resetConfig}`));
+
+    const confirmed = await confirm({
+        message: DISPLAY.resetProjectConfirm,
+        default: false,
+    });
+
+    if (!confirmed) {
+        console.log(colors.muted(`\n${DISPLAY.resetCancelled}`));
+        return;
+    }
+
+    resetProjectConfig(repoRoot);
+    console.log(colors.success(`\n${messages.success.config}`));
 }
 
 /**
@@ -200,7 +423,7 @@ async function resetConfigWithConfirmation(messages: ThemeMessages): Promise<voi
     console.log(colors.warning(`\n${messages.warnings.resetConfig}`));
 
     const confirmed = await confirm({
-        message: "Are you sure you want to reset all settings?",
+        message: DISPLAY.resetUserConfirm,
         default: false,
     });
 
@@ -208,51 +431,233 @@ async function resetConfigWithConfirmation(messages: ThemeMessages): Promise<voi
         resetConfig();
         console.log(colors.success(`\n${messages.success.config}`));
     } else {
-        console.log(colors.muted("\nReset cancelled."));
+        console.log(colors.muted(`\n${DISPLAY.resetCancelled}`));
+    }
+}
+
+/**
+ * Dispatches a configure action to the appropriate handler.
+ * Shared by both user and project config menus to avoid duplication.
+ */
+async function dispatchConfigureAction(
+    field: ConfigurableField,
+    config: Required<MerlinConfig>,
+    save: SaveFn
+): Promise<void> {
+    switch (field) {
+        case "theme":
+            await configureTheme(config, save);
+            break;
+        case "maxSubjectLength":
+            await configureMaxSubjectLength(config, save);
+            break;
+        case "maxScopeLength":
+            await configureMaxScopeLength(config, save);
+            break;
+        case "editor":
+            await configureEditor(config, save);
+            break;
+        case "autoAdd":
+            await configureAutoAdd(config, save);
+            break;
+        default:
+            break;
+    }
+}
+
+/**
+ * Asks which config scope to edit. Skips the selector and warns
+ * when there is no git repository (project config is unavailable).
+ */
+async function selectConfigScope(
+    repoRoot: string | null,
+    messages: ThemeMessages
+): Promise<"user" | "project"> {
+    if (repoRoot === null) {
+        console.log(colors.warning(messages.warnings.noProjectConfig));
+        return "user";
+    }
+
+    return select({
+        message: messages.config.scopeSelector,
+        choices: [
+            { value: "user" as const, name: messages.config.scopeUser },
+            { value: "project" as const, name: messages.config.scopeProject },
+        ],
+    });
+}
+
+/**
+ * Ensures a project .merlinrc.json exists at the repo root.
+ * Prompts to create one if missing, seeding with only the theme field.
+ */
+async function ensureProjectConfigExists(
+    repoRoot: string,
+    messages: ThemeMessages
+): Promise<boolean> {
+    const projectConfig = loadProjectConfig(repoRoot);
+    if (Object.keys(projectConfig).length > 0) {
+        return true;
+    }
+
+    console.log(colors.muted(`\n${messages.config.noProjectConfig}`));
+    const shouldCreate = await confirm({
+        message: messages.config.createProjectConfig,
+        default: true,
+    });
+
+    if (!shouldCreate) {
+        return false;
+    }
+
+    saveProjectConfig({ theme: DEFAULT_CONFIG.theme }, repoRoot);
+    console.log(colors.success(`\n${messages.config.projectConfigCreated}`));
+    return true;
+}
+
+/**
+ * Two-section project config menu. Shows fields explicitly set in
+ * .merlinrc.json ("Project overrides") and fields available to add
+ * ("Add override"). Selecting an override offers change or remove.
+ */
+async function runProjectConfigMenu(repoRoot: string): Promise<void> {
+    const save: SaveFn = (config) => saveProjectConfig(config, repoRoot);
+
+    let running = true;
+    while (running) {
+        const config = loadConfig(repoRoot);
+        const messages = getMessages(repoRoot);
+        const projectConfig = loadProjectConfig(repoRoot);
+        const configuredFields = ALL_CONFIGURABLE_FIELDS.filter(
+            (field) => field in projectConfig
+        );
+        const availableFields = ALL_CONFIGURABLE_FIELDS.filter(
+            (field) => !(field in projectConfig)
+        );
+
+        const choices: (
+            | { value: ConfigMenuAction; name: string; short?: string }
+            | Separator
+        )[] = [];
+
+        if (configuredFields.length > 0) {
+            choices.push(...createSection(SECTION_HEADERS.projectOverrides));
+            for (const field of configuredFields) {
+                choices.push(formatFieldChoice(field, config[field], config));
+            }
+        }
+
+        if (availableFields.length > 0) {
+            choices.push(...createSection(SECTION_HEADERS.addOverride));
+            for (const field of availableFields) {
+                choices.push(formatFieldChoiceNoValue(field, config));
+            }
+        }
+
+        choices.push(new Separator(" "));
+        choices.push(new Separator("─────────────────────────────────────"));
+        choices.push(formatActionChoice("show", config));
+        choices.push(formatActionChoice("reset", config));
+        choices.push(formatActionChoice("exit", config));
+
+        const choice = await select<ConfigMenuAction>({
+            message: MENU_PROMPT,
+            choices,
+            pageSize: choices.length,
+            loop: false,
+        });
+
+        if (choice === "exit") {
+            running = false;
+            console.log(colors.muted(`\n${messages.config.exit}\n`));
+            break;
+        }
+
+        if (choice === "show") {
+            await showProjectConfig(repoRoot);
+            console.log();
+            continue;
+        }
+
+        if (choice === "reset") {
+            await resetProjectConfigWithConfirmation(repoRoot, messages);
+            console.log();
+            continue;
+        }
+
+        const isConfigured = configuredFields.includes(choice);
+        if (isConfigured) {
+            const action = await select({
+                message: `${messages.config.projectFieldAction} ${choice}:`,
+                choices: [
+                    { value: "change", name: FIELD_ACTION_LABELS.change },
+                    { value: "remove", name: FIELD_ACTION_LABELS.remove },
+                ],
+            });
+
+            if (action === "remove") {
+                removeProjectConfigField(choice, repoRoot);
+                console.log(
+                    colors.success(
+                        `\n${DISPLAY.removedFieldPrefix} ${choice} from project config`
+                    )
+                );
+            } else {
+                await dispatchConfigureAction(choice, config, save);
+            }
+        } else {
+            await dispatchConfigureAction(choice, config, save);
+        }
+
+        if (running) {
+            console.log();
+        }
     }
 }
 
 /**
  * Main interactive configuration menu loop.
- * Displays all options with current values and processes user selections.
+ * Opens with a scope selector, then shows the appropriate menu.
  */
 async function interactiveConfigMenu(): Promise<void> {
     const repoRoot = await getRepoRoot();
     const initialMessages = getMessages(repoRoot);
-    console.log(colors.header(`\n${initialMessages.config.intro}`));
-    console.log(colors.muted("Configure Merlin's settings\n"));
+    console.log(colors.header(`\n${initialMessages.config.intro}\n`));
+
+    const scope = await selectConfigScope(repoRoot, initialMessages);
+
+    if (scope === "project") {
+        const hasProjectConfig = await ensureProjectConfigExists(
+            repoRoot!,
+            initialMessages
+        );
+        if (!hasProjectConfig) {
+            return;
+        }
+        await runProjectConfigMenu(repoRoot!);
+        return;
+    }
 
     let running = true;
     while (running) {
         const config = loadConfig(repoRoot);
         const messages = getMessages(repoRoot);
 
-        const menuChoices = buildMenuChoices(config);
+        const menuChoices = buildUserMenuChoices(config);
         const choice = await select<ConfigMenuAction>({
-            message:
-                config.theme === "wizard"
-                    ? "What would you like to configure?"
-                    : "Select option:",
+            message: MENU_PROMPT,
             choices: menuChoices,
             pageSize: menuChoices.length,
-            loop: true,
+            loop: false,
         });
 
         switch (choice) {
             case "theme":
-                await configureTheme(config);
-                break;
             case "maxSubjectLength":
-                await configureMaxSubjectLength(config);
-                break;
             case "maxScopeLength":
-                await configureMaxScopeLength(config);
-                break;
             case "editor":
-                await configureEditor(config);
-                break;
             case "autoAdd":
-                await configureAutoAdd(config);
+                await dispatchConfigureAction(choice, config, saveConfig);
                 break;
             case "show":
                 await showConfig();

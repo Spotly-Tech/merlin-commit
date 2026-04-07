@@ -20,8 +20,8 @@ const USER_CONFIG_PATH = join(homedir(), ".merlinrc.json");
  */
 function resolveDefaultEditor(): string {
     return (
-        process.env.EDITOR ||
-        process.env.VISUAL ||
+        process.env.EDITOR ??
+        process.env.VISUAL ??
         (process.platform === "win32" ? "notepad" : "vim")
     );
 }
@@ -50,7 +50,7 @@ export function loadUserConfig(): Partial<MerlinConfig> {
  * Loads and validates project-level config from <repoRoot>/.merlinrc.json.
  * Returns only the validated fields (not merged with defaults).
  */
-function loadProjectConfig(repoRoot: string): Partial<MerlinConfig> {
+export function loadProjectConfig(repoRoot: string): Partial<MerlinConfig> {
     const projectConfigPath = join(repoRoot, ".merlinrc.json");
     if (!existsSync(projectConfigPath)) {
         return {};
@@ -102,7 +102,7 @@ export function loadConfig(repoRoot?: string | null): Required<MerlinConfig> {
 export function saveConfig(config: Partial<MerlinConfig>): void {
     const currentConfig = loadUserConfig();
     const newConfig = { ...DEFAULT_CONFIG, ...currentConfig, ...config };
-    writeFileSync(USER_CONFIG_PATH, JSON.stringify(newConfig, null, 4));
+    writeFileSync(USER_CONFIG_PATH, `${JSON.stringify(newConfig, null, 4)}\n`);
 }
 
 /**
@@ -114,8 +114,64 @@ export function saveConfig(config: Partial<MerlinConfig>): void {
  */
 export function resetConfig(): void {
     if (existsSync(USER_CONFIG_PATH)) {
-        writeFileSync(USER_CONFIG_PATH, JSON.stringify(DEFAULT_CONFIG, null, 4));
+        writeFileSync(USER_CONFIG_PATH, `${JSON.stringify(DEFAULT_CONFIG, null, 4)}\n`);
     }
+}
+/**
+ * Saves project-level configuration to <repoRoot>/.merlinrc.json.
+ *
+ * Merges provided options with existing project config.
+ * Does NOT spread DEFAULT_CONFIG - project config should contain only explicitly set values
+ *
+ * @param config - Partial configuration to save
+ * @param repoRoot - Repository root directory path
+ */
+export function saveProjectConfig(config: Partial<MerlinConfig>, repoRoot: string): void {
+    const projectConfigPath = join(repoRoot, ".merlinrc.json");
+    const currentProjectConfig = loadProjectConfig(repoRoot);
+    const newConfig = { ...currentProjectConfig, ...config };
+
+    writeFileSync(projectConfigPath, `${JSON.stringify(newConfig, null, 4)}\n`);
+}
+
+/**
+ * Removes a single field from the project-level config,
+ * letting it fall back to the user or default tier.
+ *
+ * @param field - Config key to remove
+ * @param repoRoot - Repository root directory path
+ */
+export function removeProjectConfigField(
+    field: keyof MerlinConfig,
+    repoRoot: string
+): void {
+    const projectConfigPath = join(repoRoot, ".merlinrc.json");
+    const currentProjectConfig = loadProjectConfig(repoRoot);
+
+    delete (currentProjectConfig as Record<string, unknown>)[field];
+    writeFileSync(
+        projectConfigPath,
+        `${JSON.stringify(currentProjectConfig, null, 4)}\n`
+    );
+}
+
+/**
+ * Resets the project-level config to its minimal seed state.
+ *
+ * Removes all project overrides except `theme`, which is preserved as a
+ * baseline so the project still has an explicit theme choice (matching the
+ * shape produced by `ensureProjectConfigExists` when seeding a new file).
+ * All other fields fall back to user config or defaults.
+ *
+ * @param repoRoot - Repository root directory path
+ */
+export function resetProjectConfig(repoRoot: string): void {
+    const projectConfigPath = join(repoRoot, ".merlinrc.json");
+    if (!existsSync(projectConfigPath)) {
+        return;
+    }
+    const seedConfig = { theme: DEFAULT_CONFIG.theme };
+    writeFileSync(projectConfigPath, `${JSON.stringify(seedConfig, null, 4)}\n`);
 }
 
 /**
