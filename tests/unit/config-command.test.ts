@@ -9,6 +9,7 @@ import {
     loadProjectConfig,
     removeProjectConfigField,
     resetConfig,
+    resetProjectConfig,
     saveConfig,
     saveProjectConfig,
 } from "../../src/lib/config-loader";
@@ -41,6 +42,7 @@ vi.mock("../../src/lib/config-loader", () => ({
     loadProjectConfig: vi.fn(),
     saveProjectConfig: vi.fn(),
     removeProjectConfigField: vi.fn(),
+    resetProjectConfig: vi.fn(),
 }));
 
 // Mock git module (getRepoRoot)
@@ -202,7 +204,7 @@ describe("configCommand", () => {
             expect(subjectChoice?.name).toContain("100");
         });
 
-        it("uses wizard theme message when theme is wizard", async () => {
+        it("uses plain menu prompt regardless of theme", async () => {
             vi.mocked(loadConfig).mockReturnValue({ ...DEFAULT_CONFIG, theme: "wizard" });
             vi.mocked(select).mockResolvedValueOnce("user").mockResolvedValueOnce("exit");
 
@@ -210,23 +212,7 @@ describe("configCommand", () => {
 
             expect(select).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    message: "What would you like to configure?",
-                })
-            );
-        });
-
-        it("uses standard theme message when theme is standard", async () => {
-            vi.mocked(loadConfig).mockReturnValue({
-                ...DEFAULT_CONFIG,
-                theme: "standard",
-            });
-            vi.mocked(select).mockResolvedValueOnce("user").mockResolvedValueOnce("exit");
-
-            await configCommand({});
-
-            expect(select).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    message: "Select option:",
+                    message: "Select an option:",
                 })
             );
         });
@@ -626,6 +612,158 @@ describe("configCommand", () => {
                 "/mock/repo"
             );
             expect(saveConfig).not.toHaveBeenCalled();
+        });
+
+        it("displays project overrides when show action is selected", async () => {
+            vi.mocked(loadProjectConfig).mockReturnValue({
+                theme: "wizard",
+                maxSubjectLength: 80,
+            });
+            vi.mocked(select)
+                .mockResolvedValueOnce("project")
+                .mockResolvedValueOnce("show")
+                .mockResolvedValueOnce("exit");
+
+            await configCommand({});
+
+            expect(consoleSpy.log).toHaveBeenCalledWith(
+                expect.stringContaining("Project Overrides")
+            );
+            expect(consoleSpy.log).toHaveBeenCalledWith(
+                expect.stringContaining("maxSubjectLength")
+            );
+        });
+
+        it("calls resetProjectConfig when reset is confirmed", async () => {
+            vi.mocked(loadProjectConfig).mockReturnValue({
+                theme: "wizard",
+                maxSubjectLength: 80,
+            });
+            vi.mocked(select)
+                .mockResolvedValueOnce("project")
+                .mockResolvedValueOnce("reset")
+                .mockResolvedValueOnce("exit");
+            vi.mocked(confirm).mockResolvedValueOnce(true);
+
+            await configCommand({});
+
+            expect(resetProjectConfig).toHaveBeenCalledWith("/mock/repo");
+        });
+
+        it("does not reset project config when reset is cancelled", async () => {
+            vi.mocked(loadProjectConfig).mockReturnValue({
+                theme: "wizard",
+                maxSubjectLength: 80,
+            });
+            vi.mocked(select)
+                .mockResolvedValueOnce("project")
+                .mockResolvedValueOnce("reset")
+                .mockResolvedValueOnce("exit");
+            vi.mocked(confirm).mockResolvedValueOnce(false);
+
+            await configCommand({});
+
+            expect(resetProjectConfig).not.toHaveBeenCalled();
+            expect(consoleSpy.log).toHaveBeenCalledWith(
+                expect.stringContaining("Reset cancelled")
+            );
+        });
+
+        it("skips reset confirmation when only theme baseline is present", async () => {
+            vi.mocked(loadProjectConfig).mockReturnValue({ theme: "wizard" });
+            vi.mocked(select)
+                .mockResolvedValueOnce("project")
+                .mockResolvedValueOnce("reset")
+                .mockResolvedValueOnce("exit");
+
+            await configCommand({});
+
+            expect(confirm).not.toHaveBeenCalled();
+            expect(resetProjectConfig).not.toHaveBeenCalled();
+            expect(consoleSpy.log).toHaveBeenCalledWith(
+                expect.stringContaining("No project overrides to reset")
+            );
+        });
+
+        it("includes show, reset, and exit actions in project menu choices", async () => {
+            vi.mocked(loadProjectConfig).mockReturnValue({ theme: "wizard" });
+            vi.mocked(select)
+                .mockResolvedValueOnce("project")
+                .mockResolvedValueOnce("exit");
+
+            await configCommand({});
+
+            const projectMenuCall = vi.mocked(select).mock.calls[1][0];
+            const choices = projectMenuCall.choices as Array<{
+                value?: string;
+            }>;
+            const fieldChoices = choices.filter((c) => "value" in c && c.value);
+
+            expect(fieldChoices).toContainEqual(
+                expect.objectContaining({ value: "show" })
+            );
+            expect(fieldChoices).toContainEqual(
+                expect.objectContaining({ value: "reset" })
+            );
+            expect(fieldChoices).toContainEqual(
+                expect.objectContaining({ value: "exit" })
+            );
+        });
+    });
+
+    describe("menu visual structure", () => {
+        it("includes Separator entries in user menu", async () => {
+            vi.mocked(select).mockResolvedValueOnce("user").mockResolvedValueOnce("exit");
+
+            await configCommand({});
+
+            const userMenuCall = vi.mocked(select).mock.calls[1][0];
+            const choices = userMenuCall.choices as Array<unknown>;
+            const separators = choices.filter(
+                (c) => typeof c === "object" && c !== null && "separator" in c
+            );
+
+            expect(separators.length).toBeGreaterThan(0);
+        });
+
+        it("sets short property on every actionable user menu choice", async () => {
+            vi.mocked(select).mockResolvedValueOnce("user").mockResolvedValueOnce("exit");
+
+            await configCommand({});
+
+            const userMenuCall = vi.mocked(select).mock.calls[1][0];
+            const choices = userMenuCall.choices as Array<{
+                value?: string;
+                short?: string;
+            }>;
+            const actionable = choices.filter((c) => "value" in c && c.value);
+
+            for (const choice of actionable) {
+                expect(choice.short).toBeTruthy();
+            }
+        });
+
+        it("sets short property on every actionable project menu choice", async () => {
+            vi.mocked(loadProjectConfig).mockReturnValue({
+                theme: "wizard",
+                maxSubjectLength: 80,
+            });
+            vi.mocked(select)
+                .mockResolvedValueOnce("project")
+                .mockResolvedValueOnce("exit");
+
+            await configCommand({});
+
+            const projectMenuCall = vi.mocked(select).mock.calls[1][0];
+            const choices = projectMenuCall.choices as Array<{
+                value?: string;
+                short?: string;
+            }>;
+            const actionable = choices.filter((c) => "value" in c && c.value);
+
+            for (const choice of actionable) {
+                expect(choice.short).toBeTruthy();
+            }
         });
     });
 
