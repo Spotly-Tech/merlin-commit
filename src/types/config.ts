@@ -70,18 +70,10 @@ export type ConfigOptions = {
 };
 
 /**
- * Identifies which action the user selected from the config menu.
- * Each value maps to a setting key or a navigation action.
+ * Action selected from either the user or project config menu.
+ * Covers configurable field names plus navigation/utility actions.
  */
-export type ConfigMenuAction =
-    | "theme"
-    | "maxSubjectLength"
-    | "maxScopeLength"
-    | "editor"
-    | "autoAdd"
-    | "show"
-    | "reset"
-    | "exit";
+export type ConfigMenuAction = ConfigurableField | "show" | "reset" | "exit";
 
 /**
  * Configurable fields that can appear in the project config menu.
@@ -93,9 +85,3 @@ export type ConfigurableField =
     | "maxScopeLength"
     | "editor"
     | "autoAdd";
-
-/**
- * Action selected from the project config menu - either a configurable
- * field name or exit.
- */
-export type ProjectConfigMenuAction = ConfigurableField | "exit";
