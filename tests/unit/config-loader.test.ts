@@ -8,6 +8,7 @@ import {
     loadUserConfig,
     removeProjectConfigField,
     resetConfig,
+    resetProjectConfig,
     saveConfig,
     saveProjectConfig,
 } from "../../src/lib/config-loader.js";
@@ -442,6 +443,39 @@ describe("config-loader", () => {
             expect(() =>
                 removeProjectConfigField("maxSubjectLength", repoRoot)
             ).not.toThrow();
+        });
+    });
+
+    describe("resetProjectConfig", () => {
+        const repoRoot = "/mock/repo";
+        const projectConfigPath = join(repoRoot, ".merlinrc.json");
+
+        beforeEach(() => {
+            vi.clearAllMocks();
+        });
+
+        it("seeds the file with only the default theme when it exists", () => {
+            vi.mocked(existsSync).mockReturnValue(true);
+
+            resetProjectConfig(repoRoot);
+
+            const writtenContent = vi.mocked(writeFileSync).mock.calls[0][1] as string;
+            const parsed = JSON.parse(writtenContent);
+
+            expect(parsed).toEqual({ theme: DEFAULT_CONFIG.theme });
+            expect(writtenContent).toMatch(/\n$/);
+            expect(writeFileSync).toHaveBeenCalledWith(
+                projectConfigPath,
+                expect.any(String)
+            );
+        });
+
+        it("does nothing when the project config file does not exist", () => {
+            vi.mocked(existsSync).mockReturnValue(false);
+
+            resetProjectConfig(repoRoot);
+
+            expect(writeFileSync).not.toHaveBeenCalled();
         });
     });
 

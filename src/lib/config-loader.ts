@@ -156,6 +156,25 @@ export function removeProjectConfigField(
 }
 
 /**
+ * Resets the project-level config to its minimal seed state.
+ *
+ * Removes all project overrides except `theme`, which is preserved as a
+ * baseline so the project still has an explicit theme choice (matching the
+ * shape produced by `ensureProjectConfigExists` when seeding a new file).
+ * All other fields fall back to user config or defaults.
+ *
+ * @param repoRoot - Repository root directory path
+ */
+export function resetProjectConfig(repoRoot: string): void {
+    const projectConfigPath = join(repoRoot, ".merlinrc.json");
+    if (!existsSync(projectConfigPath)) {
+        return;
+    }
+    const seedConfig = { theme: DEFAULT_CONFIG.theme };
+    writeFileSync(projectConfigPath, `${JSON.stringify(seedConfig, null, 4)}\n`);
+}
+
+/**
  * Recursively normalizes VS16 emoji spacing in all string values of a nested object.
  * Used to adjust emoji spacing in ThemeMessages based on the current terminal.
  */
