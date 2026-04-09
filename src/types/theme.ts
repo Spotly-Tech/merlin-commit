@@ -123,7 +123,7 @@ export type ThemeMessages = {
 
         /**
          * Message while detecting unstaged changes.
-         * @example "👀 Searching for unstaged artifacts"
+         * @example "👀 Searching for unstaged scrolls"
          */
         unstaged: string;
     };
@@ -140,13 +140,13 @@ export type ThemeMessages = {
 
         /**
          * Prompt for entering optional scope.
-         * @example "🎯 What realm does this affect? (optional):"
+         * @example "🎯 What domain does this affect? (optional):"
          */
         scope: string;
 
         /**
          * Prompt for writing commit subject.
-         * @example "📝 Describe your incantation (brief):"
+         * @example "📝 Describe your spell briefly:"
          */
         subject: string;
 
@@ -193,7 +193,7 @@ export type ThemeMessages = {
     success: {
         /**
          * Message after successful commit creation.
-         * @example "✨ Commit successfully conjured!"
+         * @example "✨ Spell successfully cast!"
          */
         commit: string;
 
@@ -211,13 +211,13 @@ export type ThemeMessages = {
 
         /**
          * Message after successful initialization.
-         * @example "🎉 Your repository is now enchanted!"
+         * @example "🎉 Your repository is now blessed!"
          */
         init: string;
 
         /**
          * Message after dry-run completion (preview without committing).
-         * @example "👁️  Merlin peers into the future..."
+         * @example "👁️  Merlin peers into possible futures..."
          */
         dryRun: string;
     };
@@ -234,7 +234,7 @@ export type ThemeMessages = {
 
         /**
          * Error when no staged changes exist to commit.
-         * @example "❌ No artifacts have been staged for the ritual"
+         * @example "❌ No scrolls have been prepared for the ritual"
          */
         noStaged: string;
 
@@ -246,7 +246,7 @@ export type ThemeMessages = {
 
         /**
          * Error when input exceeds maximum length.
-         * @example "❌ This incantation is too powerful (too long)"
+         * @example "❌ This spell exceeds the maximum length"
          */
         tooLong: string;
 
@@ -264,13 +264,13 @@ export type ThemeMessages = {
 
         /**
          * Error when external editor fails to launch or save.
-         * @example "❌ The magical editor has vanished"
+         * @example "❌ The enchanted quill has vanished"
          */
         editorFailed: string;
 
         /**
          * Error when package.json is not found during init.
-         * @example "❌ No package.json scroll found in this realm"
+         * @example "❌ No package.json ledger found in this realm"
          */
         noPackageJson: string;
 
@@ -329,7 +329,7 @@ export type ThemeMessages = {
 
         /**
          * Warning when existing setup files are detected during init.
-         * @example "⚠️  Existing enchantments detected:"
+         * @example "⚠️  Existing blessings detected:"
          */
         existingSetup: string;
 
@@ -353,13 +353,13 @@ export type ThemeMessages = {
     tips: {
         /**
          * Tip explaining how to stage files with git add.
-         * @example "💡 Summon artifacts with \"git add <file>\""
+         * @example "💡 Summon scrolls with \"git add <file>\""
          */
         gitAdd: string;
 
         /**
          * Tip about using external editor for longer messages.
-         * @example "📖 Press Enter to open the magical tome (editor)"
+         * @example "📖 Press Enter to summon the enchanted quill"
          */
         useEditor: string;
 
@@ -377,7 +377,7 @@ export type ThemeMessages = {
 
         /**
          * Tip to run npm init when package.json is missing.
-         * @example '💡 Invoke "npm init" to create a package.json scroll'
+         * @example '💡 Invoke "npm init" to create a package.json ledger'
          */
         runNpmInit: string;
 
@@ -389,7 +389,7 @@ export type ThemeMessages = {
 
         /**
          * Next steps guidance after successful init.
-         * @example "🌟 Your enchantment is ready! Next steps:"
+         * @example "🌟 Your repository is blessed! Next steps:"
          */
         nextSteps: string;
     };
@@ -400,14 +400,14 @@ export type ThemeMessages = {
     init: {
         /**
          * Welcome message when init command starts.
-         * @example "🧙 Merlin will enchant your repository with commit guardians" (wizard)
+         * @example "🧙 Merlin will bless your repository with commit guardians" (wizard)
          * @example "Setting up conventional commits for your repository" (standard)
          */
         intro: string;
 
         /**
          * Farewell message displayed when init command completes.
-         * @example "🔮 Your repository enchantments are complete." (wizard)
+         * @example "🔮 Your repository blessings are complete." (wizard)
          * @example "Repository setup complete." (standard)
          */
         exit: string;
@@ -449,7 +449,7 @@ export type ThemeMessages = {
 
         /**
          * Spinner message during commitlint config creation.
-         * @example "📋 Writing the commitlint scrolls..." (wizard)
+         * @example "📋 Inscribing the commitlint tome..." (wizard)
          * @example "Creating commitlint config..." (standard)
          */
         creatingCommitlint: string;
