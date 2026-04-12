@@ -1,6 +1,10 @@
 /**
  * All user-facing messages for a themed commit interface.
  * Different message sets enable wizard or standard themes.
+ *
+ * Cross-cutting categories (errors, warnings, success, tips) are sub-grouped
+ * by command domain (commit, config, init) with shared messages at the top level.
+ * Properties that need dynamic parameters are template functions instead of strings.
  */
 export type ThemeMessages = {
     /**
@@ -27,6 +31,13 @@ export type ThemeMessages = {
          * @example "Dry run complete - no commit was created." (standard)
          */
         dryRunExit: string;
+
+        /**
+         * Header shown above the commit preview block.
+         * @example "📝 Commit Preview:" (wizard)
+         * @example "Commit Preview:" (standard)
+         */
+        previewHeader: string;
     };
 
     /**
@@ -90,19 +101,12 @@ export type ThemeMessages = {
         projectConfigCreated: string;
 
         /**
-         * Prompt message for the project config menu.
-         * @example "🔮 Which realm enchantment to modify?" (wizard)
-         * @example "Project configuration:" (standard)
+         * Template function for the action prompt when a configured field is selected.
+         * @param field - The config field name being acted on
+         * @example (field) => `🔮 What fate shall befall ${field}:` (wizard)
+         * @example (field) => `Action for ${field}:` (standard)
          */
-        projectMenu: string;
-
-        /**
-         * Prefix for the action prompt when a configured field is selected.
-         * The field name is appended after this prefix.
-         * @example "🔮 What fate shall befall" (wizard) → "🔮 What fate shall befall theme:"
-         * @example "Action for" (standard) → "Action for theme:"
-         */
-        projectFieldAction: string;
+        projectFieldAction: (field: string) => string;
     };
 
     /**
@@ -163,22 +167,10 @@ export type ThemeMessages = {
         breaking: string;
 
         /**
-         * Editor label shown when writing breaking change description.
-         * @example "⚠️  Describe the breaking change:"
-         */
-        editorBreaking: string;
-
-        /**
          * Prompt for referencing optional issues.
          * @example "🔗 Does this resolve any quests?"
          */
         issues: string;
-
-        /**
-         * Editor label shown when writing issue references.
-         * @example "🔗 Enter issue references:"
-         */
-        editorIssues: string;
 
         /**
          * Prompt for final commit confirmation.
@@ -188,333 +180,154 @@ export type ThemeMessages = {
     };
 
     /**
-     * Success messages for completed operations.
+     * Success messages for completed operations, sub-grouped by domain.
      */
     success: {
-        /**
-         * Message after successful commit creation.
-         * @example "✨ Spell successfully cast!"
-         */
-        commit: string;
-
-        /**
-         * Message after successful commit amend.
-         * @example "🔄 Previous spell has been enhanced!"
-         */
-        amend: string;
-
-        /**
-         * Message after saving configuration.
-         * @example "⚙️  Merlin's preferences have been inscribed"
-         */
-        config: string;
-
-        /**
-         * Message after successful initialization.
-         * @example "🎉 Your repository is now blessed!"
-         */
-        init: string;
-
-        /**
-         * Message after dry-run completion (preview without committing).
-         * @example "👁️  Merlin peers into possible futures..."
-         */
-        dryRun: string;
+        commit: {
+            /** After successful commit creation. */
+            created: string;
+            /** After successful commit amend. */
+            amended: string;
+            /** After dry-run completion (preview without committing). */
+            dryRun: string;
+        };
+        config: {
+            /** After saving configuration. */
+            saved: string;
+        };
+        init: {
+            /** After successful initialization. */
+            completed: string;
+        };
     };
 
     /**
-     * Error messages for failed operations or validation.
+     * Error messages for failed operations or validation, sub-grouped by domain.
      */
     errors: {
-        /**
-         * Error when current directory is not a git repository.
-         * @example "❌ This realm is not under Git's dominion"
-         */
+        /** Error when current directory is not a git repository (shared: commit + init). */
         notRepo: string;
 
-        /**
-         * Error when no staged changes exist to commit.
-         * @example "❌ No scrolls have been prepared for the ritual"
-         */
-        noStaged: string;
+        commit: {
+            /** No staged changes exist to commit. */
+            noStaged: string;
+            /** Required field is empty. */
+            required: string;
+            /** Input exceeds maximum length. Template function includes the max value. */
+            tooLong: (maxCharacters: number) => string;
+            /** Input contains invalid format or characters. */
+            malformed: string;
+            /** Git commit command failed. */
+            commitFailed: string;
+            /** External editor failed to launch or save. */
+            editorFailed: string;
+        };
 
-        /**
-         * Error when required field is empty.
-         * @example "❌ The ancient texts demand this field"
-         */
-        required: string;
-
-        /**
-         * Error when input exceeds maximum length.
-         * @example "❌ This spell exceeds the maximum length"
-         */
-        tooLong: string;
-
-        /**
-         * Error when input contains invalid format or characters.
-         * @example "❌ This spell is malformed"
-         */
-        malformed: string;
-
-        /**
-         * Error when git commit command fails.
-         * @example "❌ The spell failed to materialize"
-         */
-        commitFailed: string;
-
-        /**
-         * Error when external editor fails to launch or save.
-         * @example "❌ The enchanted quill has vanished"
-         */
-        editorFailed: string;
-
-        /**
-         * Error when package.json is not found during init.
-         * @example "❌ No package.json ledger found in this realm"
-         */
-        noPackageJson: string;
-
-        /**
-         * Error when npm install fails during init.
-         * @example "❌ Failed to summon dependencies from the npm realm"
-         */
-        installFailed: string;
-
-        /**
-         * Error when husky initialization fails.
-         * @example "❌ The husky guardian refused to awaken"
-         */
-        huskyFailed: string;
-
-        /**
-         * Error when commit-msg hook creation fails.
-         * @example "❌ Failed to inscribe the commit-msg spell"
-         */
-        hookFailed: string;
-
-        /**
-         * Error when commitlint config creation fails.
-         * @example "❌ Failed to create the commitlint tome"
-         */
-        configFailed: string;
-
-        /**
-         * Error when git alias setup fails.
-         * @example "❌ Failed to bind the magical alias"
-         */
-        aliasFailed: string;
+        init: {
+            /** package.json is not found during init. */
+            noPackageJson: string;
+            /** npm install failed during init. */
+            installFailed: string;
+            /** Husky initialization failed. */
+            huskyFailed: string;
+            /** Commit-msg hook creation failed. */
+            hookFailed: string;
+            /** Commitlint config creation failed. */
+            configFailed: string;
+            /** Git alias setup failed. */
+            aliasFailed: string;
+        };
     };
 
     /**
-     * Warning messages for non-critical issues or important notices.
+     * Warning messages for non-critical issues, sub-grouped by domain.
      */
     warnings: {
-        /**
-         * Warning when git hooks are bypassed with --no-verify.
-         * @example "⚠️  Merlin bypasses the guardian hooks"
-         */
-        noVerify: string;
-
-        /**
-         * Warning when user cancels the commit operation.
-         * @example "🌙 The ritual has been cancelled"
-         */
+        /** User cancels the operation (shared: commit + config + init). */
         cancel: string;
 
-        /**
-         * Warning before resetting configuration to defaults.
-         * @example "⚠️  This will erase all of Merlin's learned preferences"
-         */
-        resetConfig: string;
+        commit: {
+            /** Git hooks are bypassed with --no-verify. */
+            noVerify: string;
+        };
 
-        /**
-         * Warning when existing setup files are detected during init.
-         * @example "⚠️  Existing blessings detected:"
-         */
-        existingSetup: string;
+        config: {
+            /** Before resetting configuration to defaults. */
+            resetConfig: string;
+            /** Project config is unavailable (no git repository). */
+            noProjectConfig: string;
+        };
 
-        /**
-         * Warning when git merlin alias already exists.
-         * @example "⚠️  A binding for 'git merlin' already exists"
-         */
-        aliasExists: string;
-
-        /**
-         * Warning when project config is unavailable (no git repository).
-         * @example "⚠️  No sacred realm detected - realm enchantments are not available" (wizard)
-         * @example "No git repository detected - project config is not available" (standard)
-         */
-        noProjectConfig: string;
+        init: {
+            /** Existing setup files are detected during init. */
+            existingSetup: string;
+            /** Git merlin alias already exists. */
+            aliasExists: string;
+        };
     };
 
     /**
-     * Helpful tips displayed contextually during the process.
+     * Helpful tips displayed contextually, sub-grouped by domain.
      */
     tips: {
-        /**
-         * Tip explaining how to stage files with git add.
-         * @example "💡 Summon scrolls with \"git add <file>\""
-         */
-        gitAdd: string;
+        commit: {
+            /** How to stage files with git add. */
+            gitAdd: string;
+        };
 
-        /**
-         * Tip about using external editor for longer messages.
-         * @example "📖 Press Enter to summon the enchanted quill"
-         */
-        useEditor: string;
-
-        /**
-         * Tip explaining breaking changes and their implications.
-         * @example "⚠️  Breaking changes alter the fabric of reality"
-         */
-        breakingChange: string;
-
-        /**
-         * Tip to run git init when not in a repository.
-         * @example '💡 Invoke "git init" to create a sacred repository'
-         */
-        runGitInit: string;
-
-        /**
-         * Tip to run npm init when package.json is missing.
-         * @example '💡 Invoke "npm init" to create a package.json ledger'
-         */
-        runNpmInit: string;
-
-        /**
-         * Tip for manual dependency installation when npm install fails.
-         * @example "💡 Try summoning manually: npm install -D"
-         */
-        manualInstall: string;
-
-        /**
-         * Next steps guidance after successful init.
-         * @example "🌟 Your repository is blessed! Next steps:"
-         */
-        nextSteps: string;
+        init: {
+            /** Tip to run git init when not in a repository. */
+            runGitInit: string;
+            /** Tip to run npm init when package.json is missing. */
+            runNpmInit: string;
+            /** Tip for manual dependency installation. */
+            manualInstall: string;
+            /** Next steps guidance after successful init. */
+            nextSteps: string;
+        };
     };
 
     /**
-     * Messages for the `merlin init` command that sets up husky and commitlint.
+     * Messages for the `merlin init` command.
      */
     init: {
-        /**
-         * Welcome message when init command starts.
-         * @example "🧙 Merlin will bless your repository with commit guardians" (wizard)
-         * @example "Setting up conventional commits for your repository" (standard)
-         */
+        /** Welcome message when init command starts. */
         intro: string;
-
-        /**
-         * Farewell message displayed when init command completes.
-         * @example "🔮 Your repository blessings are complete." (wizard)
-         * @example "Repository setup complete." (standard)
-         */
+        /** Farewell message when init command completes. */
         exit: string;
-
-        /**
-         * Message while checking for package.json existence.
-         * @example "📦 Searching for package.json in the realm" (wizard)
-         * @example "Checking for package.json" (standard)
-         */
+        /** Message while checking for package.json existence. */
         checkingPackageJson: string;
-
-        /**
-         * Prompt asking if user wants to install dependencies.
-         * @example "📦 Summon husky and commitlint from the ether?" (wizard)
-         * @example "Install husky and commitlint dependencies?" (standard)
-         */
+        /** Prompt asking if user wants to install dependencies. */
         installDeps: string;
-
-        /**
-         * Spinner message during npm install.
-         * @example "🔮 Summoning dependencies from the npm realm..." (wizard)
-         * @example "Installing dependencies..." (standard)
-         */
+        /** Spinner message during npm install. */
         installingDeps: string;
-
-        /**
-         * Spinner message during husky initialization.
-         * @example "🎣 Awakening the husky guardian..." (wizard)
-         * @example "Initializing husky..." (standard)
-         */
+        /** Spinner message during husky initialization. */
         initializingHusky: string;
-
-        /**
-         * Spinner message during hook file creation.
-         * @example "📜 Inscribing the commit-msg guardian..." (wizard)
-         * @example "Creating commit-msg hook..." (standard)
-         */
+        /** Spinner message during hook file creation. */
         creatingHook: string;
-
-        /**
-         * Spinner message during commitlint config creation.
-         * @example "📋 Inscribing the commitlint tome..." (wizard)
-         * @example "Creating commitlint config..." (standard)
-         */
+        /** Spinner message during commitlint config creation. */
         creatingCommitlint: string;
-
-        /**
-         * Prompt asking if user wants to setup git merlin alias.
-         * @example "🔗 Bind 'git merlin' to your spellbook?" (wizard)
-         * @example "Setup 'git merlin' alias?" (standard)
-         */
+        /** Prompt asking if user wants to setup git merlin alias. */
         setupAlias: string;
-
-        /**
-         * Prompt for selecting alias scope (global or local).
-         * @example "🌍 Choose the scope of this binding:" (wizard)
-         * @example "Select alias scope:" (standard)
-         */
+        /** Prompt for selecting alias scope. */
         aliasScope: string;
-
-        /**
-         * Spinner message during git alias creation.
-         * @example "🔗 Binding the magical alias..." (wizard)
-         * @example "Creating git alias..." (standard)
-         */
+        /** Spinner message during git alias creation. */
         creatingAlias: string;
-
-        /**
-         * Message when skipping existing file that won't be overwritten.
-         * @example "⏭️  Skipping existing artifact:" (wizard)
-         * @example "Skipping existing file:" (standard)
-         */
+        /** Message when skipping existing file that won't be overwritten. */
         skipExisting: string;
-
         /**
          * Prompt asking if user wants to overwrite existing file.
-         * @example "⚠️  This artifact already exists. Overwrite it?" (wizard)
-         * @example "File already exists. Overwrite?" (standard)
+         * Template function - fileName is optional (omit for alias overwrite).
+         * @param fileName - Optional file/directory name being overwritten
          */
-        overwrite: string;
-
-        /**
-         * Label for global alias scope option.
-         * @example "🌍 Global (all repositories)" (wizard)
-         * @example "Global (all repositories)" (standard)
-         */
+        overwrite: (fileName?: string) => string;
+        /** Label for global alias scope option. */
         aliasScopeGlobal: string;
-
-        /**
-         * Label for local alias scope option.
-         * @example "📁 Local (this repository only)" (wizard)
-         * @example "Local (this repository only)" (standard)
-         */
+        /** Label for local alias scope option. */
         aliasScopeLocal: string;
-
-        /**
-         * Prompt asking if user wants to create project-level .merlinrc.json.
-         * @example "📜 Create a project config for team sharing?" (wizard)
-         * @example "Create project config (.merlinrc.json) for team sharing?" (standard)
-         */
+        /** Prompt asking if user wants to create project-level config. */
         createProjectConfig: string;
-
-        /**
-         * Spinner message during project config creation.
-         * @example "📜 Inscribing project enchantments..." (wizard)
-         * @example "Creating project config..." (standard)
-         */
+        /** Spinner message during project config creation. */
         creatingProjectConfig: string;
     };
 };

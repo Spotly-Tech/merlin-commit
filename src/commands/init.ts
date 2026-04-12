@@ -69,7 +69,7 @@ export async function initCommand(options: InitOptions): Promise<void> {
         spinner.start(messages.checking.repo);
         if (!(await isGitRepo())) {
             spinner.fail(colors.error(messages.errors.notRepo));
-            console.log(colors.warning(`\n${messages.tips.runGitInit}\n`));
+            console.log(colors.warning(`\n${messages.tips.init.runGitInit}\n`));
             process.exit(1);
         }
         spinner.succeed();
@@ -77,8 +77,8 @@ export async function initCommand(options: InitOptions): Promise<void> {
         // Validate package.json exists
         spinner.start(messages.init.checkingPackageJson);
         if (!(await hasPackageJson())) {
-            spinner.fail(colors.error(messages.errors.noPackageJson));
-            console.log(colors.warning(`\n${messages.tips.runNpmInit}\n`));
+            spinner.fail(colors.error(messages.errors.init.noPackageJson));
+            console.log(colors.warning(`\n${messages.tips.init.runNpmInit}\n`));
             process.exit(1);
         }
         spinner.succeed();
@@ -88,7 +88,7 @@ export async function initCommand(options: InitOptions): Promise<void> {
         const hasExisting = Object.values(existing).some(Boolean);
 
         if (hasExisting) {
-            console.log(colors.warning(`\n${messages.warnings.existingSetup}`));
+            console.log(colors.warning(`\n${messages.warnings.init.existingSetup}`));
             if (existing.husky) console.log(colors.muted("  • .husky/ directory"));
             if (existing.commitMsgHook)
                 console.log(colors.muted("  • .husky/commit-msg hook"));
@@ -118,11 +118,11 @@ export async function initCommand(options: InitOptions): Promise<void> {
                     await installDependencies(deps, { silent: true });
                     spinner.succeed();
                 } catch (error) {
-                    spinner.fail(colors.error(messages.errors.installFailed));
+                    spinner.fail(colors.error(messages.errors.init.installFailed));
                     console.error(colors.muted(`\n${(error as Error).message}`));
                     console.log(
                         colors.warning(
-                            `\n${messages.tips.manualInstall} ${deps.join(" ")}\n`
+                            `\n${messages.tips.init.manualInstall} ${deps.join(" ")}\n`
                         )
                     );
                     process.exit(1);
@@ -161,7 +161,7 @@ export async function initCommand(options: InitOptions): Promise<void> {
         );
 
         // Success summary
-        console.log(colors.success(`\n✨ ${messages.success.init}`));
+        console.log(colors.success(`\n${messages.success.init.completed}`));
         console.log(colors.muted("\nCreated/updated:"));
         if (huskyInitialized) console.log(colors.muted("  • .husky/ directory"));
         if (commitlintCreated) console.log(colors.muted("  • commitlint.config.js"));
@@ -170,7 +170,7 @@ export async function initCommand(options: InitOptions): Promise<void> {
         if (projectConfigCreated)
             console.log(colors.muted("  • .merlinrc.json (project config)"));
 
-        console.log(colors.primary(`\n${messages.tips.nextSteps}`));
+        console.log(colors.primary(`\n${messages.tips.init.nextSteps}`));
         console.log(colors.muted("  1. Stage your changes: git add ."));
         console.log(colors.muted("  2. Create a commit: merlin (or git merlin)"));
         console.log(colors.muted(`\n${messages.init.exit}\n`));
@@ -212,7 +212,7 @@ async function runHuskySetup(
 
     if (existing.husky) {
         const shouldInit = await confirm({
-            message: `${messages.init.overwrite} (.husky/)`,
+            message: messages.init.overwrite(".husky/"),
             default: false,
         });
         if (!shouldInit) {
@@ -227,7 +227,7 @@ async function runHuskySetup(
         spinner.succeed();
         return true;
     } catch (error) {
-        spinner.fail(colors.error(messages.errors.huskyFailed));
+        spinner.fail(colors.error(messages.errors.init.huskyFailed));
         console.error(colors.muted(`\n${(error as Error).message}\n`));
         process.exit(1);
     }
@@ -257,7 +257,7 @@ async function runCommitlintSetup(
 
     if (existing.commitlintConfig) {
         const shouldCreate = await confirm({
-            message: `${messages.init.overwrite} (commitlint.config.js)`,
+            message: messages.init.overwrite("commitlint.config.js"),
             default: false,
         });
         if (!shouldCreate) {
@@ -274,7 +274,7 @@ async function runCommitlintSetup(
         spinner.succeed();
         return true;
     } catch (error) {
-        spinner.fail(colors.error(messages.errors.configFailed));
+        spinner.fail(colors.error(messages.errors.init.configFailed));
         console.error(colors.muted(`\n${(error as Error).message}\n`));
         process.exit(1);
     }
@@ -303,7 +303,7 @@ async function runHookSetup(
 
     if (existing.commitMsgHook) {
         const shouldCreate = await confirm({
-            message: `${messages.init.overwrite} (.husky/commit-msg)`,
+            message: messages.init.overwrite(".husky/commit-msg"),
             default: false,
         });
         if (!shouldCreate) {
@@ -320,7 +320,7 @@ async function runHookSetup(
         spinner.succeed();
         return true;
     } catch (error) {
-        spinner.fail(colors.error(messages.errors.hookFailed));
+        spinner.fail(colors.error(messages.errors.init.hookFailed));
         console.error(colors.muted(`\n${(error as Error).message}\n`));
         process.exit(1);
     }
@@ -339,10 +339,10 @@ async function runAliasSetup(messages: Messages, spinner: Spinner): Promise<bool
     const existingAlias = await checkGitAlias();
     if (existingAlias) {
         console.log(
-            colors.warning(`\n${messages.warnings.aliasExists}: ${existingAlias}`)
+            colors.warning(`\n${messages.warnings.init.aliasExists}: ${existingAlias}`)
         );
         const shouldOverwrite = await confirm({
-            message: messages.init.overwrite,
+            message: messages.init.overwrite(),
             default: false,
         });
         if (!shouldOverwrite) {
@@ -364,7 +364,7 @@ async function runAliasSetup(messages: Messages, spinner: Spinner): Promise<bool
         spinner.succeed();
         return true;
     } catch (error) {
-        spinner.fail(colors.error(messages.errors.aliasFailed));
+        spinner.fail(colors.error(messages.errors.init.aliasFailed));
         console.error(colors.muted(`\n${(error as Error).message}`));
         // Non-fatal: continue to success summary
         return false;
@@ -387,7 +387,7 @@ async function runProjectConfigSetup(
 
     if (existing.merlinConfig) {
         const shouldCreate = await confirm({
-            message: `${messages.init.overwrite} (.merlinrc.json)`,
+            message: messages.init.overwrite(".merlinrc.json"),
             default: false,
         });
         if (!shouldCreate) {
@@ -402,7 +402,7 @@ async function runProjectConfigSetup(
         spinner.succeed();
         return true;
     } catch (error) {
-        spinner.fail(colors.error(messages.errors.configFailed));
+        spinner.fail(colors.error(messages.errors.init.configFailed));
         console.error(colors.muted(`\n${(error as Error).message}`));
         // Non-fatal: continue to success summary
         return false;
