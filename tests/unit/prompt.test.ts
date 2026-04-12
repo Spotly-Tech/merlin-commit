@@ -423,6 +423,116 @@ describe("promptUser", () => {
         });
     });
 
+    describe("scope validation", () => {
+        /**
+         * Extracts the validate callback from the first input() call (scope prompt).
+         */
+        async function captureScopeValidator(): Promise<
+            (value: string) => true | string
+        > {
+            setupMinimalFlow();
+            const dependencies = createMockDependencies();
+            await promptUser(dependencies);
+
+            const scopeCall = vi.mocked(input).mock.calls[0][0];
+            return scopeCall.validate as (value: string) => true | string;
+        }
+
+        it("accepts empty scope (optional field)", async () => {
+            const validate = await captureScopeValidator();
+
+            expect(validate("")).toBe(true);
+        });
+
+        it("accepts valid alphanumeric scope", async () => {
+            const validate = await captureScopeValidator();
+
+            expect(validate("core")).toBe(true);
+            expect(validate("api")).toBe(true);
+            expect(validate("auth2")).toBe(true);
+        });
+
+        it("accepts scope with hyphens", async () => {
+            const validate = await captureScopeValidator();
+
+            expect(validate("config-loader")).toBe(true);
+            expect(validate("commit-msg")).toBe(true);
+        });
+
+        it("rejects scope starting with a digit", async () => {
+            const validate = await captureScopeValidator();
+
+            expect(validate("2auth")).toBe(WIZARD_MESSAGES.errors.commit.malformed);
+        });
+
+        it("rejects scope starting with a hyphen", async () => {
+            const validate = await captureScopeValidator();
+
+            expect(validate("-core")).toBe(WIZARD_MESSAGES.errors.commit.malformed);
+        });
+
+        it("rejects scope with spaces", async () => {
+            const validate = await captureScopeValidator();
+
+            expect(validate("my scope")).toBe(WIZARD_MESSAGES.errors.commit.malformed);
+        });
+
+        it("rejects scope with special characters", async () => {
+            const validate = await captureScopeValidator();
+
+            expect(validate("scope!")).toBe(WIZARD_MESSAGES.errors.commit.malformed);
+            expect(validate("scope/sub")).toBe(WIZARD_MESSAGES.errors.commit.malformed);
+        });
+
+        it("rejects scope exceeding max length", async () => {
+            const validate = await captureScopeValidator();
+            const longScope = "a".repeat(DEFAULT_CONFIG.maxScopeLength + 1);
+
+            const result = validate(longScope);
+
+            expect(result).toBe(
+                WIZARD_MESSAGES.errors.commit.tooLong(DEFAULT_CONFIG.maxScopeLength)
+            );
+        });
+    });
+
+    describe("subject validation", () => {
+        /**
+         * Extracts the validate callback from the second input() call (subject prompt).
+         */
+        async function captureSubjectValidator(): Promise<
+            (value: string) => true | string
+        > {
+            setupMinimalFlow();
+            const dependencies = createMockDependencies();
+            await promptUser(dependencies);
+
+            const subjectCall = vi.mocked(input).mock.calls[1][0];
+            return subjectCall.validate as (value: string) => true | string;
+        }
+
+        it("accepts valid subject", async () => {
+            const validate = await captureSubjectValidator();
+
+            expect(validate("add new feature")).toBe(true);
+        });
+
+        it("rejects empty subject", async () => {
+            const validate = await captureSubjectValidator();
+
+            expect(validate("")).toBe(WIZARD_MESSAGES.errors.commit.required);
+        });
+
+        it("rejects subject exceeding max length", async () => {
+            const validate = await captureSubjectValidator();
+            const longSubject = "a".repeat(DEFAULT_CONFIG.maxSubjectLength + 1);
+
+            expect(validate(longSubject)).toBe(
+                WIZARD_MESSAGES.errors.commit.tooLong(DEFAULT_CONFIG.maxSubjectLength)
+            );
+        });
+    });
+
     describe("full flow with all fields", () => {
         it("returns complete CommitAnswers with all optional fields", async () => {
             vi.mocked(select).mockResolvedValueOnce("feat");
