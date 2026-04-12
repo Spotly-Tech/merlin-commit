@@ -134,7 +134,7 @@ describe("configCommand", () => {
 
             expect(resetConfig).toHaveBeenCalled();
             expect(consoleSpy.log).toHaveBeenCalledWith(
-                expect.stringContaining(WIZARD_MESSAGES.success.config)
+                expect.stringContaining(WIZARD_MESSAGES.success.config.saved)
             );
         });
 
@@ -155,7 +155,7 @@ describe("configCommand", () => {
             await configCommand({ reset: true });
 
             expect(consoleSpy.log).toHaveBeenCalledWith(
-                expect.stringContaining(WIZARD_MESSAGES.warnings.resetConfig)
+                expect.stringContaining(WIZARD_MESSAGES.warnings.config.resetConfig)
             );
         });
     });
@@ -504,7 +504,7 @@ describe("configCommand", () => {
             await configCommand({});
 
             expect(consoleSpy.log).toHaveBeenCalledWith(
-                expect.stringContaining(WIZARD_MESSAGES.warnings.noProjectConfig)
+                expect.stringContaining(WIZARD_MESSAGES.warnings.config.noProjectConfig)
             );
         });
     });

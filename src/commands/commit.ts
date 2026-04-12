@@ -45,8 +45,8 @@ export async function commitCommand(options: CommitOptions): Promise<void> {
         // Check for staged changes
         spinner.start(messages.checking.staged);
         if (!(await hasStagedChanges())) {
-            spinner.fail(colors.error(messages.errors.noStaged));
-            console.log(colors.warning(`\n${messages.tips.gitAdd}`));
+            spinner.fail(colors.error(messages.errors.commit.noStaged));
+            console.log(colors.warning(`\n${messages.tips.commit.gitAdd}`));
             process.exit(1);
         }
         spinner.succeed();
@@ -79,7 +79,7 @@ export async function commitCommand(options: CommitOptions): Promise<void> {
 
         // Show commit preview
         console.log();
-        console.log(colors.header("📝 Commit Preview:"));
+        console.log(colors.header(messages.commit.previewHeader));
         console.log(colors.muted("-".repeat(60)));
         console.log(formatPreview(message));
         console.log(colors.muted("-".repeat(60)));
@@ -94,18 +94,14 @@ export async function commitCommand(options: CommitOptions): Promise<void> {
 
         // Dry run mode
         if (options.dryRun) {
-            console.log(colors.info(`\n${messages.success.dryRun}`));
+            console.log(colors.info(`\n${messages.success.commit.dryRun}`));
             console.log(colors.muted(`${messages.commit.dryRunExit}\n`));
             process.exit(0);
         }
 
         // Show warning for --no-verify
         if (options.noVerify) {
-            console.log(
-                colors.warning(
-                    normalizeVS16Spacing(`⚠️  ${messages.warnings.noVerify}\n`)
-                )
-            );
+            console.log(colors.warning(`${messages.warnings.commit.noVerify}\n`));
         }
 
         // Confirm commit
@@ -125,11 +121,11 @@ export async function commitCommand(options: CommitOptions): Promise<void> {
         if (options.amend) {
             spinner.start(messages.checking.unstaged);
             gitOutput = await amendCommit(message, options.noVerify);
-            spinner.succeed(colors.success(messages.success.amend));
+            spinner.succeed(colors.success(messages.success.commit.amended));
         } else {
             spinner.start(messages.checking.staged);
             gitOutput = await commit(message, options.noVerify);
-            spinner.succeed(colors.success(messages.success.commit));
+            spinner.succeed(colors.success(messages.success.commit.created));
         }
         console.log(colors.muted(gitOutput));
         console.log(colors.muted(`\n${messages.commit.exit}\n`));
@@ -141,7 +137,7 @@ export async function commitCommand(options: CommitOptions): Promise<void> {
             process.exit(0);
         }
 
-        spinner.fail(colors.error(messages.errors.commitFailed));
+        spinner.fail(colors.error(messages.errors.commit.commitFailed));
         console.error(colors.error(`\n${(error as Error).message}\n`));
         process.exit(1);
     } finally {

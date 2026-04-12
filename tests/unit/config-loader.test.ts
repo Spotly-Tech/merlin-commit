@@ -493,6 +493,20 @@ describe("config-loader", () => {
             expect(messages).toEqual(WIZARD_MESSAGES);
         });
 
+        it("preserves template functions through normalizeThemeStrings", () => {
+            vi.mocked(existsSync).mockReturnValue(true);
+            vi.mocked(readFileSync).mockReturnValue(JSON.stringify({ theme: "wizard" }));
+
+            const messages = getMessages();
+
+            expect(typeof messages.errors.commit.tooLong).toBe("function");
+            expect(messages.errors.commit.tooLong(72)).toContain("72");
+            expect(typeof messages.init.overwrite).toBe("function");
+            expect(messages.init.overwrite(".husky/")).toContain(".husky/");
+            expect(typeof messages.config.projectFieldAction).toBe("function");
+            expect(messages.config.projectFieldAction("theme")).toContain("theme");
+        });
+
         it("returns standard messages when merged theme is standard", () => {
             vi.mocked(existsSync).mockReturnValue(true);
             vi.mocked(readFileSync).mockReturnValue(

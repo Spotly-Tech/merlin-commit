@@ -179,6 +179,9 @@ export function resetProjectConfig(repoRoot: string): void {
  * Used to adjust emoji spacing in ThemeMessages based on the current terminal.
  */
 function normalizeThemeStrings<T>(object: T): T {
+    if (typeof object === "function") {
+        return object;
+    }
     if (typeof object === "string") {
         return normalizeVS16Spacing(object) as T;
     }

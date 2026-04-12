@@ -142,15 +142,39 @@ describe("STANDARD_MESSAGES", () => {
         expect(standardKeys).toEqual(wizardKeys);
     });
 
-    it("has the same sub-keys per category as WIZARD_MESSAGES", () => {
-        for (const category of Object.keys(WIZARD_MESSAGES) as Array<
-            keyof typeof WIZARD_MESSAGES
-        >) {
-            const wizardSubKeys = Object.keys(WIZARD_MESSAGES[category]).sort();
-            const standardSubKeys = Object.keys(STANDARD_MESSAGES[category]).sort();
-
-            expect(standardSubKeys).toEqual(wizardSubKeys);
+    it("has the same nested structure as WIZARD_MESSAGES", () => {
+        /**
+         * Recursively collects the key structure of an object,
+         * returning sorted keys at each level. Functions and strings
+         * are treated as leaf nodes (no further recursion).
+         */
+        function getKeyStructure(
+            object: Record<string, unknown>
+        ): Record<string, unknown> {
+            const result: Record<string, unknown> = {};
+            for (const key of Object.keys(object).sort()) {
+                const value = object[key];
+                if (
+                    typeof value === "object" &&
+                    value !== null &&
+                    typeof value !== "function"
+                ) {
+                    result[key] = getKeyStructure(value as Record<string, unknown>);
+                } else {
+                    result[key] = typeof value;
+                }
+            }
+            return result;
         }
+
+        const wizardStructure = getKeyStructure(
+            WIZARD_MESSAGES as unknown as Record<string, unknown>
+        );
+        const standardStructure = getKeyStructure(
+            STANDARD_MESSAGES as unknown as Record<string, unknown>
+        );
+
+        expect(standardStructure).toEqual(wizardStructure);
     });
 });
 
