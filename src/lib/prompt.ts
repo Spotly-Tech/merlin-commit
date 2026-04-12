@@ -17,6 +17,12 @@ import {
 } from "./transformers.js";
 
 /**
+ * Regex for valid scope format: starts with a letter, followed by letters, digits, or hyphens.
+ * Permissive pattern to avoid breaking existing users.
+ */
+const SCOPE_FORMAT_PATTERN = /^[a-zA-Z][a-zA-Z0-9-]*$/;
+
+/**
  * Dependencies injected by the command layer, avoiding direct lib-to-lib imports.
  */
 export type PromptDependencies = {
@@ -84,13 +90,22 @@ export async function promptUser(
     });
 
     // Prompt for optional scope
-    // Validate scope does not exceed max length
+    // Validate scope format and length
     answers.scope = await input({
         message: messages.prompts.scope,
         transformer: createOptionalCharacterCounterTransformer(config.maxScopeLength),
-        validate: (value: string) =>
-            value.length <= config.maxScopeLength ||
-            `${messages.errors.tooLong} (max ${config.maxScopeLength} characters)`,
+        validate: (value: string) => {
+            if (!value) {
+                return true;
+            }
+            if (value.length > config.maxScopeLength) {
+                return messages.errors.commit.tooLong(config.maxScopeLength);
+            }
+            if (!SCOPE_FORMAT_PATTERN.test(value)) {
+                return messages.errors.commit.malformed;
+            }
+            return true;
+        },
     });
 
     // Prompt for commit subject
@@ -101,10 +116,10 @@ export async function promptUser(
         transformer: createCharacterCounterTransformer(config.maxSubjectLength),
         validate: (value: string) => {
             if (!value) {
-                return messages.errors.required;
+                return messages.errors.commit.required;
             }
             if (value.length > config.maxSubjectLength) {
-                return `${messages.errors.tooLong} (max ${config.maxSubjectLength} characters)`;
+                return messages.errors.commit.tooLong(config.maxSubjectLength);
             }
             return true;
         },
@@ -126,7 +141,7 @@ export async function promptUser(
                 stagedFiles,
             });
         } catch {
-            console.warn(colors.warning(`\n${messages.errors.editorFailed}\n`));
+            console.warn(colors.warning(`\n${messages.errors.commit.editorFailed}\n`));
         }
     }
 
@@ -149,7 +164,7 @@ export async function promptUser(
                 answers.breaking = cleanDescription;
             }
         } catch {
-            console.warn(colors.warning(`\n${messages.errors.editorFailed}\n`));
+            console.warn(colors.warning(`\n${messages.errors.commit.editorFailed}\n`));
         }
     }
 
@@ -166,7 +181,7 @@ export async function promptUser(
                 answers.issues = issueReferences;
             }
         } catch {
-            console.warn(colors.warning(`\n${messages.errors.editorFailed}\n`));
+            console.warn(colors.warning(`\n${messages.errors.commit.editorFailed}\n`));
         }
     }
 

@@ -133,10 +133,10 @@ describe("commitCommand", () => {
 
             const spinner = vi.mocked(ora)();
             expect(spinner.fail).toHaveBeenCalledWith(
-                expect.stringContaining(WIZARD_MESSAGES.errors.noStaged)
+                expect.stringContaining(WIZARD_MESSAGES.errors.commit.noStaged)
             );
             expect(consoleSpy.log).toHaveBeenCalledWith(
-                expect.stringContaining(WIZARD_MESSAGES.tips.gitAdd)
+                expect.stringContaining(WIZARD_MESSAGES.tips.commit.gitAdd)
             );
             expect(mockExit).toHaveBeenCalledWith(1);
         });
@@ -204,7 +204,7 @@ describe("commitCommand", () => {
 
             const spinner = vi.mocked(ora)();
             expect(spinner.succeed).toHaveBeenCalledWith(
-                expect.stringContaining(WIZARD_MESSAGES.success.commit)
+                expect.stringContaining(WIZARD_MESSAGES.success.commit.created)
             );
         });
 
@@ -226,7 +226,7 @@ describe("commitCommand", () => {
             await commitCommand({ dryRun: true });
 
             expect(consoleSpy.log).toHaveBeenCalledWith(
-                expect.stringContaining(WIZARD_MESSAGES.success.dryRun)
+                expect.stringContaining(WIZARD_MESSAGES.success.commit.dryRun)
             );
             expect(consoleSpy.log).toHaveBeenCalledWith(
                 expect.stringContaining(WIZARD_MESSAGES.commit.dryRunExit)
@@ -265,7 +265,7 @@ describe("commitCommand", () => {
 
             const spinner = vi.mocked(ora)();
             expect(spinner.succeed).toHaveBeenCalledWith(
-                expect.stringContaining(WIZARD_MESSAGES.success.amend)
+                expect.stringContaining(WIZARD_MESSAGES.success.commit.amended)
             );
         });
     });
@@ -277,7 +277,7 @@ describe("commitCommand", () => {
             await commitCommand({ noVerify: true });
 
             expect(consoleSpy.log).toHaveBeenCalledWith(
-                expect.stringContaining(WIZARD_MESSAGES.warnings.noVerify)
+                expect.stringContaining(WIZARD_MESSAGES.warnings.commit.noVerify)
             );
         });
 
@@ -339,7 +339,7 @@ describe("commitCommand", () => {
 
             const spinner = vi.mocked(ora)();
             expect(spinner.fail).toHaveBeenCalledWith(
-                expect.stringContaining(WIZARD_MESSAGES.errors.commitFailed)
+                expect.stringContaining(WIZARD_MESSAGES.errors.commit.commitFailed)
             );
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 expect.stringContaining("git commit failed: hook rejected")

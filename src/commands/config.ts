@@ -400,7 +400,7 @@ async function resetProjectConfigWithConfirmation(
         return;
     }
 
-    console.log(colors.warning(`\n${messages.warnings.resetConfig}`));
+    console.log(colors.warning(`\n${messages.warnings.config.resetConfig}`));
 
     const confirmed = await confirm({
         message: DISPLAY.resetProjectConfirm,
@@ -413,14 +413,14 @@ async function resetProjectConfigWithConfirmation(
     }
 
     resetProjectConfig(repoRoot);
-    console.log(colors.success(`\n${messages.success.config}`));
+    console.log(colors.success(`\n${messages.success.config.saved}`));
 }
 
 /**
  * Reset configuration to defaults with user confirmation.
  */
 async function resetConfigWithConfirmation(messages: ThemeMessages): Promise<void> {
-    console.log(colors.warning(`\n${messages.warnings.resetConfig}`));
+    console.log(colors.warning(`\n${messages.warnings.config.resetConfig}`));
 
     const confirmed = await confirm({
         message: DISPLAY.resetUserConfirm,
@@ -429,7 +429,7 @@ async function resetConfigWithConfirmation(messages: ThemeMessages): Promise<voi
 
     if (confirmed) {
         resetConfig();
-        console.log(colors.success(`\n${messages.success.config}`));
+        console.log(colors.success(`\n${messages.success.config.saved}`));
     } else {
         console.log(colors.muted(`\n${DISPLAY.resetCancelled}`));
     }
@@ -474,7 +474,7 @@ async function selectConfigScope(
     messages: ThemeMessages
 ): Promise<"user" | "project"> {
     if (repoRoot === null) {
-        console.log(colors.warning(messages.warnings.noProjectConfig));
+        console.log(colors.warning(messages.warnings.config.noProjectConfig));
         return "user";
     }
 
@@ -588,7 +588,7 @@ async function runProjectConfigMenu(repoRoot: string): Promise<void> {
         const isConfigured = configuredFields.includes(choice);
         if (isConfigured) {
             const action = await select({
-                message: `${messages.config.projectFieldAction} ${choice}:`,
+                message: messages.config.projectFieldAction(choice),
                 choices: [
                     { value: "change", name: FIELD_ACTION_LABELS.change },
                     { value: "remove", name: FIELD_ACTION_LABELS.remove },

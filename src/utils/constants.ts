@@ -99,6 +99,7 @@ export const WIZARD_MESSAGES: ThemeMessages = {
         intro: "🧙 Merlin is ready to guide your commit",
         exit: "🔮 Your spell is woven into history.",
         dryRunExit: "🔮 The vision fades - no spell was cast.",
+        previewHeader: "📝 Commit Preview:",
     },
     config: {
         intro: "🧙 Merlin opens the tome of settings",
@@ -109,8 +110,7 @@ export const WIZARD_MESSAGES: ThemeMessages = {
         noProjectConfig: "📜 No realm enchantments found.",
         createProjectConfig: "📜 Inscribe a .merlinrc.json for this realm?",
         projectConfigCreated: "📜 Realm enchantments inscribed",
-        projectMenu: "🔮 Which realm enchantment to modify?",
-        projectFieldAction: "🔮 What fate shall befall",
+        projectFieldAction: (field: string) => `🔮 What fate shall befall ${field}:`,
     },
     checking: {
         repo: "🔮 Verifying the sacred repository",
@@ -123,50 +123,67 @@ export const WIZARD_MESSAGES: ThemeMessages = {
         subject: "📝 Describe your spell briefly:",
         body: "📖 Would you like to weave a detailed tale?",
         breaking: "⚠️  Does this spell shatter ancient contracts?",
-        editorBreaking: "⚠️  Inscribe the shattered covenant:",
         issues: "🔗 Does this resolve any quests?",
-        editorIssues: "🔗 Name the quests you have resolved:",
         confirm: "🔮 Shall Merlin cast this spell?",
     },
     success: {
-        commit: "✨ Spell successfully cast!",
-        amend: "🔄 Previous spell has been enhanced!",
-        config: "⚙️  Merlin's preferences have been inscribed",
-        init: "🎉 Your repository is now blessed!",
-        dryRun: "👁️  Merlin peers into possible futures...",
+        commit: {
+            created: "✨ Spell successfully cast!",
+            amended: "🔄 Previous spell has been enhanced!",
+            dryRun: "👁️  Merlin peers into possible futures...",
+        },
+        config: {
+            saved: "⚙️  Merlin's preferences have been inscribed",
+        },
+        init: {
+            completed: "✨ Your repository is now blessed!",
+        },
     },
     errors: {
         notRepo: "❌ This realm is not under Git's dominion",
-        noStaged: "❌ No scrolls have been prepared for the ritual",
-        required: "❌ The ancient texts demand this field",
-        tooLong: "❌ This spell exceeds the maximum length",
-        malformed: "❌ This spell contains forbidden runes",
-        commitFailed: "❌ The spell failed to materialize",
-        editorFailed: "❌ The enchanted quill has vanished",
-        noPackageJson: "❌ No package.json ledger found in this realm",
-        installFailed: "❌ Failed to summon dependencies from the npm realm",
-        huskyFailed: "❌ The husky guardian refused to awaken",
-        hookFailed: "❌ Failed to inscribe the commit-msg spell",
-        configFailed: "❌ Failed to create the commitlint tome",
-        aliasFailed: "❌ Failed to bind the magical alias",
+        commit: {
+            noStaged: "❌ No scrolls have been prepared for the ritual",
+            required: "❌ The ancient texts demand this field",
+            tooLong: (maxCharacters: number) =>
+                `❌ This spell exceeds the maximum length (max ${maxCharacters} characters)`,
+            malformed: "❌ This spell contains forbidden runes",
+            commitFailed: "❌ The spell failed to materialize",
+            editorFailed: "❌ The enchanted quill has vanished",
+        },
+        init: {
+            noPackageJson: "❌ No package.json ledger found in this realm",
+            installFailed: "❌ Failed to summon dependencies from the npm realm",
+            huskyFailed: "❌ The husky guardian refused to awaken",
+            hookFailed: "❌ Failed to inscribe the commit-msg spell",
+            configFailed: "❌ Failed to create the commitlint tome",
+            aliasFailed: "❌ Failed to bind the magical alias",
+        },
     },
     warnings: {
-        noVerify: "⚠️  Merlin bypasses the guardian wards",
         cancel: "🌙 The ritual has been cancelled",
-        resetConfig: "⚠️  This will erase all of Merlin's learned wisdom",
-        existingSetup: "⚠️  Existing blessings detected:",
-        aliasExists: "⚠️  A binding for 'git merlin' already exists",
-        noProjectConfig:
-            "⚠️  No sacred realm detected - realm enchantments are not available",
+        commit: {
+            noVerify: "⚠️  Merlin bypasses the guardian wards",
+        },
+        config: {
+            resetConfig: "⚠️  This will erase all of Merlin's learned wisdom",
+            noProjectConfig:
+                "⚠️  No sacred realm detected - realm enchantments are not available",
+        },
+        init: {
+            existingSetup: "⚠️  Existing blessings detected:",
+            aliasExists: "⚠️  A binding for 'git merlin' already exists",
+        },
     },
     tips: {
-        gitAdd: '💡 Summon scrolls with "git add <file>"',
-        useEditor: "📖 Press Enter to summon the enchanted quill",
-        breakingChange: "⚠️  Breaking changes shatter the old ways",
-        runGitInit: '💡 Invoke "git init" to create a sacred repository',
-        runNpmInit: '💡 Invoke "npm init" to create a package.json ledger',
-        manualInstall: "💡 Try summoning manually: npm install -D",
-        nextSteps: "🌟 Your repository is blessed! Next steps:",
+        commit: {
+            gitAdd: '💡 Summon scrolls with "git add <file>"',
+        },
+        init: {
+            runGitInit: '💡 Invoke "git init" to create a sacred repository',
+            runNpmInit: '💡 Invoke "npm init" to create a package.json ledger',
+            manualInstall: "💡 Try summoning manually: npm install -D",
+            nextSteps: "🌟 Your repository is blessed! Next steps:",
+        },
     },
     init: {
         intro: "🧙 Merlin will bless your repository with commit guardians",
@@ -180,7 +197,10 @@ export const WIZARD_MESSAGES: ThemeMessages = {
         aliasScope: "🔮 Choose the scope of this binding:",
         creatingAlias: "🔗 Binding the magical alias...",
         skipExisting: "⏭️  Skipping existing artifact:",
-        overwrite: "⚠️  This artifact already exists. Overwrite it?",
+        overwrite: (fileName?: string) =>
+            fileName
+                ? `⚠️  This artifact already exists. Overwrite it? (${fileName})`
+                : "⚠️  This artifact already exists. Overwrite it?",
         aliasScopeGlobal: "🌍 Global (all repositories)",
         aliasScopeLocal: "📁 Local (this repository only)",
         createProjectConfig: "📜 Create a project config for team sharing?",
@@ -194,6 +214,7 @@ export const STANDARD_MESSAGES: ThemeMessages = {
         intro: "Ready to create a commit",
         exit: "Commit complete",
         dryRunExit: "Dry run complete - no commit was created.",
+        previewHeader: "Commit Preview:",
     },
     config: {
         intro: "Configuration settings",
@@ -204,8 +225,7 @@ export const STANDARD_MESSAGES: ThemeMessages = {
         noProjectConfig: "No project config found.",
         createProjectConfig: "Create .merlinrc.json for this repo?",
         projectConfigCreated: "Created .merlinrc.json",
-        projectMenu: "Project configuration:",
-        projectFieldAction: "Action for",
+        projectFieldAction: (field: string) => `Action for ${field}:`,
     },
     checking: {
         repo: "Checking git repository",
@@ -218,49 +238,67 @@ export const STANDARD_MESSAGES: ThemeMessages = {
         subject: "Short description:",
         body: "Add a detailed description?",
         breaking: "Are there any breaking changes?",
-        editorBreaking: "Describe the breaking change:",
         issues: "Reference any issues? (e.g., fixes #123)",
-        editorIssues: "Enter issue references:",
         confirm: "Create this commit?",
     },
     success: {
-        commit: "Commit created successfully",
-        amend: "Commit amended successfully",
-        config: "Configuration updated",
-        init: "Setup complete",
-        dryRun: "Preview mode - no commit created",
+        commit: {
+            created: "Commit created successfully",
+            amended: "Commit amended successfully",
+            dryRun: "Preview mode - no commit created",
+        },
+        config: {
+            saved: "Configuration updated",
+        },
+        init: {
+            completed: "Setup complete",
+        },
     },
     errors: {
         notRepo: "Not a git repository",
-        noStaged: "No staged changes found",
-        required: "This field is required",
-        tooLong: "Text exceeds maximum length",
-        malformed: "Invalid format",
-        commitFailed: "Failed to create commit",
-        editorFailed: "Editor exited with error",
-        noPackageJson: "No package.json found",
-        installFailed: "Failed to install dependencies",
-        huskyFailed: "Failed to initialize husky",
-        hookFailed: "Failed to create commit-msg hook",
-        configFailed: "Failed to create commitlint config",
-        aliasFailed: "Failed to create git alias",
+        commit: {
+            noStaged: "No staged changes found",
+            required: "This field is required",
+            tooLong: (maxCharacters: number) =>
+                `Text exceeds maximum length (max ${maxCharacters} characters)`,
+            malformed: "Invalid format",
+            commitFailed: "Failed to create commit",
+            editorFailed: "Editor exited with error",
+        },
+        init: {
+            noPackageJson: "No package.json found",
+            installFailed: "Failed to install dependencies",
+            huskyFailed: "Failed to initialize husky",
+            hookFailed: "Failed to create commit-msg hook",
+            configFailed: "Failed to create commitlint config",
+            aliasFailed: "Failed to create git alias",
+        },
     },
     warnings: {
-        noVerify: "Skipping git hooks (--no-verify)",
         cancel: "Commit cancelled",
-        resetConfig: "This will reset all configuration to defaults",
-        existingSetup: "Existing setup detected:",
-        aliasExists: "Git alias 'merlin' already exists",
-        noProjectConfig: "No git repository detected - project config is not available",
+        commit: {
+            noVerify: "Skipping git hooks (--no-verify)",
+        },
+        config: {
+            resetConfig: "This will reset all configuration to defaults",
+            noProjectConfig:
+                "No git repository detected - project config is not available",
+        },
+        init: {
+            existingSetup: "Existing setup detected:",
+            aliasExists: "Git alias 'merlin' already exists",
+        },
     },
     tips: {
-        gitAdd: 'Use "git add <file>" to stage changes',
-        useEditor: "Press Enter to open your editor",
-        breakingChange: "Breaking changes trigger major version bumps",
-        runGitInit: 'Run "git init" to initialize a repository',
-        runNpmInit: 'Run "npm init" to create a package.json',
-        manualInstall: "Install manually: npm install -D",
-        nextSteps: "Setup complete! Next steps:",
+        commit: {
+            gitAdd: 'Use "git add <file>" to stage changes',
+        },
+        init: {
+            runGitInit: 'Run "git init" to initialize a repository',
+            runNpmInit: 'Run "npm init" to create a package.json',
+            manualInstall: "Install manually: npm install -D",
+            nextSteps: "Setup complete! Next steps:",
+        },
     },
     init: {
         intro: "Setting up conventional commits for your repository",
@@ -274,7 +312,10 @@ export const STANDARD_MESSAGES: ThemeMessages = {
         aliasScope: "Select alias scope:",
         creatingAlias: "Creating git alias...",
         skipExisting: "Skipping existing file:",
-        overwrite: "File already exists. Overwrite?",
+        overwrite: (fileName?: string) =>
+            fileName
+                ? `File already exists. Overwrite? (${fileName})`
+                : "File already exists. Overwrite?",
         aliasScopeGlobal: "Global (all repositories)",
         aliasScopeLocal: "Local (this repository only)",
         createProjectConfig: "Create project config (.merlinrc.json) for team sharing?",

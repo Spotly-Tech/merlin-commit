@@ -126,7 +126,7 @@ describe("initCommand", () => {
                 expect.stringContaining(WIZARD_MESSAGES.errors.notRepo)
             );
             expect(consoleSpy.log).toHaveBeenCalledWith(
-                expect.stringContaining(WIZARD_MESSAGES.tips.runGitInit)
+                expect.stringContaining(WIZARD_MESSAGES.tips.init.runGitInit)
             );
             expect(mockExit).toHaveBeenCalledWith(1);
         });
@@ -139,10 +139,10 @@ describe("initCommand", () => {
 
             const spinner = vi.mocked(ora)();
             expect(spinner.fail).toHaveBeenCalledWith(
-                expect.stringContaining(WIZARD_MESSAGES.errors.noPackageJson)
+                expect.stringContaining(WIZARD_MESSAGES.errors.init.noPackageJson)
             );
             expect(consoleSpy.log).toHaveBeenCalledWith(
-                expect.stringContaining(WIZARD_MESSAGES.tips.runNpmInit)
+                expect.stringContaining(WIZARD_MESSAGES.tips.init.runNpmInit)
             );
             expect(mockExit).toHaveBeenCalledWith(1);
         });
@@ -184,7 +184,7 @@ describe("initCommand", () => {
             await initCommand({});
 
             expect(consoleSpy.log).toHaveBeenCalledWith(
-                expect.stringContaining(WIZARD_MESSAGES.warnings.existingSetup)
+                expect.stringContaining(WIZARD_MESSAGES.warnings.init.existingSetup)
             );
             expect(consoleSpy.log).toHaveBeenCalledWith(
                 expect.stringContaining(".husky/ directory")
@@ -200,7 +200,7 @@ describe("initCommand", () => {
             await initCommand({});
 
             expect(consoleSpy.log).not.toHaveBeenCalledWith(
-                expect.stringContaining(WIZARD_MESSAGES.warnings.existingSetup)
+                expect.stringContaining(WIZARD_MESSAGES.warnings.init.existingSetup)
             );
         });
     });
@@ -281,10 +281,10 @@ describe("initCommand", () => {
 
             const spinner = vi.mocked(ora)();
             expect(spinner.fail).toHaveBeenCalledWith(
-                expect.stringContaining(WIZARD_MESSAGES.errors.installFailed)
+                expect.stringContaining(WIZARD_MESSAGES.errors.init.installFailed)
             );
             expect(consoleSpy.log).toHaveBeenCalledWith(
-                expect.stringContaining(WIZARD_MESSAGES.tips.manualInstall)
+                expect.stringContaining(WIZARD_MESSAGES.tips.init.manualInstall)
             );
             expect(mockExit).toHaveBeenCalledWith(1);
         });
@@ -382,7 +382,7 @@ describe("initCommand", () => {
 
             const spinner = vi.mocked(ora)();
             expect(spinner.fail).toHaveBeenCalledWith(
-                expect.stringContaining(WIZARD_MESSAGES.errors.huskyFailed)
+                expect.stringContaining(WIZARD_MESSAGES.errors.init.huskyFailed)
             );
             expect(mockExit).toHaveBeenCalledWith(1);
         });
@@ -473,7 +473,7 @@ describe("initCommand", () => {
 
             const spinner = vi.mocked(ora)();
             expect(spinner.fail).toHaveBeenCalledWith(
-                expect.stringContaining(WIZARD_MESSAGES.errors.configFailed)
+                expect.stringContaining(WIZARD_MESSAGES.errors.init.configFailed)
             );
             expect(mockExit).toHaveBeenCalledWith(1);
         });
@@ -573,7 +573,7 @@ describe("initCommand", () => {
 
             const spinner = vi.mocked(ora)();
             expect(spinner.fail).toHaveBeenCalledWith(
-                expect.stringContaining(WIZARD_MESSAGES.errors.hookFailed)
+                expect.stringContaining(WIZARD_MESSAGES.errors.init.hookFailed)
             );
             expect(mockExit).toHaveBeenCalledWith(1);
         });
@@ -626,7 +626,7 @@ describe("initCommand", () => {
             await initCommand({});
 
             expect(consoleSpy.log).toHaveBeenCalledWith(
-                expect.stringContaining(WIZARD_MESSAGES.warnings.aliasExists)
+                expect.stringContaining(WIZARD_MESSAGES.warnings.init.aliasExists)
             );
             expect(consoleSpy.log).toHaveBeenCalledWith(
                 expect.stringContaining("!merlin")
@@ -656,11 +656,11 @@ describe("initCommand", () => {
 
             const spinner = vi.mocked(ora)();
             expect(spinner.fail).toHaveBeenCalledWith(
-                expect.stringContaining(WIZARD_MESSAGES.errors.aliasFailed)
+                expect.stringContaining(WIZARD_MESSAGES.errors.init.aliasFailed)
             );
             // Should NOT exit — continues to project config and summary
             expect(consoleSpy.log).toHaveBeenCalledWith(
-                expect.stringContaining(WIZARD_MESSAGES.success.init)
+                expect.stringContaining(WIZARD_MESSAGES.success.init.completed)
             );
         });
     });
@@ -738,7 +738,7 @@ describe("initCommand", () => {
             await initCommand({});
 
             expect(consoleSpy.log).toHaveBeenCalledWith(
-                expect.stringContaining(WIZARD_MESSAGES.success.init)
+                expect.stringContaining(WIZARD_MESSAGES.success.init.completed)
             );
         });
     });
@@ -750,7 +750,7 @@ describe("initCommand", () => {
             await initCommand({});
 
             expect(consoleSpy.log).toHaveBeenCalledWith(
-                expect.stringContaining(WIZARD_MESSAGES.success.init)
+                expect.stringContaining(WIZARD_MESSAGES.success.init.completed)
             );
         });
 
