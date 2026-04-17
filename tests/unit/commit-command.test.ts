@@ -3,7 +3,7 @@ import ora from "ora";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { commitCommand } from "../../src/commands/commit.js";
-import { getMessages, loadConfig } from "../../src/lib/config-loader";
+import { getMessages, loadConfig } from "../../src/lib/config-loader.js";
 import {
     amendCommit,
     commit,
@@ -12,10 +12,10 @@ import {
     getStagedFilesWithStatus,
     hasStagedChanges,
     isGitRepo,
-} from "../../src/lib/git";
-import { buildCommitMessage, formatPreview } from "../../src/lib/message";
-import { promptUser } from "../../src/lib/prompt";
-import { setupSigintHandler } from "../../src/lib/sigint";
+} from "../../src/lib/git.js";
+import { buildCommitMessage, formatPreview } from "../../src/lib/message.js";
+import { promptUser } from "../../src/lib/prompt.js";
+import { setupSigintHandler } from "../../src/lib/sigint.js";
 import { DEFAULT_CONFIG, WIZARD_MESSAGES } from "../../src/utils/constants.js";
 
 vi.mock("../../src/lib/terminal.js", () => ({

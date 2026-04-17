@@ -12,8 +12,8 @@ import {
     resetProjectConfig,
     saveConfig,
     saveProjectConfig,
-} from "../../src/lib/config-loader";
-import { getRepoRoot } from "../../src/lib/git";
+} from "../../src/lib/config-loader.js";
+import { getRepoRoot } from "../../src/lib/git.js";
 import { DEFAULT_CONFIG, WIZARD_MESSAGES } from "../../src/utils/constants.js";
 
 // Mock @inquirer/prompts
