@@ -481,6 +481,87 @@ describe("configCommand", () => {
         });
     });
 
+    describe("back navigation", () => {
+        it("returns to scope selector when back is selected from user menu", async () => {
+            vi.mocked(select)
+                .mockResolvedValueOnce("user")
+                .mockResolvedValueOnce("back")
+                .mockResolvedValueOnce("user")
+                .mockResolvedValueOnce("exit");
+
+            await configCommand({});
+
+            // Scope selector shown twice (initial + after back)
+            const scopeCalls = vi
+                .mocked(select)
+                .mock.calls.filter(
+                    (call) =>
+                        call[0] &&
+                        typeof call[0] === "object" &&
+                        "message" in call[0] &&
+                        call[0].message === WIZARD_MESSAGES.config.scopeSelector
+                );
+            expect(scopeCalls).toHaveLength(2);
+        });
+
+        it("returns to scope selector when back is selected from project menu", async () => {
+            vi.mocked(loadProjectConfig).mockReturnValue({ theme: "wizard" });
+            vi.mocked(select)
+                .mockResolvedValueOnce("project")
+                .mockResolvedValueOnce("back")
+                .mockResolvedValueOnce("user")
+                .mockResolvedValueOnce("exit");
+
+            await configCommand({});
+
+            expect(select).toHaveBeenCalledTimes(4);
+            expect(consoleSpy.log).toHaveBeenCalledWith(
+                expect.stringContaining(WIZARD_MESSAGES.config.back)
+            );
+        });
+
+        it("allows switching from user to project scope via back", async () => {
+            vi.mocked(loadProjectConfig).mockReturnValue({ theme: "wizard" });
+            vi.mocked(select)
+                .mockResolvedValueOnce("user")
+                .mockResolvedValueOnce("back")
+                .mockResolvedValueOnce("project")
+                .mockResolvedValueOnce("exit");
+
+            await configCommand({});
+
+            expect(select).toHaveBeenCalledTimes(4);
+        });
+
+        it("exits entirely when exit is selected from project menu", async () => {
+            vi.mocked(loadProjectConfig).mockReturnValue({ theme: "wizard" });
+            vi.mocked(select)
+                .mockResolvedValueOnce("project")
+                .mockResolvedValueOnce("exit");
+
+            await configCommand({});
+
+            expect(select).toHaveBeenCalledTimes(2);
+            expect(consoleSpy.log).toHaveBeenCalledWith(
+                expect.stringContaining(WIZARD_MESSAGES.config.exit)
+            );
+        });
+
+        it("shows back message with themed text", async () => {
+            vi.mocked(select)
+                .mockResolvedValueOnce("user")
+                .mockResolvedValueOnce("back")
+                .mockResolvedValueOnce("user")
+                .mockResolvedValueOnce("exit");
+
+            await configCommand({});
+
+            expect(consoleSpy.log).toHaveBeenCalledWith(
+                expect.stringContaining(WIZARD_MESSAGES.config.back)
+            );
+        });
+    });
+
     describe("scope selector", () => {
         it("shows scope selector in git repo", async () => {
             vi.mocked(select).mockResolvedValueOnce("user").mockResolvedValueOnce("exit");
