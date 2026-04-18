@@ -73,7 +73,7 @@ export type ConfigOptions = {
  * Action selected from either the user or project config menu.
  * Covers configurable field names plus navigation/utility actions.
  */
-export type ConfigMenuAction = ConfigurableField | "show" | "reset" | "exit";
+export type ConfigMenuAction = ConfigurableField | "show" | "reset" | "back" | "exit";
 
 /**
  * Configurable fields that can appear in the project config menu.

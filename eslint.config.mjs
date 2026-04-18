@@ -209,6 +209,11 @@ const mainConfig = {
         "import-x/no-self-import": "error",
         "import-x/no-useless-path-segments": "error",
         "import-x/no-cycle": ["error", { maxDepth: 3 }],
+        "import-x/extensions": [
+            "error",
+            "ignorePackages",
+            { checkTypeOnlyImports: true },
+        ],
 
         // ── Core rules turned OFF (replaced by TS equivalents) ───
         "no-shadow": "off",

@@ -3,8 +3,8 @@ import ora from "ora";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { initCommand } from "../../src/commands/init.js";
-import { getMessages } from "../../src/lib/config-loader";
-import { getRepoRoot, isGitRepo } from "../../src/lib/git";
+import { getMessages } from "../../src/lib/config-loader.js";
+import { getRepoRoot, isGitRepo } from "../../src/lib/git.js";
 import {
     checkGitAlias,
     createCommitlintConfig,
@@ -16,8 +16,8 @@ import {
     installDependencies,
     isPackageInstalled,
     setupGitAlias,
-} from "../../src/lib/setup";
-import { setupSigintHandler } from "../../src/lib/sigint";
+} from "../../src/lib/setup.js";
+import { setupSigintHandler } from "../../src/lib/sigint.js";
 import { WIZARD_MESSAGES } from "../../src/utils/constants.js";
 
 vi.mock("@inquirer/prompts", () => ({
