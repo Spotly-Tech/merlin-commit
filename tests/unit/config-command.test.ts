@@ -12,8 +12,8 @@ import {
     resetProjectConfig,
     saveConfig,
     saveProjectConfig,
-} from "../../src/lib/config-loader";
-import { getRepoRoot } from "../../src/lib/git";
+} from "../../src/lib/config-loader.js";
+import { getRepoRoot } from "../../src/lib/git.js";
 import { DEFAULT_CONFIG, WIZARD_MESSAGES } from "../../src/utils/constants.js";
 
 // Mock @inquirer/prompts
@@ -177,6 +177,7 @@ describe("configCommand", () => {
                         expect.objectContaining({ value: "autoAdd" }),
                         expect.objectContaining({ value: "show" }),
                         expect.objectContaining({ value: "reset" }),
+                        expect.objectContaining({ value: "back" }),
                         expect.objectContaining({ value: "exit" }),
                     ]),
                 })
@@ -480,6 +481,87 @@ describe("configCommand", () => {
         });
     });
 
+    describe("back navigation", () => {
+        it("returns to scope selector when back is selected from user menu", async () => {
+            vi.mocked(select)
+                .mockResolvedValueOnce("user")
+                .mockResolvedValueOnce("back")
+                .mockResolvedValueOnce("user")
+                .mockResolvedValueOnce("exit");
+
+            await configCommand({});
+
+            // Scope selector shown twice (initial + after back)
+            const scopeCalls = vi
+                .mocked(select)
+                .mock.calls.filter(
+                    (call) =>
+                        call[0] &&
+                        typeof call[0] === "object" &&
+                        "message" in call[0] &&
+                        call[0].message === WIZARD_MESSAGES.config.scopeSelector
+                );
+            expect(scopeCalls).toHaveLength(2);
+        });
+
+        it("returns to scope selector when back is selected from project menu", async () => {
+            vi.mocked(loadProjectConfig).mockReturnValue({ theme: "wizard" });
+            vi.mocked(select)
+                .mockResolvedValueOnce("project")
+                .mockResolvedValueOnce("back")
+                .mockResolvedValueOnce("user")
+                .mockResolvedValueOnce("exit");
+
+            await configCommand({});
+
+            expect(select).toHaveBeenCalledTimes(4);
+            expect(consoleSpy.log).toHaveBeenCalledWith(
+                expect.stringContaining(WIZARD_MESSAGES.config.back)
+            );
+        });
+
+        it("allows switching from user to project scope via back", async () => {
+            vi.mocked(loadProjectConfig).mockReturnValue({ theme: "wizard" });
+            vi.mocked(select)
+                .mockResolvedValueOnce("user")
+                .mockResolvedValueOnce("back")
+                .mockResolvedValueOnce("project")
+                .mockResolvedValueOnce("exit");
+
+            await configCommand({});
+
+            expect(select).toHaveBeenCalledTimes(4);
+        });
+
+        it("exits entirely when exit is selected from project menu", async () => {
+            vi.mocked(loadProjectConfig).mockReturnValue({ theme: "wizard" });
+            vi.mocked(select)
+                .mockResolvedValueOnce("project")
+                .mockResolvedValueOnce("exit");
+
+            await configCommand({});
+
+            expect(select).toHaveBeenCalledTimes(2);
+            expect(consoleSpy.log).toHaveBeenCalledWith(
+                expect.stringContaining(WIZARD_MESSAGES.config.exit)
+            );
+        });
+
+        it("shows back message with themed text", async () => {
+            vi.mocked(select)
+                .mockResolvedValueOnce("user")
+                .mockResolvedValueOnce("back")
+                .mockResolvedValueOnce("user")
+                .mockResolvedValueOnce("exit");
+
+            await configCommand({});
+
+            expect(consoleSpy.log).toHaveBeenCalledWith(
+                expect.stringContaining(WIZARD_MESSAGES.config.back)
+            );
+        });
+    });
+
     describe("scope selector", () => {
         it("shows scope selector in git repo", async () => {
             vi.mocked(select).mockResolvedValueOnce("user").mockResolvedValueOnce("exit");
@@ -512,7 +594,10 @@ describe("configCommand", () => {
     describe("project config menu", () => {
         it("prompts to create config when none exists", async () => {
             vi.mocked(loadProjectConfig).mockReturnValue({});
-            vi.mocked(select).mockResolvedValueOnce("project");
+            vi.mocked(select)
+                .mockResolvedValueOnce("project")
+                .mockResolvedValueOnce("user")
+                .mockResolvedValueOnce("exit");
             vi.mocked(confirm).mockResolvedValueOnce(false);
 
             await configCommand({});
@@ -541,14 +626,19 @@ describe("configCommand", () => {
             );
         });
 
-        it("returns to caller when user declines config creation", async () => {
+        it("returns to scope selector when user declines config creation", async () => {
             vi.mocked(loadProjectConfig).mockReturnValue({});
-            vi.mocked(select).mockResolvedValueOnce("project");
+            vi.mocked(select)
+                .mockResolvedValueOnce("project")
+                .mockResolvedValueOnce("user")
+                .mockResolvedValueOnce("exit");
             vi.mocked(confirm).mockResolvedValueOnce(false);
 
             await configCommand({});
 
             expect(saveProjectConfig).not.toHaveBeenCalled();
+            // Scope selector was shown again after decline
+            expect(select).toHaveBeenCalledTimes(3);
         });
 
         it("shows configured fields in project overrides section", async () => {
@@ -685,7 +775,7 @@ describe("configCommand", () => {
             );
         });
 
-        it("includes show, reset, and exit actions in project menu choices", async () => {
+        it("includes show, reset, back, and exit actions in project menu choices", async () => {
             vi.mocked(loadProjectConfig).mockReturnValue({ theme: "wizard" });
             vi.mocked(select)
                 .mockResolvedValueOnce("project")
@@ -704,6 +794,9 @@ describe("configCommand", () => {
             );
             expect(fieldChoices).toContainEqual(
                 expect.objectContaining({ value: "reset" })
+            );
+            expect(fieldChoices).toContainEqual(
+                expect.objectContaining({ value: "back" })
             );
             expect(fieldChoices).toContainEqual(
                 expect.objectContaining({ value: "exit" })

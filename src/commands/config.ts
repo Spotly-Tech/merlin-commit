@@ -47,6 +47,7 @@ const FIELD_LABELS = {
     autoAdd: "Auto-add unstaged files",
     showConfig: "Show current config",
     resetConfig: "Reset to defaults",
+    back: "Back to scope selection",
     exit: "Exit",
 };
 
@@ -102,6 +103,7 @@ const FIELD_EMOJI_PREFIXES = {
         autoAdd: "🔄",
         show: "👁️ ",
         reset: "🗑️ ",
+        back: "⬅️",
         exit: "👋",
     },
     standard: {
@@ -112,6 +114,7 @@ const FIELD_EMOJI_PREFIXES = {
         autoAdd: "•",
         show: "•",
         reset: "•",
+        back: "←",
         exit: "•",
     },
 };
@@ -180,16 +183,17 @@ function formatFieldChoiceNoValue(
  * Formats a navigation/utility action choice (show, reset, exit).
  */
 function formatActionChoice(
-    action: "show" | "reset" | "exit",
+    action: "show" | "reset" | "back" | "exit",
     config: Required<MerlinConfig>
 ): MenuChoice {
     const isWizardTheme = config.theme === "wizard";
     const prefixMap = isWizardTheme
         ? FIELD_EMOJI_PREFIXES.wizard
         : FIELD_EMOJI_PREFIXES.standard;
-    const labelMap: Record<"show" | "reset" | "exit", string> = {
+    const labelMap: Record<"show" | "reset" | "back" | "exit", string> = {
         show: FIELD_LABELS.showConfig,
         reset: FIELD_LABELS.resetConfig,
+        back: FIELD_LABELS.back,
         exit: FIELD_LABELS.exit,
     };
 
@@ -228,6 +232,7 @@ function buildUserMenuChoices(
     choices.push(new Separator("─────────────────────────────────────"));
     choices.push(formatActionChoice("show", config));
     choices.push(formatActionChoice("reset", config));
+    choices.push(formatActionChoice("back", config));
     choices.push(formatActionChoice("exit", config));
 
     return choices;
@@ -520,7 +525,7 @@ async function ensureProjectConfigExists(
  * .merlinrc.json ("Project overrides") and fields available to add
  * ("Add override"). Selecting an override offers change or remove.
  */
-async function runProjectConfigMenu(repoRoot: string): Promise<void> {
+async function runProjectConfigMenu(repoRoot: string): Promise<"back" | "exit"> {
     const save: SaveFn = (config) => saveProjectConfig(config, repoRoot);
 
     let running = true;
@@ -558,6 +563,7 @@ async function runProjectConfigMenu(repoRoot: string): Promise<void> {
         choices.push(new Separator("─────────────────────────────────────"));
         choices.push(formatActionChoice("show", config));
         choices.push(formatActionChoice("reset", config));
+        choices.push(formatActionChoice("back", config));
         choices.push(formatActionChoice("exit", config));
 
         const choice = await select<ConfigMenuAction>({
@@ -567,10 +573,15 @@ async function runProjectConfigMenu(repoRoot: string): Promise<void> {
             loop: false,
         });
 
+        if (choice === "back") {
+            console.log(colors.muted(`\n${messages.config.back}`));
+            return "back";
+        }
+
         if (choice === "exit") {
             running = false;
             console.log(colors.muted(`\n${messages.config.exit}\n`));
-            break;
+            return "exit";
         }
 
         if (choice === "show") {
@@ -613,31 +624,15 @@ async function runProjectConfigMenu(repoRoot: string): Promise<void> {
             console.log();
         }
     }
+
+    return "exit";
 }
 
 /**
- * Main interactive configuration menu loop.
- * Opens with a scope selector, then shows the appropriate menu.
+ * Runs the user-tier config menu loop. Returns "back" when the user
+ * wants to return to the scope selector, or "exit" to quit entirely.
  */
-async function interactiveConfigMenu(): Promise<void> {
-    const repoRoot = await getRepoRoot();
-    const initialMessages = getMessages(repoRoot);
-    console.log(colors.header(`\n${initialMessages.config.intro}\n`));
-
-    const scope = await selectConfigScope(repoRoot, initialMessages);
-
-    if (scope === "project") {
-        const hasProjectConfig = await ensureProjectConfigExists(
-            repoRoot!,
-            initialMessages
-        );
-        if (!hasProjectConfig) {
-            return;
-        }
-        await runProjectConfigMenu(repoRoot!);
-        return;
-    }
-
+async function runUserConfigMenu(repoRoot: string | null): Promise<"back" | "exit"> {
     let running = true;
     while (running) {
         const config = loadConfig(repoRoot);
@@ -665,16 +660,54 @@ async function interactiveConfigMenu(): Promise<void> {
             case "reset":
                 await resetConfigWithConfirmation(messages);
                 break;
+            case "back":
+                console.log(colors.muted(`\n${messages.config.back}`));
+                return "back";
             case "exit":
                 running = false;
                 console.log(colors.muted(`\n${messages.config.exit}\n`));
-                break;
+                return "exit";
             default:
                 break;
         }
 
         if (running) {
-            console.log(); // Add spacing between menu iterations
+            console.log();
+        }
+    }
+
+    return "exit";
+}
+
+/**
+ * Main interactive configuration menu loop.
+ * Opens with a scope selector, then shows the appropriate sub-menu.
+ * When a sub-menu returns "back", re-displays the scope selector.
+ */
+async function interactiveConfigMenu(): Promise<void> {
+    const repoRoot = await getRepoRoot();
+    const initialMessages = getMessages(repoRoot);
+    console.log(colors.header(`\n${initialMessages.config.intro}\n`));
+
+    let navigating = true;
+    while (navigating) {
+        const messages = getMessages(repoRoot);
+        const scope = await selectConfigScope(repoRoot, messages);
+
+        let menuResult: "back" | "exit";
+
+        if (scope === "project") {
+            const hasProjectConfig = await ensureProjectConfigExists(repoRoot!, messages);
+            if (!hasProjectConfig) {
+                continue;
+            }
+            menuResult = await runProjectConfigMenu(repoRoot!);
+        } else {
+            menuResult = await runUserConfigMenu(repoRoot);
+        }
+
+        if (menuResult === "exit") {
+            navigating = false;
         }
     }
 }

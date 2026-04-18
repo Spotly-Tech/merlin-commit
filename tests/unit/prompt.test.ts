@@ -5,7 +5,7 @@ import { promptUser, type PromptDependencies } from "../../src/lib/prompt.js";
 import {
     createCharacterCounterTransformer,
     createOptionalCharacterCounterTransformer,
-} from "../../src/lib/transformers";
+} from "../../src/lib/transformers.js";
 import { DEFAULT_CONFIG, WIZARD_MESSAGES } from "../../src/utils/constants.js";
 
 vi.mock("@inquirer/prompts", () => ({
