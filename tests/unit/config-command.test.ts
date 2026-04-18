@@ -177,6 +177,7 @@ describe("configCommand", () => {
                         expect.objectContaining({ value: "autoAdd" }),
                         expect.objectContaining({ value: "show" }),
                         expect.objectContaining({ value: "reset" }),
+                        expect.objectContaining({ value: "back" }),
                         expect.objectContaining({ value: "exit" }),
                     ]),
                 })
@@ -512,7 +513,10 @@ describe("configCommand", () => {
     describe("project config menu", () => {
         it("prompts to create config when none exists", async () => {
             vi.mocked(loadProjectConfig).mockReturnValue({});
-            vi.mocked(select).mockResolvedValueOnce("project");
+            vi.mocked(select)
+                .mockResolvedValueOnce("project")
+                .mockResolvedValueOnce("user")
+                .mockResolvedValueOnce("exit");
             vi.mocked(confirm).mockResolvedValueOnce(false);
 
             await configCommand({});
@@ -541,14 +545,19 @@ describe("configCommand", () => {
             );
         });
 
-        it("returns to caller when user declines config creation", async () => {
+        it("returns to scope selector when user declines config creation", async () => {
             vi.mocked(loadProjectConfig).mockReturnValue({});
-            vi.mocked(select).mockResolvedValueOnce("project");
+            vi.mocked(select)
+                .mockResolvedValueOnce("project")
+                .mockResolvedValueOnce("user")
+                .mockResolvedValueOnce("exit");
             vi.mocked(confirm).mockResolvedValueOnce(false);
 
             await configCommand({});
 
             expect(saveProjectConfig).not.toHaveBeenCalled();
+            // Scope selector was shown again after decline
+            expect(select).toHaveBeenCalledTimes(3);
         });
 
         it("shows configured fields in project overrides section", async () => {
@@ -685,7 +694,7 @@ describe("configCommand", () => {
             );
         });
 
-        it("includes show, reset, and exit actions in project menu choices", async () => {
+        it("includes show, reset, back, and exit actions in project menu choices", async () => {
             vi.mocked(loadProjectConfig).mockReturnValue({ theme: "wizard" });
             vi.mocked(select)
                 .mockResolvedValueOnce("project")
@@ -704,6 +713,9 @@ describe("configCommand", () => {
             );
             expect(fieldChoices).toContainEqual(
                 expect.objectContaining({ value: "reset" })
+            );
+            expect(fieldChoices).toContainEqual(
+                expect.objectContaining({ value: "back" })
             );
             expect(fieldChoices).toContainEqual(
                 expect.objectContaining({ value: "exit" })

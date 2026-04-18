@@ -111,6 +111,7 @@ export const WIZARD_MESSAGES: ThemeMessages = {
         createProjectConfig: "📜 Inscribe a .merlinrc.json for this realm?",
         projectConfigCreated: "📜 Realm enchantments inscribed",
         projectFieldAction: (field: string) => `🔮 What fate shall befall ${field}:`,
+        back: "🔙 Returning to the tome selection...",
     },
     checking: {
         repo: "🔮 Verifying the sacred repository",
@@ -226,6 +227,7 @@ export const STANDARD_MESSAGES: ThemeMessages = {
         createProjectConfig: "Create .merlinrc.json for this repo?",
         projectConfigCreated: "Created .merlinrc.json",
         projectFieldAction: (field: string) => `Action for ${field}:`,
+        back: "Returning to scope selection...",
     },
     checking: {
         repo: "Checking git repository",

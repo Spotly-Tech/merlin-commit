@@ -59,6 +59,13 @@ export type ThemeMessages = {
         exit: string;
 
         /**
+         * Message shown when returning to scope selection from a sub-menu.
+         * @example "🔙 Returning to the tome selection..." (wizard)
+         * @example "Returning to scope selection..." (standard)
+         */
+        back: string;
+
+        /**
          * Prompt for choosing user vs project config scope.
          * @example "🔮 Choose which tome to inscribe:" (wizard)
          * @example "Edit configuration scope:" (standard)
