@@ -82,8 +82,18 @@ describe("terminal", () => {
                 expect(normalizeVS16Spacing("✨ hello")).toBe("✨ hello");
             });
 
-            it("should not affect VS16 emoji followed by 1 space", () => {
+            it("should keep 1 space for VS16 emoji on wide terminal", () => {
                 expect(normalizeVS16Spacing("⚠️ hello")).toBe("⚠️ hello");
+            });
+
+            it("should normalize 3+ spaces after VS16 emoji to 1", () => {
+                expect(normalizeVS16Spacing("⚠️   hello")).toBe("⚠️ hello");
+            });
+
+            it("should be idempotent", () => {
+                const once = normalizeVS16Spacing("⚠️  hello");
+                const twice = normalizeVS16Spacing(once);
+                expect(twice).toBe(once);
             });
 
             it("should handle all 6 VS16 emojis in this codebase", () => {
@@ -117,6 +127,24 @@ describe("terminal", () => {
             it("should preserve spacing for all VS16 emojis", () => {
                 expect(normalizeVS16Spacing("⚙️  config")).toBe("⚙️  config");
                 expect(normalizeVS16Spacing("👁️  show")).toBe("👁️  show");
+            });
+
+            it("should expand 1 space after VS16 emoji to 2", () => {
+                expect(normalizeVS16Spacing("⚠️ hello")).toBe("⚠️  hello");
+            });
+
+            it("should normalize 3+ spaces after VS16 emoji to 2", () => {
+                expect(normalizeVS16Spacing("⚠️   hello")).toBe("⚠️  hello");
+            });
+
+            it("should be idempotent", () => {
+                const once = normalizeVS16Spacing("⚠️ hello");
+                const twice = normalizeVS16Spacing(once);
+                expect(twice).toBe(once);
+            });
+
+            it("should not affect VS16 emoji with no trailing space", () => {
+                expect(normalizeVS16Spacing("\u26A0\uFE0F")).toBe("\u26A0\uFE0F");
             });
         });
     });

@@ -103,7 +103,7 @@ const FIELD_EMOJI_PREFIXES = {
         autoAdd: "🔄",
         show: "👁️ ",
         reset: "🗑️ ",
-        back: "⬅️",
+        back: "⬅️ ",
         exit: "👋",
     },
     standard: {

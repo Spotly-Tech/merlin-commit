@@ -116,7 +116,7 @@ export function formatPreview(message: string): string {
         const line = lines[i];
 
         if (line.startsWith("BREAKING CHANGE:")) {
-            formattedLines.push(normalizeVS16Spacing(`⚠️  ${line}`));
+            formattedLines.push(normalizeVS16Spacing(`⚠️ ${line}`));
         } else if (
             line.match(/(fixes|closes|resolves|refs|references|related to) #\d+/i)
         ) {

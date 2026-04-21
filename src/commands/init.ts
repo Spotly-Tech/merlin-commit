@@ -203,7 +203,7 @@ async function runHuskySetup(
         console.log(
             colors.warning(
                 normalizeVS16Spacing(
-                    "  ⚠️  Skipping Husky initialization - husky not installed"
+                    "  ⚠️ Skipping Husky initialization - husky not installed"
                 )
             )
         );
@@ -248,7 +248,7 @@ async function runCommitlintSetup(
         console.log(
             colors.warning(
                 normalizeVS16Spacing(
-                    "  ⚠️  Skipping commitlint config - @commitlint/cli not installed"
+                    "  ⚠️ Skipping commitlint config - @commitlint/cli not installed"
                 )
             )
         );
@@ -294,7 +294,7 @@ async function runHookSetup(
         console.log(
             colors.warning(
                 normalizeVS16Spacing(
-                    "  ⚠️  Skipping commit-msg hook - missing dependencies"
+                    "  ⚠️ Skipping commit-msg hook - missing dependencies"
                 )
             )
         );
