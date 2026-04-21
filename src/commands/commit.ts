@@ -86,7 +86,7 @@ export async function commitCommand(options: CommitOptions): Promise<void> {
         console.log(
             colors.muted(
                 normalizeVS16Spacing(
-                    "(⚠️  and 🔗 indicators are visual only - not included in commit)"
+                    "(⚠️ and 🔗 indicators are visual only - not included in commit)"
                 )
             )
         );

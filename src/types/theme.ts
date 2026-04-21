@@ -60,7 +60,7 @@ export type ThemeMessages = {
 
         /**
          * Message shown when returning to scope selection from a sub-menu.
-         * @example "🔙 Returning to the tome selection..." (wizard)
+         * @example "⬅️ Returning to the tome selection..." (wizard)
          * @example "Returning to scope selection..." (standard)
          */
         back: string;
@@ -169,7 +169,7 @@ export type ThemeMessages = {
 
         /**
          * Prompt for describing optional breaking changes.
-         * @example "⚠️  Does this spell break ancient contracts?"
+         * @example "⚠️ Does this spell break ancient contracts?"
          */
         breaking: string;
 
