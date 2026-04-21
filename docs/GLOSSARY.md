@@ -28,7 +28,7 @@ and examples from the codebase.
 | **cast**     | Create a commit                      | "Shall Merlin cast this spell?"                 |
 | **inscribe** | Write, save, or create a file/config | "Inscribing project enchantments"               |
 | **summon**   | Install or fetch (npm install)       | "Summoning dependencies from the npm realm"     |
-| **invoke**   | Run a command                        | "Invoke git init to create a sacred repository" |
+| **invoke**   | Run a command                        | "Invoke git init to create a sacred realm" |
 | **awaken**   | Initialize (a tool or service)       | "Awakening the husky guardian"                  |
 | **weave**    | Write detailed content (commit body) | "Would you like to weave a detailed tale?"      |
 | **shatter**  | Break (as in breaking changes)       | "Does this spell shatter ancient contracts?"    |
@@ -64,7 +64,7 @@ and examples from the codebase.
 | --------------- | ----------------------------------------------- | -------------------------------------------------------------------- |
 | **ritual**      | The commit workflow/process                     | "The ritual has been cancelled"                                      |
 | **enchantment** | A configuration setting applied to a project    | "Realm enchantments inscribed", "Which realm enchantment to modify?" |
-| **blessing**    | An init/setup operation applied to a repository | "Your repository is now blessed!", "Existing blessings detected"     |
+| **blessing**    | An init/setup operation applied to a repository | "Your realm is now blessed!", "Existing blessings detected"     |
 | **binding**     | A git alias                                     | "A binding for 'git merlin' already exists"                          |
 | **quest**       | A GitHub/tracker issue                          | "Does this resolve any quests?"                                      |
 | **vision**      | A preview / dry run                             | "The vision fades - no spell was cast"                               |
@@ -74,7 +74,7 @@ and examples from the codebase.
 
 | Term          | Meaning                                 | Usage                                 |
 | ------------- | --------------------------------------- | ------------------------------------- |
-| **sacred**    | Important, protected (repository)       | "Verifying the sacred repository"     |
+| **sacred**    | Important, protected (repository)       | "Verifying the sacred realm"     |
 | **ancient**   | Established, existing (contracts/texts) | "The ancient texts demand this field" |
 | **woven**     | Committed, saved to history             | "Your spell is woven into history"    |
 | **forbidden** | Invalid, not allowed                    | "This spell contains forbidden runes" |
