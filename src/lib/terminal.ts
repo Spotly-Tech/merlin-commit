@@ -34,18 +34,15 @@ export function isWideEmojiTerminal(): boolean {
 /**
  * Normalizes spacing after VS16 emojis based on terminal width detection.
  *
- * Source strings should use 2 spaces after VS16 emojis (safe for narrow
- * terminals). On wide-emoji terminals, this function reduces the 2 spaces
- * to 1 so the visual gap is consistent.
+ * Accepts any number of spaces after VS16 emojis and normalizes to the
+ * terminal-appropriate count (1 for wide, 2 for narrow). Idempotent.
  *
- * @param text - String potentially containing VS16 emojis followed by 2 spaces
+ * @param text - String potentially containing VS16 emojis followed by spaces
  * @returns Normalized string with appropriate spacing for the current terminal
  */
 export function normalizeVS16Spacing(text: string): string {
-    if (isWideEmojiTerminal()) {
-        return text.replace(/(\uFE0F) {2}/g, "$1 ");
-    }
-    return text;
+    const targetSpaces = isWideEmojiTerminal() ? 1 : 2;
+    return text.replace(/(\uFE0F) +/g, `$1${" ".repeat(targetSpaces)}`);
 }
 
 /**

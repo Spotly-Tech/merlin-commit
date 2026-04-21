@@ -106,15 +106,15 @@ export const WIZARD_MESSAGES: ThemeMessages = {
         exit: "📜 Merlin's tome of secrets has been closed.",
         scopeSelector: "🔮 Choose which tome to inscribe:",
         scopeUser: "📜 Personal tome (all realms - ~/.merlinrc.json)",
-        scopeProject: "📁 Realm tome (this repository - .merlinrc.json)",
+        scopeProject: "📁 Realm tome (this realm - .merlinrc.json)",
         noProjectConfig: "📜 No realm enchantments found.",
         createProjectConfig: "📜 Inscribe a .merlinrc.json for this realm?",
         projectConfigCreated: "📜 Realm enchantments inscribed",
         projectFieldAction: (field: string) => `🔮 What fate shall befall ${field}:`,
-        back: "🔙 Returning to the tome selection...",
+        back: "⬅️ Returning to the tome selection...",
     },
     checking: {
-        repo: "🔮 Verifying the sacred repository",
+        repo: "🔮 Verifying the sacred realm",
         staged: "📜 Examining the staged scrolls",
         unstaged: "👀 Searching for unstaged scrolls",
     },
@@ -123,7 +123,7 @@ export const WIZARD_MESSAGES: ThemeMessages = {
         scope: "🎯 What domain does this affect? (optional)",
         subject: "📝 Describe your spell briefly:",
         body: "📖 Would you like to weave a detailed tale?",
-        breaking: "⚠️  Does this spell shatter ancient contracts?",
+        breaking: "⚠️ Does this spell shatter ancient contracts?",
         issues: "🔗 Does this resolve any quests?",
         confirm: "🔮 Shall Merlin cast this spell?",
     },
@@ -131,13 +131,13 @@ export const WIZARD_MESSAGES: ThemeMessages = {
         commit: {
             created: "✨ Spell successfully cast!",
             amended: "🔄 Previous spell has been enhanced!",
-            dryRun: "👁️  Merlin peers into possible futures...",
+            dryRun: "👁️ Merlin peers into possible futures...",
         },
         config: {
-            saved: "⚙️  Merlin's preferences have been inscribed",
+            saved: "⚙️ Merlin's preferences have been inscribed",
         },
         init: {
-            completed: "✨ Your repository is now blessed!",
+            completed: "✨ Your realm is now blessed!",
         },
     },
     errors: {
@@ -155,7 +155,7 @@ export const WIZARD_MESSAGES: ThemeMessages = {
             noPackageJson: "❌ No package.json ledger found in this realm",
             installFailed: "❌ Failed to summon dependencies from the npm realm",
             huskyFailed: "❌ The husky guardian refused to awaken",
-            hookFailed: "❌ Failed to inscribe the commit-msg spell",
+            hookFailed: "❌ Failed to inscribe the commit-msg guardian",
             configFailed: "❌ Failed to create the commitlint tome",
             aliasFailed: "❌ Failed to bind the magical alias",
         },
@@ -163,16 +163,16 @@ export const WIZARD_MESSAGES: ThemeMessages = {
     warnings: {
         cancel: "🌙 The ritual has been cancelled",
         commit: {
-            noVerify: "⚠️  Merlin bypasses the guardian wards",
+            noVerify: "⚠️ Merlin bypasses the guardian wards",
         },
         config: {
-            resetConfig: "⚠️  This will erase all of Merlin's learned wisdom",
+            resetConfig: "⚠️ This will erase all of Merlin's learned wisdom",
             noProjectConfig:
-                "⚠️  No sacred realm detected - realm enchantments are not available",
+                "⚠️ No sacred realm detected - realm enchantments are not available",
         },
         init: {
-            existingSetup: "⚠️  Existing blessings detected:",
-            aliasExists: "⚠️  A binding for 'git merlin' already exists",
+            existingSetup: "⚠️ Existing blessings detected:",
+            aliasExists: "⚠️ A binding for 'git merlin' already exists",
         },
     },
     tips: {
@@ -180,14 +180,14 @@ export const WIZARD_MESSAGES: ThemeMessages = {
             gitAdd: '💡 Summon scrolls with "git add <file>"',
         },
         init: {
-            runGitInit: '💡 Invoke "git init" to create a sacred repository',
+            runGitInit: '💡 Invoke "git init" to create a sacred realm',
             runNpmInit: '💡 Invoke "npm init" to create a package.json ledger',
             manualInstall: "💡 Try summoning manually: npm install -D",
-            nextSteps: "🌟 Your repository is blessed! Next steps:",
+            nextSteps: "🌟 Your realm is blessed! Next steps:",
         },
     },
     init: {
-        intro: "🧙 Merlin will bless your repository with commit guardians",
+        intro: "🧙 Merlin will bless your realm with commit guardians",
         checkingPackageJson: "📦 Searching for package.json in the realm",
         installDeps: "📦 Summon husky and commitlint from the ether?",
         installingDeps: "🔮 Summoning dependencies from the npm realm...",
@@ -197,16 +197,16 @@ export const WIZARD_MESSAGES: ThemeMessages = {
         setupAlias: "🔗 Bind 'git merlin' to your spellbook?",
         aliasScope: "🔮 Choose the scope of this binding:",
         creatingAlias: "🔗 Binding the magical alias...",
-        skipExisting: "⏭️  Skipping existing artifact:",
+        skipExisting: "⏭️ Skipping existing artifact:",
         overwrite: (fileName?: string) =>
             fileName
-                ? `⚠️  This artifact already exists. Overwrite it? (${fileName})`
-                : "⚠️  This artifact already exists. Overwrite it?",
-        aliasScopeGlobal: "🌍 Global (all repositories)",
-        aliasScopeLocal: "📁 Local (this repository only)",
-        createProjectConfig: "📜 Create a project config for team sharing?",
+                ? `⚠️ This artifact already exists. Overwrite it? (${fileName})`
+                : "⚠️ This artifact already exists. Overwrite it?",
+        aliasScopeGlobal: "🌍 Global (all realms)",
+        aliasScopeLocal: "📁 Local (this realm only)",
+        createProjectConfig: "📜 Create a realm tome for team sharing?",
         creatingProjectConfig: "📜 Inscribing project enchantments...",
-        exit: "🔮 Your repository blessings are complete.",
+        exit: "🔮 Your realm blessings are complete.",
     },
 };
 
