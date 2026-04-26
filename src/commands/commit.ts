@@ -56,6 +56,7 @@ export async function commitCommand(options: CommitOptions): Promise<void> {
         const gitDir = await getGitDirectory();
 
         // Prompt user for commit details with injected dependencies
+        console.log();
         const userAnswers = await promptUser({
             config,
             messages,

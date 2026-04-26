@@ -119,7 +119,7 @@ export const WIZARD_MESSAGES: ThemeMessages = {
         unstaged: "👀 Searching for unstaged scrolls",
     },
     prompts: {
-        type: "✨ Choose the type of spell:",
+        type: "🪄  Choose the type of spell:",
         scope: "🎯 What domain does this affect? (optional)",
         subject: "📝 Describe your spell briefly:",
         body: "📖 Would you like to weave a detailed tale?",

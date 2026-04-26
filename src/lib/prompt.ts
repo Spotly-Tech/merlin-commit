@@ -76,7 +76,7 @@ export async function promptUser(
                     : EMOJI_COLUMN_WIDTH - 2
             );
             const label = isWizardTheme
-                ? `${type.value}:${valuePadding}${type.emoji}${emojiPadding}${type.name}`
+                ? `${type.emoji}${emojiPadding}${type.value}${valuePadding}${type.name}`
                 : `${type.value}:${valuePadding}${type.name}`;
             return {
                 value: type.value,
