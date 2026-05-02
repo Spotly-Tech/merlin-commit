@@ -49,6 +49,11 @@ export type MerlinConfig = {
      * @default "wizard"
      */
     theme?: "wizard" | "standard";
+    /**
+     * Show real-time character counter on subject and scope inputs.
+     * @default true
+     */
+    showCharacterCounter?: boolean;
 };
 
 /**
@@ -84,4 +89,5 @@ export type ConfigurableField =
     | "maxSubjectLength"
     | "maxScopeLength"
     | "editor"
-    | "autoAdd";
+    | "autoAdd"
+    | "showCharacterCounter";

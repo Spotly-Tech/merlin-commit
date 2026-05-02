@@ -32,6 +32,7 @@ const ALL_CONFIGURABLE_FIELDS: ConfigurableField[] = [
     "maxScopeLength",
     "editor",
     "autoAdd",
+    "showCharacterCounter",
 ];
 
 // Menu chrome (labels, prompts, section headers) is intentionally non-themable
@@ -45,6 +46,7 @@ const FIELD_LABELS = {
     maxScopeLength: "Max scope length",
     editor: "Default editor",
     autoAdd: "Auto-add unstaged files",
+    showCharacterCounter: "Show character counter",
     showConfig: "Show current config",
     resetConfig: "Reset to defaults",
     back: "Back to scope selection",
@@ -72,6 +74,7 @@ const CONFIGURE_PROMPTS = {
     maxScopeLength: "Maximum scope length (5-50):",
     editor: "External editor command:",
     autoAdd: "Automatically stage all changes before committing?",
+    showCharacterCounter: "Show character counter on subject and scope inputs?",
 } as const;
 
 const SET_TO_PREFIX = {
@@ -80,6 +83,7 @@ const SET_TO_PREFIX = {
     maxScopeLength: "Max scope length set to",
     editor: "Editor set to",
     autoAdd: "Auto-add set to",
+    showCharacterCounter: "Character counter set to",
 } as const;
 
 const DISPLAY = {
@@ -101,6 +105,7 @@ const FIELD_EMOJI_PREFIXES = {
         maxScopeLength: "🎯",
         editor: "📝",
         autoAdd: "🔄",
+        showCharacterCounter: "🔢",
         show: "👁️ ",
         reset: "🗑️ ",
         back: "⬅️ ",
@@ -112,6 +117,7 @@ const FIELD_EMOJI_PREFIXES = {
         maxScopeLength: "•",
         editor: "•",
         autoAdd: "•",
+        showCharacterCounter: "•",
         show: "•",
         reset: "•",
         back: "←",
@@ -337,6 +343,21 @@ async function configureAutoAdd(
     console.log(colors.success(`\n${SET_TO_PREFIX.autoAdd}: ${autoAdd}`));
 }
 
+async function configureShowCharacterCounter(
+    config: Required<MerlinConfig>,
+    save: SaveFn
+): Promise<void> {
+    const showCharacterCounter = await confirm({
+        message: CONFIGURE_PROMPTS.showCharacterCounter,
+        default: config.showCharacterCounter,
+    });
+
+    save({ showCharacterCounter });
+    console.log(
+        colors.success(`\n${SET_TO_PREFIX.showCharacterCounter}: ${showCharacterCounter}`)
+    );
+}
+
 /**
  * Display the current configuration as formatted JSON.
  */
@@ -353,6 +374,7 @@ async function showConfig(): Promise<void> {
         maxScopeLength: config.maxScopeLength,
         editor: config.editor,
         autoAdd: config.autoAdd,
+        showCharacterCounter: config.showCharacterCounter,
         types: `[${config.types.length} commit types]`,
     };
 
@@ -464,6 +486,9 @@ async function dispatchConfigureAction(
             break;
         case "autoAdd":
             await configureAutoAdd(config, save);
+            break;
+        case "showCharacterCounter":
+            await configureShowCharacterCounter(config, save);
             break;
         default:
             break;
@@ -652,6 +677,7 @@ async function runUserConfigMenu(repoRoot: string | null): Promise<"back" | "exi
             case "maxScopeLength":
             case "editor":
             case "autoAdd":
+            case "showCharacterCounter":
                 await dispatchConfigureAction(choice, config, saveConfig);
                 break;
             case "show":
