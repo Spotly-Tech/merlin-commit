@@ -54,6 +54,11 @@ export function validateConfig(userConfig: unknown): Partial<MerlinConfig> {
         validated.autoAdd = config.autoAdd;
     }
 
+    // Validate showCharacterCounter
+    if (typeof config.showCharacterCounter === "boolean") {
+        validated.showCharacterCounter = config.showCharacterCounter;
+    }
+
     // Validate theme
     if (config.theme === "wizard" || config.theme === "standard") {
         validated.theme = config.theme;

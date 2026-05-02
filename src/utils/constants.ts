@@ -330,8 +330,8 @@ export const DEFAULT_CONFIG: Required<MerlinConfig> = {
     types: COMMIT_TYPES,
     maxSubjectLength: 72,
     maxScopeLength: 20,
-
     editor: process.platform === "win32" ? "notepad" : "vim",
     autoAdd: false,
+    showCharacterCounter: true,
     theme: "wizard",
 };
