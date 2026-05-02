@@ -65,7 +65,7 @@ export type ConfigOptions = {
      * When true, display the current configuration and exit without opening the menu.
      * @default false
      */
-    show?: boolean;
+    show?: boolean | "user" | "project";
 
     /**
      * When true, reset configuration to defaults and exit without opening the menu.

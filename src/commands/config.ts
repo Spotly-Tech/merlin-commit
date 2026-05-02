@@ -5,6 +5,7 @@ import {
     getMessages,
     loadConfig,
     loadProjectConfig,
+    loadUserConfig,
     removeProjectConfigField,
     resetConfig,
     resetProjectConfig,
@@ -88,6 +89,11 @@ const SET_TO_PREFIX = {
 
 const DISPLAY = {
     currentConfigHeader: "Current Configuration:",
+    userConfigHeader: "User Configuration:",
+    noUserConfig: "No user configuration set.",
+    effectiveConfigNote:
+        "Effective config - merges defaults, ~/.merlinrc.json, and project overrides",
+    userConfigFile: "~/.merlinrc.json",
     projectOverridesHeader: "Project Overrides",
     noProjectOverrides: "No project overrides set.",
     configFileLabel: "Config file:",
@@ -126,6 +132,7 @@ const FIELD_EMOJI_PREFIXES = {
 };
 
 const LABEL_COLUMN_WIDTH = 24;
+const SEPARATOR_WIDTH_CHARACTERS = 60;
 
 type MenuChoice = {
     value: ConfigMenuAction;
@@ -366,7 +373,7 @@ async function showConfig(): Promise<void> {
     const config = loadConfig(repoRoot);
 
     console.log(colors.header(`\n${DISPLAY.currentConfigHeader}`));
-    console.log(colors.muted("-".repeat(60)));
+    console.log(colors.muted("-".repeat(SEPARATOR_WIDTH_CHARACTERS)));
 
     const displayConfig = {
         theme: config.theme,
@@ -379,8 +386,8 @@ async function showConfig(): Promise<void> {
     };
 
     console.log(colors.content(JSON.stringify(displayConfig, null, 2)));
-    console.log(colors.muted("-".repeat(60)));
-    console.log(colors.muted(`${DISPLAY.configFileLabel} ~/.merlinrc.json\n`));
+    console.log(colors.muted("-".repeat(SEPARATOR_WIDTH_CHARACTERS)));
+    console.log(colors.muted(`${DISPLAY.effectiveConfigNote}\n`));
 }
 
 /**
@@ -393,7 +400,7 @@ async function showProjectConfig(repoRoot: string): Promise<void> {
     const repoName = basename(repoRoot);
 
     console.log(colors.header(`\n${DISPLAY.projectOverridesHeader} (${repoName}):`));
-    console.log(colors.muted("-".repeat(60)));
+    console.log(colors.muted("-".repeat(SEPARATOR_WIDTH_CHARACTERS)));
 
     if (Object.keys(projectConfig).length === 0) {
         console.log(colors.muted(DISPLAY.noProjectOverrides));
@@ -401,8 +408,29 @@ async function showProjectConfig(repoRoot: string): Promise<void> {
         console.log(colors.content(JSON.stringify(projectConfig, null, 2)));
     }
 
-    console.log(colors.muted("-".repeat(60)));
+    console.log(colors.muted("-".repeat(SEPARATOR_WIDTH_CHARACTERS)));
     console.log(colors.muted(`${DISPLAY.configFileLabel} ${repoName}/.merlinrc.json\n`));
+}
+
+/**
+ * Display the current user-level configuration as formatted JSON.
+ * Shows only fields explicitly set in ~/.merlinrc.json, not the
+ * merged effective config.
+ */
+async function showUserConfig(): Promise<void> {
+    const userConfig = loadUserConfig();
+
+    console.log(colors.header(`\n${DISPLAY.userConfigHeader}`));
+    console.log(colors.muted("-".repeat(SEPARATOR_WIDTH_CHARACTERS)));
+
+    if (Object.keys(userConfig).length === 0) {
+        console.log(colors.muted(DISPLAY.noUserConfig));
+    } else {
+        console.log(colors.content(JSON.stringify(userConfig, null, 2)));
+    }
+
+    console.log(colors.muted("-".repeat(SEPARATOR_WIDTH_CHARACTERS)));
+    console.log(colors.muted(`${DISPLAY.configFileLabel} ${DISPLAY.userConfigFile}\n`));
 }
 
 /**
@@ -738,6 +766,29 @@ async function interactiveConfigMenu(): Promise<void> {
     }
 }
 
+async function handleShowConfig(
+    scope: boolean | "user" | "project",
+    repoRoot: string | null,
+    messages: ThemeMessages
+): Promise<void> {
+    switch (scope) {
+        case "user":
+            await showUserConfig();
+            return;
+        case "project":
+            if (!repoRoot) {
+                console.log(
+                    colors.warning(`\n${messages.warnings.config.noProjectConfig}\n`)
+                );
+                return;
+            }
+            await showProjectConfig(repoRoot);
+            return;
+        default:
+            await showConfig();
+    }
+}
+
 /**
  * Configuration management command handler.
  *
@@ -747,7 +798,7 @@ async function interactiveConfigMenu(): Promise<void> {
  * - Default: Interactive menu for modifying individual settings
  *
  * @param options - Command line options
- * @param options.show - Display current config as formatted JSON and exit
+ * @param options.show - Scope to display: "user", "project", or true for effective config
  * @param options.reset - Reset all settings to defaults after confirmation
  *
  * @example
@@ -769,7 +820,7 @@ export async function configCommand(options: ConfigOptions): Promise<void> {
 
     try {
         if (options.show) {
-            await showConfig();
+            await handleShowConfig(options.show, repoRoot, messages);
             return;
         }
 
