@@ -93,7 +93,9 @@ export async function promptUser(
     // Validate scope format and length
     answers.scope = await input({
         message: messages.prompts.scope,
-        transformer: createOptionalCharacterCounterTransformer(config.maxScopeLength),
+        transformer: config.showCharacterCounter
+            ? createOptionalCharacterCounterTransformer(config.maxScopeLength)
+            : undefined,
         validate: (value: string) => {
             if (!value) {
                 return true;
@@ -113,7 +115,9 @@ export async function promptUser(
     // Transformer provides real-time character counter feedback
     answers.subject = await input({
         message: messages.prompts.subject,
-        transformer: createCharacterCounterTransformer(config.maxSubjectLength),
+        transformer: config.showCharacterCounter
+            ? createCharacterCounterTransformer(config.maxSubjectLength)
+            : undefined,
         validate: (value: string) => {
             if (!value) {
                 return messages.errors.commit.required;

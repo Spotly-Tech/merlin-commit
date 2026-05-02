@@ -100,4 +100,21 @@ describe("validateConfig", () => {
 
         expect(result.types).toBeUndefined();
     });
+
+    it("accepts valid showCharacterCounter boolean", () => {
+        const resultTrue = validateConfig({ showCharacterCounter: true });
+        const resultFalse = validateConfig({ showCharacterCounter: false });
+
+        expect(resultTrue.showCharacterCounter).toBe(true);
+        expect(resultFalse.showCharacterCounter).toBe(false);
+    });
+
+    it("rejects non-boolean showCharacterCounter", () => {
+        expect(
+            validateConfig({ showCharacterCounter: "yes" }).showCharacterCounter
+        ).toBeUndefined();
+        expect(
+            validateConfig({ showCharacterCounter: 1 }).showCharacterCounter
+        ).toBeUndefined();
+    });
 });

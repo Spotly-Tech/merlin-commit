@@ -112,6 +112,28 @@ describe("promptUser", () => {
                 DEFAULT_CONFIG.maxSubjectLength
             );
         });
+
+        it("does not apply character counter transformer to scope when showCharacterCounter is false", async () => {
+            setupMinimalFlow();
+            const dependencies = createMockDependencies({
+                config: { ...DEFAULT_CONFIG, showCharacterCounter: false },
+            });
+
+            await promptUser(dependencies);
+
+            expect(createOptionalCharacterCounterTransformer).not.toHaveBeenCalled();
+        });
+
+        it("does not apply character counter transformer to subject when showCharacterCounter is false", async () => {
+            setupMinimalFlow();
+            const dependencies = createMockDependencies({
+                config: { ...DEFAULT_CONFIG, showCharacterCounter: false },
+            });
+
+            await promptUser(dependencies);
+
+            expect(createCharacterCounterTransformer).not.toHaveBeenCalled();
+        });
     });
 
     describe("scope handling", () => {
