@@ -33,7 +33,10 @@ program
 program
     .command("config")
     .description("Manage Merlin configuration interactively")
-    .option("--show", "Display current configuration")
+    .option(
+        "--show [scope]",
+        'Display configuration ("user", "project", or omit for effective config)'
+    )
     .option("--reset", "Reset configuration to defaults")
     .action(configCommand);
 

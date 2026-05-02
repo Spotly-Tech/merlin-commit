@@ -7,6 +7,7 @@ import {
     getMessages,
     loadConfig,
     loadProjectConfig,
+    loadUserConfig,
     removeProjectConfigField,
     resetConfig,
     resetProjectConfig,
@@ -36,6 +37,7 @@ vi.mock("@inquirer/prompts", () => {
 // Mock config-loader
 vi.mock("../../src/lib/config-loader", () => ({
     loadConfig: vi.fn(),
+    loadUserConfig: vi.fn(),
     getMessages: vi.fn(),
     saveConfig: vi.fn(),
     resetConfig: vi.fn(),
@@ -72,6 +74,7 @@ describe("configCommand", () => {
         vi.mocked(getMessages).mockReturnValue(WIZARD_MESSAGES);
         vi.mocked(loadConfig).mockReturnValue({ ...DEFAULT_CONFIG });
         vi.mocked(loadProjectConfig).mockReturnValue({});
+        vi.mocked(loadUserConfig).mockReturnValue({});
     });
 
     describe("--show flag", () => {
@@ -96,11 +99,11 @@ describe("configCommand", () => {
             expect(confirm).not.toHaveBeenCalled();
         });
 
-        it("shows config file path", async () => {
+        it("shows effective config note in footer", async () => {
             await configCommand({ show: true });
 
             expect(consoleSpy.log).toHaveBeenCalledWith(
-                expect.stringContaining("~/.merlinrc.json")
+                expect.stringContaining("Effective config")
             );
         });
 
@@ -110,6 +113,92 @@ describe("configCommand", () => {
             expect(consoleSpy.log).toHaveBeenCalledWith(
                 expect.stringContaining(`${DEFAULT_CONFIG.types.length} commit types`)
             );
+        });
+    });
+
+    describe("--show user flag", () => {
+        it("displays user config header", async () => {
+            await configCommand({ show: "user" });
+
+            expect(consoleSpy.log).toHaveBeenCalledWith(
+                expect.stringContaining("User Configuration")
+            );
+        });
+
+        it("displays user config values when user config is set", async () => {
+            vi.mocked(loadUserConfig).mockReturnValue({
+                theme: "standard",
+                maxSubjectLength: 50,
+            });
+
+            await configCommand({ show: "user" });
+
+            expect(consoleSpy.log).toHaveBeenCalledWith(
+                expect.stringContaining("standard")
+            );
+            expect(consoleSpy.log).toHaveBeenCalledWith(expect.stringContaining("50"));
+        });
+
+        it("displays empty state message when no user config is set", async () => {
+            vi.mocked(loadUserConfig).mockReturnValue({});
+
+            await configCommand({ show: "user" });
+
+            expect(consoleSpy.log).toHaveBeenCalledWith(
+                expect.stringContaining("No user configuration set.")
+            );
+        });
+
+        it("displays user config file path", async () => {
+            await configCommand({ show: "user" });
+
+            expect(consoleSpy.log).toHaveBeenCalledWith(
+                expect.stringContaining("~/.merlinrc.json")
+            );
+        });
+
+        it("does not open interactive menu", async () => {
+            await configCommand({ show: "user" });
+
+            expect(select).not.toHaveBeenCalled();
+            expect(input).not.toHaveBeenCalled();
+            expect(confirm).not.toHaveBeenCalled();
+        });
+    });
+
+    describe("--show project flag", () => {
+        it("displays project overrides when inside a git repo", async () => {
+            vi.mocked(loadProjectConfig).mockReturnValue({
+                theme: "wizard",
+                maxScopeLength: 30,
+            });
+
+            await configCommand({ show: "project" });
+
+            expect(consoleSpy.log).toHaveBeenCalledWith(
+                expect.stringContaining("Project Overrides")
+            );
+            expect(consoleSpy.log).toHaveBeenCalledWith(
+                expect.stringContaining("maxScopeLength")
+            );
+        });
+
+        it("warns and does not crash when not in a git repo", async () => {
+            vi.mocked(getRepoRoot).mockResolvedValue(null);
+
+            await configCommand({ show: "project" });
+
+            expect(consoleSpy.log).toHaveBeenCalledWith(
+                expect.stringContaining(WIZARD_MESSAGES.warnings.config.noProjectConfig)
+            );
+        });
+
+        it("does not open interactive menu", async () => {
+            await configCommand({ show: "project" });
+
+            expect(select).not.toHaveBeenCalled();
+            expect(input).not.toHaveBeenCalled();
+            expect(confirm).not.toHaveBeenCalled();
         });
     });
 
