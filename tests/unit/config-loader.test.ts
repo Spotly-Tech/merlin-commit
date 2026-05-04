@@ -19,7 +19,7 @@ import {
 } from "../../src/utils/constants.js";
 
 vi.mock("../../src/lib/terminal.js", () => ({
-    normalizeVS16Spacing: (text: string) => text,
+    normalizeEmojiSpacing: (text: string) => text,
     isWideEmojiTerminal: () => false,
 }));
 
