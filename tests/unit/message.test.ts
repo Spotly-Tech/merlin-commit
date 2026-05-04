@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { buildCommitMessage, formatPreview } from "../../src/lib/message.js";
 
 vi.mock("../../src/lib/terminal.js", () => ({
-    normalizeVS16Spacing: (text: string) => text,
+    normalizeEmojiSpacing: (text: string) => text,
     isWideEmojiTerminal: () => false,
 }));
 

@@ -14,7 +14,7 @@ import {
 } from "../lib/config-loader.js";
 import { getRepoRoot } from "../lib/git.js";
 import { setupSigintHandler } from "../lib/sigint.js";
-import { normalizeVS16Spacing } from "../lib/terminal.js";
+import { normalizeEmojiSpacing } from "../lib/terminal.js";
 import type {
     ConfigMenuAction,
     ConfigOptions,
@@ -166,7 +166,7 @@ function formatFieldChoice(
 
     return {
         value: field,
-        name: normalizeVS16Spacing(`${prefix} ${label}${padTo(label)}[${currentValue}]`),
+        name: normalizeEmojiSpacing(`${prefix} ${label}${padTo(label)}[${currentValue}]`),
         short: label,
     };
 }
@@ -187,7 +187,7 @@ function formatFieldChoiceNoValue(
 
     return {
         value: field,
-        name: normalizeVS16Spacing(`${prefix} ${label}`),
+        name: normalizeEmojiSpacing(`${prefix} ${label}`),
         short: label,
     };
 }
@@ -212,7 +212,7 @@ function formatActionChoice(
 
     return {
         value: action,
-        name: normalizeVS16Spacing(`${prefixMap[action]} ${labelMap[action]}`),
+        name: normalizeEmojiSpacing(`${prefixMap[action]} ${labelMap[action]}`),
         short: labelMap[action],
     };
 }

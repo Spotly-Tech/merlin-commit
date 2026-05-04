@@ -54,7 +54,7 @@ vi.mock("../../src/lib/git", () => ({
 
 // Mock terminal module
 vi.mock("../../src/lib/terminal.js", () => ({
-    normalizeVS16Spacing: (text: string) => text,
+    normalizeEmojiSpacing: (text: string) => text,
     isWideEmojiTerminal: () => false,
 }));
 
