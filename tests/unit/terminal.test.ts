@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import {
     isWideEmojiTerminal,
-    normalizeVS16Spacing,
+    normalizeEmojiSpacing,
     resetTerminalCache,
 } from "../../src/lib/terminal.js";
 
@@ -63,7 +63,7 @@ describe("terminal", () => {
         });
     });
 
-    describe("normalizeVS16Spacing", () => {
+    describe("normalizeEmojiSpacing", () => {
         describe("on wide-emoji terminals", () => {
             beforeEach(() => {
                 delete process.env.TERM_PROGRAM;
@@ -71,46 +71,74 @@ describe("terminal", () => {
             });
 
             it("should replace 2 spaces after VS16 emoji with 1 space", () => {
-                expect(normalizeVS16Spacing("⚠️  hello")).toBe("⚠️ hello");
+                expect(normalizeEmojiSpacing("⚠️  hello")).toBe("⚠️ hello");
             });
 
             it("should handle multiple VS16 emojis in one string", () => {
-                expect(normalizeVS16Spacing("⚠️  foo ⚙️  bar")).toBe("⚠️ foo ⚙️ bar");
+                expect(normalizeEmojiSpacing("⚠️  foo ⚙️  bar")).toBe("⚠️ foo ⚙️ bar");
             });
 
             it("should not affect strings without VS16 emojis", () => {
-                expect(normalizeVS16Spacing("✨ hello")).toBe("✨ hello");
+                expect(normalizeEmojiSpacing("✨ hello")).toBe("✨ hello");
             });
 
             it("should keep 1 space for VS16 emoji on wide terminal", () => {
-                expect(normalizeVS16Spacing("⚠️ hello")).toBe("⚠️ hello");
+                expect(normalizeEmojiSpacing("⚠️ hello")).toBe("⚠️ hello");
             });
 
             it("should normalize 3+ spaces after VS16 emoji to 1", () => {
-                expect(normalizeVS16Spacing("⚠️   hello")).toBe("⚠️ hello");
+                expect(normalizeEmojiSpacing("⚠️   hello")).toBe("⚠️ hello");
             });
 
             it("should be idempotent", () => {
-                const once = normalizeVS16Spacing("⚠️  hello");
-                const twice = normalizeVS16Spacing(once);
+                const once = normalizeEmojiSpacing("⚠️  hello");
+                const twice = normalizeEmojiSpacing(once);
                 expect(twice).toBe(once);
             });
 
             it("should handle all 6 VS16 emojis in this codebase", () => {
-                expect(normalizeVS16Spacing("⚠️  warn")).toBe("⚠️ warn");
-                expect(normalizeVS16Spacing("⚙️  gear")).toBe("⚙️ gear");
-                expect(normalizeVS16Spacing("♻️  recycle")).toBe("♻️ recycle");
-                expect(normalizeVS16Spacing("⏭️  skip")).toBe("⏭️ skip");
-                expect(normalizeVS16Spacing("👁️  eye")).toBe("👁️ eye");
-                expect(normalizeVS16Spacing("🗑️  trash")).toBe("🗑️ trash");
+                expect(normalizeEmojiSpacing("⚠️  warn")).toBe("⚠️ warn");
+                expect(normalizeEmojiSpacing("⚙️  gear")).toBe("⚙️ gear");
+                expect(normalizeEmojiSpacing("♻️  recycle")).toBe("♻️ recycle");
+                expect(normalizeEmojiSpacing("⏭️  skip")).toBe("⏭️ skip");
+                expect(normalizeEmojiSpacing("👁️  eye")).toBe("👁️ eye");
+                expect(normalizeEmojiSpacing("🗑️  trash")).toBe("🗑️ trash");
             });
 
             it("should not affect strings with no emojis", () => {
-                expect(normalizeVS16Spacing("plain text")).toBe("plain text");
+                expect(normalizeEmojiSpacing("plain text")).toBe("plain text");
             });
 
             it("should return empty string unchanged", () => {
-                expect(normalizeVS16Spacing("")).toBe("");
+                expect(normalizeEmojiSpacing("")).toBe("");
+            });
+
+            it("should replace 2 spaces after Unicode 13.0 emoji with 1 space", () => {
+                expect(normalizeEmojiSpacing("🪄  Choose the type:")).toBe(
+                    "🪄 Choose the type:"
+                );
+            });
+
+            it("should normalize 3+ spaces after Unicode 13.0 emoji to 1", () => {
+                expect(normalizeEmojiSpacing("🪄   Choose the type:")).toBe(
+                    "🪄 Choose the type:"
+                );
+            });
+
+            it("should keep 1 space for Unicode 13.0 emoji on wide terminal", () => {
+                expect(normalizeEmojiSpacing("🪄 Choose the type:")).toBe(
+                    "🪄 Choose the type:"
+                );
+            });
+
+            it("should be idempotent for Unicode 13.0 emoji", () => {
+                const once = normalizeEmojiSpacing("🪄  Choose the type:");
+                const twice = normalizeEmojiSpacing(once);
+                expect(twice).toBe(once);
+            });
+
+            it("should not affect Unicode 12.0 emoji in the same block", () => {
+                expect(normalizeEmojiSpacing("🪂 text")).toBe("🪂 text");
             });
         });
 
@@ -121,30 +149,48 @@ describe("terminal", () => {
             });
 
             it("should preserve 2 spaces after VS16 emoji", () => {
-                expect(normalizeVS16Spacing("⚠️  hello")).toBe("⚠️  hello");
+                expect(normalizeEmojiSpacing("⚠️  hello")).toBe("⚠️  hello");
             });
 
             it("should preserve spacing for all VS16 emojis", () => {
-                expect(normalizeVS16Spacing("⚙️  config")).toBe("⚙️  config");
-                expect(normalizeVS16Spacing("👁️  show")).toBe("👁️  show");
+                expect(normalizeEmojiSpacing("⚙️  config")).toBe("⚙️  config");
+                expect(normalizeEmojiSpacing("👁️  show")).toBe("👁️  show");
             });
 
             it("should expand 1 space after VS16 emoji to 2", () => {
-                expect(normalizeVS16Spacing("⚠️ hello")).toBe("⚠️  hello");
+                expect(normalizeEmojiSpacing("⚠️ hello")).toBe("⚠️  hello");
             });
 
             it("should normalize 3+ spaces after VS16 emoji to 2", () => {
-                expect(normalizeVS16Spacing("⚠️   hello")).toBe("⚠️  hello");
+                expect(normalizeEmojiSpacing("⚠️   hello")).toBe("⚠️  hello");
             });
 
             it("should be idempotent", () => {
-                const once = normalizeVS16Spacing("⚠️ hello");
-                const twice = normalizeVS16Spacing(once);
+                const once = normalizeEmojiSpacing("⚠️ hello");
+                const twice = normalizeEmojiSpacing(once);
                 expect(twice).toBe(once);
             });
 
             it("should not affect VS16 emoji with no trailing space", () => {
-                expect(normalizeVS16Spacing("\u26A0\uFE0F")).toBe("\u26A0\uFE0F");
+                expect(normalizeEmojiSpacing("\u26A0\uFE0F")).toBe("\u26A0\uFE0F");
+            });
+
+            it("should preserve 2 spaces after Unicode 13.0 emoji", () => {
+                expect(normalizeEmojiSpacing("\u{1FA84}  Choose the type:")).toBe(
+                    "\u{1FA84}  Choose the type:"
+                );
+            });
+
+            it("should expand 1 space after Unicode 13.0 emoji to 2", () => {
+                expect(normalizeEmojiSpacing("\u{1FA84} Choose the type:")).toBe(
+                    "\u{1FA84}  Choose the type:"
+                );
+            });
+
+            it("should be idempotent for Unicode 13.0 emoji", () => {
+                const once = normalizeEmojiSpacing("\u{1FA84} Choose the type:");
+                const twice = normalizeEmojiSpacing(once);
+                expect(twice).toBe(once);
             });
         });
     });
