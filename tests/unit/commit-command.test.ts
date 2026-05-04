@@ -19,7 +19,7 @@ import { setupSigintHandler } from "../../src/lib/sigint.js";
 import { DEFAULT_CONFIG, WIZARD_MESSAGES } from "../../src/utils/constants.js";
 
 vi.mock("../../src/lib/terminal.js", () => ({
-    normalizeVS16Spacing: (text: string) => text,
+    normalizeEmojiSpacing: (text: string) => text,
     isWideEmojiTerminal: () => false,
 }));
 

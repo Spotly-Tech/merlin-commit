@@ -9,7 +9,7 @@ import {
     STANDARD_MESSAGES,
     WIZARD_MESSAGES,
 } from "../utils/constants.js";
-import { normalizeVS16Spacing } from "./terminal.js";
+import { normalizeEmojiSpacing } from "./terminal.js";
 
 const USER_CONFIG_PATH = join(homedir(), ".merlinrc.json");
 
@@ -183,7 +183,7 @@ function normalizeThemeStrings<T>(object: T): T {
         return object;
     }
     if (typeof object === "string") {
-        return normalizeVS16Spacing(object) as T;
+        return normalizeEmojiSpacing(object) as T;
     }
     if (typeof object === "object" && object !== null) {
         const result = {} as Record<string, unknown>;

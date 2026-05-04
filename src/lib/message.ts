@@ -1,6 +1,6 @@
 import type { CommitAnswers } from "../types/index.js";
 import { BREAKING_CHANGE_PREFIX_REGEX } from "../utils/constants.js";
-import { normalizeVS16Spacing } from "./terminal.js";
+import { normalizeEmojiSpacing } from "./terminal.js";
 
 /**
  * Constructs a conventional commit message from user answers.
@@ -116,7 +116,7 @@ export function formatPreview(message: string): string {
         const line = lines[i];
 
         if (line.startsWith("BREAKING CHANGE:")) {
-            formattedLines.push(normalizeVS16Spacing(`⚠️ ${line}`));
+            formattedLines.push(normalizeEmojiSpacing(`⚠️ ${line}`));
         } else if (
             line.match(/(fixes|closes|resolves|refs|references|related to) #\d+/i)
         ) {
