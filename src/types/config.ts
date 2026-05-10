@@ -13,8 +13,7 @@ export type MerlinConfig = {
     types?: CommitType[];
 
     /**
-     * Maximum commit subject length including type and scope.
-     * Total length of `<type>(<scope>): <subject>` should not exceed this.
+     * Maximum length of the commit subject - the text after `<type>(<scope>): `.
      * @default 72
      * @example 50 | 72 | 100
      */
@@ -78,7 +77,13 @@ export type ConfigOptions = {
  * Action selected from either the user or project config menu.
  * Covers configurable field names plus navigation/utility actions.
  */
-export type ConfigMenuAction = ConfigurableField | "show" | "reset" | "back" | "exit";
+export type ConfigMenuAction =
+    | ConfigurableField
+    | "show"
+    | "reset"
+    | "syncCommitlint"
+    | "back"
+    | "exit";
 
 /**
  * Configurable fields that can appear in the project config menu.
