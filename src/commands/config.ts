@@ -2,6 +2,10 @@ import { basename } from "path";
 import { confirm, input, select, Separator } from "@inquirer/prompts";
 
 import {
+    detectCommitlintConfig,
+    syncToCommitlintConfig,
+} from "../lib/commitlint-sync.js";
+import {
     getMessages,
     loadConfig,
     loadProjectConfig,
@@ -27,6 +31,11 @@ import { createNonEmptyValidator, createRangeValidator } from "../utils/validato
 
 type SaveFn = (config: Partial<MerlinConfig>) => void;
 
+const COMMITLINT_SYNC_FIELDS: ReadonlySet<ConfigurableField> = new Set([
+    "maxSubjectLength",
+    "maxScopeLength",
+]);
+
 const ALL_CONFIGURABLE_FIELDS: ConfigurableField[] = [
     "theme",
     "maxSubjectLength",
@@ -48,6 +57,7 @@ const FIELD_LABELS = {
     editor: "Default editor",
     autoAdd: "Auto-add unstaged files",
     showCharacterCounter: "Show character counter",
+    syncCommitlint: "Sync to commitlint",
     showConfig: "Show current config",
     resetConfig: "Reset to defaults",
     back: "Back to scope selection",
@@ -102,6 +112,13 @@ const DISPLAY = {
     resetProjectConfirm: "Reset all project overrides (theme baseline will be kept)?",
     resetCancelled: "Reset cancelled.",
     removedFieldPrefix: "Removed",
+    syncSuccess: "Synced",
+    syncArrow: "→",
+    syncCannotAutoUpdate: "Cannot auto-update",
+    syncAddRulesManually: "add rules manually:",
+    syncNoConfig: "No commitlint config found. Run 'merlin init' to set one up.",
+    syncHint:
+        "Tip: select 'Sync to commitlint' to apply this change to your commitlint config.",
 } as const;
 
 const FIELD_EMOJI_PREFIXES = {
@@ -112,6 +129,7 @@ const FIELD_EMOJI_PREFIXES = {
         editor: "📝",
         autoAdd: "🔄",
         showCharacterCounter: "🔢",
+        syncCommitlint: "🔗",
         show: "👁️ ",
         reset: "🗑️ ",
         back: "⬅️ ",
@@ -124,6 +142,7 @@ const FIELD_EMOJI_PREFIXES = {
         editor: "•",
         autoAdd: "•",
         showCharacterCounter: "•",
+        syncCommitlint: "•",
         show: "•",
         reset: "•",
         back: "←",
@@ -196,16 +215,20 @@ function formatFieldChoiceNoValue(
  * Formats a navigation/utility action choice (show, reset, exit).
  */
 function formatActionChoice(
-    action: "show" | "reset" | "back" | "exit",
+    action: "show" | "reset" | "syncCommitlint" | "back" | "exit",
     config: Required<MerlinConfig>
 ): MenuChoice {
     const isWizardTheme = config.theme === "wizard";
     const prefixMap = isWizardTheme
         ? FIELD_EMOJI_PREFIXES.wizard
         : FIELD_EMOJI_PREFIXES.standard;
-    const labelMap: Record<"show" | "reset" | "back" | "exit", string> = {
+    const labelMap: Record<
+        "show" | "reset" | "syncCommitlint" | "back" | "exit",
+        string
+    > = {
         show: FIELD_LABELS.showConfig,
         reset: FIELD_LABELS.resetConfig,
+        syncCommitlint: FIELD_LABELS.syncCommitlint,
         back: FIELD_LABELS.back,
         exit: FIELD_LABELS.exit,
     };
@@ -472,6 +495,38 @@ async function resetProjectConfigWithConfirmation(
 }
 
 /**
+ * Writes the current effective merlin config values into the project's
+ * commitlint config file as explicit rules, then reports the outcome.
+ */
+async function handleSyncToCommitlint(
+    repoRoot: string,
+    config: Required<MerlinConfig>
+): Promise<void> {
+    const result = await syncToCommitlintConfig(config, repoRoot);
+
+    if (result.success) {
+        console.log(
+            colors.success(
+                `\n${DISPLAY.syncSuccess} ${result.appliedRuleNames.join(", ")} ${DISPLAY.syncArrow} ${result.filePath}`
+            )
+        );
+        return;
+    }
+
+    if (result.manualInstructions) {
+        console.log(
+            colors.warning(
+                `\n${DISPLAY.syncCannotAutoUpdate} ${result.filePath} - ${DISPLAY.syncAddRulesManually}`
+            )
+        );
+        console.log(colors.muted(result.manualInstructions));
+        return;
+    }
+
+    console.log(colors.warning(`\n${DISPLAY.syncNoConfig}`));
+}
+
+/**
  * Reset configuration to defaults with user confirmation.
  */
 async function resetConfigWithConfirmation(messages: ThemeMessages): Promise<void> {
@@ -581,6 +636,10 @@ async function ensureProjectConfigExists(
 async function runProjectConfigMenu(repoRoot: string): Promise<"back" | "exit"> {
     const save: SaveFn = (config) => saveProjectConfig(config, repoRoot);
 
+    // Detected once before the loop for performance; refreshed after a sync action
+    // so the menu immediately reflects a newly-written config file.
+    let commitlintConfigFile = await detectCommitlintConfig(repoRoot);
+
     let running = true;
     while (running) {
         const config = loadConfig(repoRoot);
@@ -614,6 +673,9 @@ async function runProjectConfigMenu(repoRoot: string): Promise<"back" | "exit"> 
 
         choices.push(new Separator(" "));
         choices.push(new Separator("─────────────────────────────────────"));
+        if (commitlintConfigFile !== null) {
+            choices.push(formatActionChoice("syncCommitlint", config));
+        }
         choices.push(formatActionChoice("show", config));
         choices.push(formatActionChoice("reset", config));
         choices.push(formatActionChoice("back", config));
@@ -649,6 +711,13 @@ async function runProjectConfigMenu(repoRoot: string): Promise<"back" | "exit"> 
             continue;
         }
 
+        if (choice === "syncCommitlint") {
+            await handleSyncToCommitlint(repoRoot, loadConfig(repoRoot));
+            commitlintConfigFile = await detectCommitlintConfig(repoRoot);
+            console.log();
+            continue;
+        }
+
         const isConfigured = configuredFields.includes(choice);
         if (isConfigured) {
             const action = await select({
@@ -668,9 +737,15 @@ async function runProjectConfigMenu(repoRoot: string): Promise<"back" | "exit"> 
                 );
             } else {
                 await dispatchConfigureAction(choice, config, save);
+                if (COMMITLINT_SYNC_FIELDS.has(choice) && commitlintConfigFile !== null) {
+                    console.log(colors.muted(`\n${DISPLAY.syncHint}`));
+                }
             }
         } else {
             await dispatchConfigureAction(choice, config, save);
+            if (COMMITLINT_SYNC_FIELDS.has(choice) && commitlintConfigFile !== null) {
+                console.log(colors.muted(`\n${DISPLAY.syncHint}`));
+            }
         }
 
         if (running) {
