@@ -220,6 +220,15 @@ export async function getRepoRoot(): Promise<string | null> {
 }
 
 /**
+ * Represents a file that can be staged for commit.
+ * Covers tracked modified/deleted/renamed files and untracked new files.
+ */
+export type StagingCandidate = {
+    path: string;
+    status: "modified" | "deleted" | "untracked" | "renamed" | "copied";
+};
+
+/**
  * Represents a staged file with its status indicator.
  */
 export type StagedFile = {
@@ -269,6 +278,64 @@ export async function getStagedFilesWithStatus(): Promise<StagedFile[]> {
                 const path = pathParts.join("\t"); // Handle paths with tabs (rare but possible)
                 return { status, path };
             });
+    } catch (error) {
+        if (isEnoentError(error)) {
+            throwGitUnavailable(error);
+        }
+        return [];
+    }
+}
+
+/**
+ * Retrieves all files that can be staged for commit.
+ *
+ * Combines tracked modified/deleted/renamed files (via `git diff --name-status`)
+ * with untracked files (via `git ls-files --others --exclude-standard`).
+ * Both commands run concurrently. Returns empty array on git error.
+ *
+ * @returns Array of staging candidates with status, empty array if none or on error
+ * @throws {Error} If git is not available on the system
+ * @example
+ * ```typescript
+ * const candidates = await getStagingCandidates();
+ * // => [
+ * //   { status: "modified", path: "src/index.ts" },
+ * //   { status: "untracked", path: "src/new-file.ts" }
+ * // ]
+ * ```
+ */
+export async function getStagingCandidates(): Promise<StagingCandidate[]> {
+    try {
+        const [diffResult, untrackedResult] = await Promise.all([
+            execa("git", ["diff", "--name-status"]),
+            execa("git", ["ls-files", "--others", "--exclude-standard"]),
+        ]);
+
+        const statusMap: Record<string, StagingCandidate["status"]> = {
+            M: "modified",
+            D: "deleted",
+            R: "renamed",
+            C: "copied",
+        };
+
+        const tracked: StagingCandidate[] = diffResult.stdout
+            .trim()
+            .split("\n")
+            .filter(Boolean)
+            .map((line) => {
+                const [statusCode, ...pathParts] = line.split("\t");
+                const status = statusMap[statusCode.charAt(0)] ?? "modified";
+                const path = pathParts.join("\t");
+                return { status, path };
+            });
+
+        const untracked: StagingCandidate[] = untrackedResult.stdout
+            .trim()
+            .split("\n")
+            .filter(Boolean)
+            .map((path) => ({ status: "untracked" as const, path }));
+
+        return [...tracked, ...untracked];
     } catch (error) {
         if (isEnoentError(error)) {
             throwGitUnavailable(error);
