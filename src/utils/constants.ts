@@ -117,6 +117,7 @@ export const WIZARD_MESSAGES: ThemeMessages = {
         repo: "🔮 Verifying the sacred realm",
         staged: "📜 Examining the staged scrolls",
         unstaged: "👀 Searching for unstaged scrolls",
+        autoAdd: "✨ Weaving selected scrolls into the ritual...",
     },
     prompts: {
         type: "🪄 Choose the type of spell:",
@@ -126,6 +127,7 @@ export const WIZARD_MESSAGES: ThemeMessages = {
         breaking: "⚠️ Does this spell shatter ancient contracts?",
         issues: "🔗 Does this resolve any quests?",
         confirm: "🔮 Shall Merlin cast this spell?",
+        selectFiles: "📜 Select scrolls to prepare for the ritual:",
     },
     success: {
         commit: {
@@ -233,6 +235,7 @@ export const STANDARD_MESSAGES: ThemeMessages = {
         repo: "Checking git repository",
         staged: "Checking staged changes",
         unstaged: "Checking unstaged files",
+        autoAdd: "Staging selected files...",
     },
     prompts: {
         type: "Select the type of change:",
@@ -242,6 +245,7 @@ export const STANDARD_MESSAGES: ThemeMessages = {
         breaking: "Are there any breaking changes?",
         issues: "Reference any issues? (e.g., fixes #123)",
         confirm: "Create this commit?",
+        selectFiles: "Select files to stage:",
     },
     success: {
         commit: {

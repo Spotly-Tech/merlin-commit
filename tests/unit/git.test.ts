@@ -8,6 +8,7 @@ import {
     getGitDirectory,
     getRepoRoot,
     getStagedFilesWithStatus,
+    getStagingCandidates,
     getUnstagedFiles,
     hasStagedChanges,
     isGitRepo,
@@ -375,5 +376,110 @@ describe("getStagedFilesWithStatus", () => {
         const result = await getStagedFilesWithStatus();
 
         expect(result).toEqual([{ status: "modified", path: "unknown-status.ts" }]);
+    });
+});
+
+describe("getStagingCandidates", () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    it("returns tracked modified file", async () => {
+        vi.mocked(execa)
+            .mockResolvedValueOnce({ stdout: "M\tsrc/index.ts" } as never)
+            .mockResolvedValueOnce({ stdout: "" } as never);
+
+        const result = await getStagingCandidates();
+
+        expect(result).toEqual([{ status: "modified", path: "src/index.ts" }]);
+        expect(execa).toHaveBeenCalledWith("git", ["diff", "--name-status"]);
+    });
+
+    it("returns tracked deleted file", async () => {
+        vi.mocked(execa)
+            .mockResolvedValueOnce({ stdout: "D\told-file.ts" } as never)
+            .mockResolvedValueOnce({ stdout: "" } as never);
+
+        const result = await getStagingCandidates();
+
+        expect(result).toEqual([{ status: "deleted", path: "old-file.ts" }]);
+    });
+
+    it("returns tracked renamed file with joined path", async () => {
+        vi.mocked(execa)
+            .mockResolvedValueOnce({ stdout: "R100\told-name.ts\tnew-name.ts" } as never)
+            .mockResolvedValueOnce({ stdout: "" } as never);
+
+        const result = await getStagingCandidates();
+
+        expect(result).toEqual([{ status: "renamed", path: "old-name.ts\tnew-name.ts" }]);
+    });
+
+    it("returns untracked file", async () => {
+        vi.mocked(execa)
+            .mockResolvedValueOnce({ stdout: "" } as never)
+            .mockResolvedValueOnce({ stdout: "src/new-file.ts" } as never);
+
+        const result = await getStagingCandidates();
+
+        expect(result).toEqual([{ status: "untracked", path: "src/new-file.ts" }]);
+        expect(execa).toHaveBeenCalledWith("git", [
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+        ]);
+    });
+
+    it("combines tracked and untracked files", async () => {
+        vi.mocked(execa)
+            .mockResolvedValueOnce({ stdout: "M\tsrc/existing.ts" } as never)
+            .mockResolvedValueOnce({ stdout: "src/brand-new.ts" } as never);
+
+        const result = await getStagingCandidates();
+
+        expect(result).toEqual([
+            { status: "modified", path: "src/existing.ts" },
+            { status: "untracked", path: "src/brand-new.ts" },
+        ]);
+    });
+
+    it("returns empty array when no files to stage", async () => {
+        vi.mocked(execa)
+            .mockResolvedValueOnce({ stdout: "" } as never)
+            .mockResolvedValueOnce({ stdout: "" } as never);
+
+        const result = await getStagingCandidates();
+
+        expect(result).toEqual([]);
+    });
+
+    it("returns empty array on git error", async () => {
+        const gitError = Object.assign(new Error("git error"), { exitCode: 128 });
+        vi.mocked(execa).mockRejectedValue(gitError);
+
+        const result = await getStagingCandidates();
+
+        expect(result).toEqual([]);
+    });
+
+    it("re-throws when git is not installed (ENOENT)", async () => {
+        const enoentError = Object.assign(new Error("spawn git ENOENT"), {
+            code: "ENOENT",
+        });
+        vi.mocked(execa).mockRejectedValue(enoentError);
+
+        await expect(getStagingCandidates()).rejects.toThrow(
+            "git is not available on this system"
+        );
+    });
+
+    it("defaults unknown status codes to modified", async () => {
+        vi.mocked(execa)
+            .mockResolvedValueOnce({ stdout: "X\tunknown.ts" } as never)
+            .mockResolvedValueOnce({ stdout: "" } as never);
+
+        const result = await getStagingCandidates();
+
+        expect(result).toEqual([{ status: "modified", path: "unknown.ts" }]);
     });
 });

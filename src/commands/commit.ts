@@ -9,16 +9,18 @@ import {
     editWithGitCommitMessage,
 } from "../lib/editor-wrapper.js";
 import {
+    addFiles,
     amendCommit,
     commit,
     getGitDirectory,
     getRepoRoot,
     getStagedFilesWithStatus,
+    getStagingCandidates,
     hasStagedChanges,
     isGitRepo,
 } from "../lib/git.js";
 import { buildCommitMessage, formatPreview } from "../lib/message.js";
-import { promptUser } from "../lib/prompt.js";
+import { promptFileSelection, promptUser } from "../lib/prompt.js";
 import { setupSigintHandler } from "../lib/sigint.js";
 import { normalizeEmojiSpacing } from "../lib/terminal.js";
 import type { CommitOptions } from "../types/index.js";
@@ -42,17 +44,44 @@ export async function commitCommand(options: CommitOptions): Promise<void> {
         }
         spinner.succeed();
 
-        // Check for staged changes
+        // Load config early - needed for autoAdd check inside staged-files block
+        const config = loadConfig(repoRoot);
+
+        // Check for staged changes, with optional interactive auto-add fallback
         spinner.start(messages.checking.staged);
         if (!(await hasStagedChanges())) {
-            spinner.fail(colors.error(messages.errors.commit.noStaged));
-            console.log(colors.warning(`\n${messages.tips.commit.gitAdd}`));
-            process.exit(1);
-        }
-        spinner.succeed();
+            if (!config.autoAdd) {
+                spinner.fail(colors.error(messages.errors.commit.noStaged));
+                console.log(colors.warning(`\n${messages.tips.commit.gitAdd}`));
+                process.exit(1);
+            }
 
-        // Load config and resolve git directory for editor integration
-        const config = loadConfig(repoRoot);
+            spinner.start(messages.checking.unstaged);
+            const candidates = await getStagingCandidates();
+
+            if (candidates.length === 0) {
+                spinner.fail(colors.error(messages.errors.commit.noStaged));
+                console.log(colors.warning(`\n${messages.tips.commit.gitAdd}`));
+                process.exit(1);
+            }
+
+            spinner.stop();
+            const selectedFiles = await promptFileSelection(
+                candidates,
+                messages.prompts.selectFiles
+            );
+
+            if (selectedFiles.length === 0) {
+                console.log(colors.warning(`\n${messages.warnings.cancel}`));
+                process.exit(0);
+            }
+
+            spinner.start(messages.checking.autoAdd);
+            await addFiles(selectedFiles);
+            spinner.succeed();
+        } else {
+            spinner.succeed();
+        }
         const gitDir = await getGitDirectory();
 
         // Prompt user for commit details with injected dependencies
