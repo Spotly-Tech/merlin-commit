@@ -137,6 +137,13 @@ export type ThemeMessages = {
          * @example "👀 Searching for unstaged scrolls"
          */
         unstaged: string;
+
+        /**
+         * Spinner message while staging user-selected files via the auto-add picker.
+         * @example "✨ Weaving selected scrolls into the ritual..." (wizard)
+         * @example "Staging selected files..." (standard)
+         */
+        autoAdd: string;
     };
 
     /**
@@ -184,6 +191,13 @@ export type ThemeMessages = {
          * @example "🔮 Shall Merlin cast this spell?"
          */
         confirm: string;
+
+        /**
+         * Checkbox prompt label for the interactive file picker during auto-add.
+         * @example "📜 Select scrolls to prepare for the ritual:" (wizard)
+         * @example "Select files to stage:" (standard)
+         */
+        selectFiles: string;
     };
 
     /**

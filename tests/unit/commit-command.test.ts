@@ -5,16 +5,18 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { commitCommand } from "../../src/commands/commit.js";
 import { getMessages, loadConfig } from "../../src/lib/config-loader.js";
 import {
+    addFiles,
     amendCommit,
     commit,
     getGitDirectory,
     getRepoRoot,
     getStagedFilesWithStatus,
+    getStagingCandidates,
     hasStagedChanges,
     isGitRepo,
 } from "../../src/lib/git.js";
 import { buildCommitMessage, formatPreview } from "../../src/lib/message.js";
-import { promptUser } from "../../src/lib/prompt.js";
+import { promptFileSelection, promptUser } from "../../src/lib/prompt.js";
 import { setupSigintHandler } from "../../src/lib/sigint.js";
 import { DEFAULT_CONFIG, WIZARD_MESSAGES } from "../../src/utils/constants.js";
 
@@ -35,6 +37,8 @@ vi.mock("../../src/lib/git", () => ({
     getRepoRoot: vi.fn(),
     getGitDirectory: vi.fn(),
     getStagedFilesWithStatus: vi.fn(),
+    getStagingCandidates: vi.fn(),
+    addFiles: vi.fn(),
 }));
 
 vi.mock("../../src/lib/message", () => ({
@@ -44,6 +48,7 @@ vi.mock("../../src/lib/message", () => ({
 
 vi.mock("../../src/lib/prompt", () => ({
     promptUser: vi.fn(),
+    promptFileSelection: vi.fn(),
 }));
 
 vi.mock("../../src/lib/config-loader", () => ({
@@ -106,6 +111,9 @@ describe("commitCommand", () => {
         vi.mocked(getRepoRoot).mockResolvedValue("/mock/repo");
         vi.mocked(getGitDirectory).mockResolvedValue(".git");
         vi.mocked(getStagedFilesWithStatus).mockResolvedValue([]);
+        vi.mocked(getStagingCandidates).mockResolvedValue([]);
+        vi.mocked(addFiles).mockResolvedValue(undefined);
+        vi.mocked(promptFileSelection).mockResolvedValue([]);
         vi.mocked(getMessages).mockReturnValue(WIZARD_MESSAGES);
         vi.mocked(loadConfig).mockReturnValue(DEFAULT_CONFIG);
         vi.mocked(setupSigintHandler).mockReturnValue(vi.fn());
@@ -309,6 +317,113 @@ describe("commitCommand", () => {
                 expect.stringContaining(WIZARD_MESSAGES.warnings.cancel)
             );
             expect(mockExit).toHaveBeenCalledWith(0);
+        });
+    });
+
+    describe("auto-add behavior", () => {
+        it("shows noStaged error and exits 1 when autoAdd is false", async () => {
+            vi.mocked(isGitRepo).mockResolvedValue(true);
+            vi.mocked(hasStagedChanges).mockResolvedValue(false);
+
+            await commitCommand({});
+
+            const spinner = vi.mocked(ora)();
+            expect(spinner.fail).toHaveBeenCalledWith(
+                expect.stringContaining(WIZARD_MESSAGES.errors.commit.noStaged)
+            );
+            expect(mockExit).toHaveBeenCalledWith(1);
+        });
+
+        it("exits with error when autoAdd is true but no candidates exist", async () => {
+            vi.mocked(isGitRepo).mockResolvedValue(true);
+            vi.mocked(hasStagedChanges).mockResolvedValue(false);
+            vi.mocked(loadConfig).mockReturnValue({ ...DEFAULT_CONFIG, autoAdd: true });
+            vi.mocked(getStagingCandidates).mockResolvedValue([]);
+
+            await commitCommand({});
+
+            const spinner = vi.mocked(ora)();
+            expect(spinner.fail).toHaveBeenCalledWith(
+                expect.stringContaining(WIZARD_MESSAGES.errors.commit.noStaged)
+            );
+            expect(mockExit).toHaveBeenCalledWith(1);
+        });
+
+        it("stages selected files and continues when user selects files", async () => {
+            const candidates = [
+                { path: "src/index.ts", status: "modified" as const },
+                { path: "src/new.ts", status: "untracked" as const },
+            ];
+            setupHappyPath();
+            vi.mocked(hasStagedChanges).mockResolvedValue(false);
+            vi.mocked(loadConfig).mockReturnValue({ ...DEFAULT_CONFIG, autoAdd: true });
+            vi.mocked(getStagingCandidates).mockResolvedValue(candidates);
+            vi.mocked(promptFileSelection).mockResolvedValue(["src/index.ts"]);
+
+            await commitCommand({});
+
+            expect(addFiles).toHaveBeenCalledWith(["src/index.ts"]);
+            expect(promptUser).toHaveBeenCalled();
+        });
+
+        it("logs cancel message and exits 0 when user deselects all files", async () => {
+            const candidates = [{ path: "src/index.ts", status: "modified" as const }];
+            vi.mocked(isGitRepo).mockResolvedValue(true);
+            vi.mocked(hasStagedChanges).mockResolvedValue(false);
+            vi.mocked(loadConfig).mockReturnValue({ ...DEFAULT_CONFIG, autoAdd: true });
+            vi.mocked(getStagingCandidates).mockResolvedValue(candidates);
+            vi.mocked(promptFileSelection).mockResolvedValue([]);
+
+            await commitCommand({});
+
+            expect(consoleSpy.log).toHaveBeenCalledWith(
+                expect.stringContaining(WIZARD_MESSAGES.warnings.cancel)
+            );
+            expect(mockExit).toHaveBeenCalledWith(0);
+        });
+
+        it("shows unstaged spinner while scanning for candidates", async () => {
+            const candidates = [{ path: "src/index.ts", status: "modified" as const }];
+            vi.mocked(isGitRepo).mockResolvedValue(true);
+            vi.mocked(hasStagedChanges).mockResolvedValue(false);
+            vi.mocked(loadConfig).mockReturnValue({ ...DEFAULT_CONFIG, autoAdd: true });
+            vi.mocked(getStagingCandidates).mockResolvedValue(candidates);
+            vi.mocked(promptFileSelection).mockResolvedValue([]);
+
+            await commitCommand({});
+
+            const spinner = vi.mocked(ora)();
+            expect(spinner.start).toHaveBeenCalledWith(WIZARD_MESSAGES.checking.unstaged);
+        });
+
+        it("shows autoAdd spinner while staging selected files", async () => {
+            const candidates = [{ path: "src/index.ts", status: "modified" as const }];
+            setupHappyPath();
+            vi.mocked(hasStagedChanges).mockResolvedValue(false);
+            vi.mocked(loadConfig).mockReturnValue({ ...DEFAULT_CONFIG, autoAdd: true });
+            vi.mocked(getStagingCandidates).mockResolvedValue(candidates);
+            vi.mocked(promptFileSelection).mockResolvedValue(["src/index.ts"]);
+
+            await commitCommand({});
+
+            const spinner = vi.mocked(ora)();
+            expect(spinner.start).toHaveBeenCalledWith(WIZARD_MESSAGES.checking.autoAdd);
+        });
+
+        it("passes candidates and selectFiles message to promptFileSelection", async () => {
+            const candidates = [{ path: "src/index.ts", status: "modified" as const }];
+            vi.mocked(isGitRepo).mockResolvedValue(true);
+            vi.mocked(hasStagedChanges).mockResolvedValue(false);
+            vi.mocked(loadConfig).mockReturnValue({ ...DEFAULT_CONFIG, autoAdd: true });
+            vi.mocked(getStagingCandidates).mockResolvedValue(candidates);
+            vi.mocked(promptFileSelection).mockResolvedValue([]);
+
+            await commitCommand({});
+
+            expect(promptFileSelection).toHaveBeenCalledWith(
+                candidates,
+                WIZARD_MESSAGES.prompts.selectFiles
+            );
         });
     });
 

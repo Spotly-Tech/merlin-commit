@@ -1,4 +1,4 @@
-import { confirm, input, select } from "@inquirer/prompts";
+import { checkbox, confirm, input, select } from "@inquirer/prompts";
 
 import type { CommitAnswers, MerlinConfig, ThemeMessages } from "../types/index.js";
 import {
@@ -9,7 +9,7 @@ import {
     VARIATION_SELECTOR,
 } from "../utils/constants.js";
 import type { CommitEditorContext } from "./editor-wrapper.js";
-import type { StagedFile } from "./git.js";
+import type { StagedFile, StagingCandidate } from "./git.js";
 import { isWideEmojiTerminal } from "./terminal.js";
 import {
     createCharacterCounterTransformer,
@@ -190,4 +190,34 @@ export async function promptUser(
     }
 
     return answers;
+}
+
+/**
+ * Presents a checkbox prompt listing all stageable files.
+ *
+ * All candidates are pre-checked so the user deselects rather than selects -
+ * the common case is staging everything. Returns the paths of checked files,
+ * which may be an empty array if the user deselects all items.
+ *
+ * @param candidates - Files available for staging with their status labels
+ * @param promptMessage - Checkbox prompt label (from theme messages)
+ * @returns Array of selected file paths
+ * @example
+ * ```typescript
+ * const paths = await promptFileSelection(candidates, messages.prompts.selectFiles);
+ * // => ["src/index.ts", "src/new-file.ts"]
+ * ```
+ */
+export async function promptFileSelection(
+    candidates: StagingCandidate[],
+    promptMessage: string
+): Promise<string[]> {
+    return checkbox({
+        message: promptMessage,
+        choices: candidates.map((candidate) => ({
+            value: candidate.path,
+            name: `${candidate.path}  (${candidate.status})`,
+            checked: true,
+        })),
+    });
 }
