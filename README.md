@@ -7,7 +7,7 @@
 ## Installation
 
 ```bash
-npm install -g @avilolabs/merlin-commit
+npm install -g merlin-commit
 ```
 
 ## Usage

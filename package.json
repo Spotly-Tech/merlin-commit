@@ -1,12 +1,13 @@
 {
-    "name": "@avilolabs/merlin-commit",
+    "name": "merlin-commit",
     "version": "0.0.0",
     "description": "🧙‍♂️ Magical, interactive CLI for creating conventional commits",
     "type": "module",
     "main": "./dist/cli.js",
     "types": "./dist/cli.d.ts",
     "bin": {
-        "merlin": "./bin/merlin.js"
+        "merlin": "./bin/merlin.js",
+        "merlin-commit": "./bin/merlin.js"
     },
     "exports": {
         ".": {
