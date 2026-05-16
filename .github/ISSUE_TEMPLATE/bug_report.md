@@ -22,7 +22,7 @@ assignees: ''
 
 - **OS**: <!-- e.g., Windows 11, macOS 14.1, Ubuntu 22.04 -->
 - **Node version**: <!-- Run `node --version` -->
-- **Package version**: <!-- Run `npm list -g @avilolabs/merlin-commit` or check package.json -->
+- **Package version**: <!-- Run `npm list -g merlin-commit` or check package.json -->
 - **Terminal**: <!-- e.g., PowerShell, bash, zsh, cmd, iTerm2, Windows Terminal -->
 - **Installation method**: <!-- npm global, npx, or local -->
 
