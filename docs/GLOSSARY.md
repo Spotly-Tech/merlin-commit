@@ -166,16 +166,18 @@ These emojis prefix wizard-themed messages to provide visual context.
 
 #### Config Menu (wizard theme)
 
-| Emoji | Context | Meaning            |
-| ----- | ------- | ------------------ |
-| 🎨    | Palette | Theme setting      |
-| 📏    | Ruler   | Max subject length |
-| 🎯    | Target  | Max scope length   |
-| 📝    | Pencil  | Editor setting     |
-| 🔄    | Refresh | Auto-add setting   |
-| 👁️    | Eye     | Show config        |
-| 🗑️    | Trash   | Reset config       |
-| 👋    | Wave    | Exit               |
+| Emoji | Context | Meaning                  |
+| ----- | ------- | ------------------------ |
+| 🎨    | Palette | Theme setting            |
+| 📏    | Ruler   | Max subject length       |
+| 🎯    | Target  | Max scope length         |
+| 📝    | Pencil  | Editor setting           |
+| 🔄    | Refresh | Auto-add setting         |
+| 🔢    | Numbers | Show character counter   |
+| 🔗    | Link    | Sync to commitlint       |
+| 👁️    | Eye     | Show config              |
+| 🗑️    | Trash   | Reset config             |
+| 👋    | Wave    | Exit                     |
 
 ---
 
