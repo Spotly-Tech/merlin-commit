@@ -134,4 +134,4 @@ See [docs/development/contributing.md](docs/development/contributing.md) for dev
 
 ## License
 
-MIT © Avilo Labs
+MIT © mBukator
