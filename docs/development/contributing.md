@@ -12,8 +12,8 @@ This project follows the [Contributor Covenant Code of Conduct](../../CODE_OF_CO
 
 ## Before You Start
 
-- **Bug reports and feature requests:** [GitHub Issues](https://github.com/avilo-labs/merlin-commit/issues). Search for existing issues before opening a new one.
-- **Discussions and ideas:** [GitHub Discussions](https://github.com/avilo-labs/merlin-commit/discussions).
+- **Bug reports and feature requests:** [GitHub Issues](https://github.com/mBukator/merlin-commit/issues). Search for existing issues before opening a new one.
+- **Discussions and ideas:** [GitHub Discussions](https://github.com/mBukator/merlin-commit/discussions).
 - **Small changes** (typo fixes, one-line bug fixes): feel free to open a PR directly.
 - **Larger changes** (new features, significant refactors): open an issue first to discuss the approach. This avoids wasted effort if the direction needs adjustment.
 
@@ -30,7 +30,7 @@ This project follows the [Contributor Covenant Code of Conduct](../../CODE_OF_CO
 ### Clone and install
 
 ```bash
-git clone https://github.com/avilo-labs/merlin-commit.git
+git clone https://github.com/mBukator/merlin-commit.git
 cd merlin-commit
 npm install
 ```
