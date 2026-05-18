@@ -119,6 +119,6 @@ You want to contribute code or understand how the project is built.
 
 ## Getting Help
 
-- **Bugs and feature requests:** [GitHub Issues](https://github.com/avilo-labs/merlin-commit/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/avilo-labs/merlin-commit/discussions)
+- **Bugs and feature requests:** [GitHub Issues](https://github.com/mBukator/merlin-commit/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/mBukator/merlin-commit/discussions)
 - **Changelog:** [Releases](development/releases.md)
