@@ -1,6 +1,6 @@
 {
     "name": "merlin-commit",
-    "version": "0.0.0",
+    "version": "1.0.0",
     "description": "🧙‍♂️ Magical, interactive CLI for creating conventional commits",
     "type": "module",
     "main": "./dist/cli.js",
