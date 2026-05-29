@@ -1,5 +1,4 @@
 import { confirm, select } from "@inquirer/prompts";
-import ora from "ora";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { initCommand } from "../../src/commands/init.js";
@@ -162,10 +161,10 @@ describe("init flow integration", () => {
             vi.mocked(checkGitAlias).mockResolvedValue("!merlin");
             // Confirm call order: installDeps, wantsAlias, shouldOverwrite (false), wantsProjectConfig
             vi.mocked(confirm)
-                .mockResolvedValueOnce(true)   // installDeps
-                .mockResolvedValueOnce(true)   // wantsAlias
-                .mockResolvedValueOnce(false)  // shouldOverwrite existing alias -> decline
-                .mockResolvedValue(true);      // wantsProjectConfig
+                .mockResolvedValueOnce(true) // installDeps
+                .mockResolvedValueOnce(true) // wantsAlias
+                .mockResolvedValueOnce(false) // shouldOverwrite existing alias -> decline
+                .mockResolvedValue(true); // wantsProjectConfig
 
             await initCommand({});
 

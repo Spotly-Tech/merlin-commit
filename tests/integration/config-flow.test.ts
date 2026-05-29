@@ -1,5 +1,4 @@
-import { confirm, input, select } from "@inquirer/prompts";
-import ora from "ora";
+import { confirm, select } from "@inquirer/prompts";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { configCommand } from "../../src/commands/config.js";
@@ -174,9 +173,7 @@ describe("config flow integration", () => {
         it("completes without error when user navigates to exit", async () => {
             // First select: scope selector returns "user" (valid scope choice)
             // Second select: user menu returns "exit" (exits the loop)
-            vi.mocked(select)
-                .mockResolvedValueOnce("user")
-                .mockResolvedValue("exit");
+            vi.mocked(select).mockResolvedValueOnce("user").mockResolvedValue("exit");
 
             await configCommand({});
 

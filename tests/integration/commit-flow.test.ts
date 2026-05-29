@@ -1,5 +1,4 @@
 import { confirm } from "@inquirer/prompts";
-import ora from "ora";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { commitCommand } from "../../src/commands/commit.js";
@@ -116,7 +115,10 @@ describe("commit flow integration", () => {
 
             await commitCommand({});
 
-            expect(commit).toHaveBeenCalledWith("fix: resolve null dereference", undefined);
+            expect(commit).toHaveBeenCalledWith(
+                "fix: resolve null dereference",
+                undefined
+            );
         });
 
         it("formats message with scope", async () => {
@@ -129,7 +131,10 @@ describe("commit flow integration", () => {
 
             await commitCommand({});
 
-            expect(commit).toHaveBeenCalledWith("feat(auth): add oauth2 login", undefined);
+            expect(commit).toHaveBeenCalledWith(
+                "feat(auth): add oauth2 login",
+                undefined
+            );
         });
 
         it("appends ! marker and BREAKING CHANGE footer", async () => {
@@ -145,7 +150,9 @@ describe("commit flow integration", () => {
 
             const actualMessage = vi.mocked(commit).mock.calls[0][0];
             expect(actualMessage).toContain("feat(api)!: remove deprecated endpoints");
-            expect(actualMessage).toContain("BREAKING CHANGE: All v1 endpoints have been removed");
+            expect(actualMessage).toContain(
+                "BREAKING CHANGE: All v1 endpoints have been removed"
+            );
         });
 
         it("strips duplicate BREAKING CHANGE prefix from user input", async () => {
@@ -251,7 +258,10 @@ describe("commit flow integration", () => {
 
             await commitCommand({ amend: true });
 
-            expect(amendCommit).toHaveBeenCalledWith("docs: fix typo in readme", undefined);
+            expect(amendCommit).toHaveBeenCalledWith(
+                "docs: fix typo in readme",
+                undefined
+            );
             expect(commit).not.toHaveBeenCalled();
         });
 
