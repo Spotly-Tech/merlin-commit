@@ -32,7 +32,7 @@
         "test:watch": "vitest",
         "test:coverage": "vitest run --coverage",
         "prepublishOnly": "npm run build",
-        "prepare": "husky"
+        "prepare": "husky || true"
     },
     "repository": {
         "type": "git",

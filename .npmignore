@@ -1,22 +1,25 @@
-# Source files
+# Source (files field in package.json controls the publish whitelist:
+# ["dist", "bin", "README.md", "LICENSE"])
 src/
 
 # Tests
-test/
-*.test.ts
-*.spec.ts
+tests/
+**/*.test.ts
+**/*.spec.ts
 coverage/
 
 # Development
 .github/
+.husky/
 .vscode/
 .idea/
 
 # Config
-tsconfig.json
-.eslintrc.json
+tsconfig*.json
+eslint.config.mjs
 .prettierrc
 .gitignore
+commitlint.config.js
 .env
 
 # Documentation
