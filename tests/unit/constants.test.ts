@@ -167,12 +167,8 @@ describe("STANDARD_MESSAGES", () => {
             return result;
         }
 
-        const wizardStructure = getKeyStructure(
-            WIZARD_MESSAGES as unknown as Record<string, unknown>
-        );
-        const standardStructure = getKeyStructure(
-            STANDARD_MESSAGES as unknown as Record<string, unknown>
-        );
+        const wizardStructure = getKeyStructure(WIZARD_MESSAGES);
+        const standardStructure = getKeyStructure(STANDARD_MESSAGES);
 
         expect(standardStructure).toEqual(wizardStructure);
     });
