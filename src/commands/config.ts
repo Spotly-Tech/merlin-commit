@@ -640,8 +640,7 @@ async function runProjectConfigMenu(repoRoot: string): Promise<"back" | "exit"> 
     // so the menu immediately reflects a newly-written config file.
     let commitlintConfigFile = await detectCommitlintConfig(repoRoot);
 
-    let running = true;
-    while (running) {
+    while (true) {
         const config = loadConfig(repoRoot);
         const messages = getMessages(repoRoot);
         const projectConfig = loadProjectConfig(repoRoot);
@@ -694,7 +693,6 @@ async function runProjectConfigMenu(repoRoot: string): Promise<"back" | "exit"> 
         }
 
         if (choice === "exit") {
-            running = false;
             console.log(colors.muted(`\n${messages.config.exit}\n`));
             return "exit";
         }
@@ -748,12 +746,8 @@ async function runProjectConfigMenu(repoRoot: string): Promise<"back" | "exit"> 
             }
         }
 
-        if (running) {
-            console.log();
-        }
+        console.log();
     }
-
-    return "exit";
 }
 
 /**
@@ -761,8 +755,7 @@ async function runProjectConfigMenu(repoRoot: string): Promise<"back" | "exit"> 
  * wants to return to the scope selector, or "exit" to quit entirely.
  */
 async function runUserConfigMenu(repoRoot: string | null): Promise<"back" | "exit"> {
-    let running = true;
-    while (running) {
+    while (true) {
         const config = loadConfig(repoRoot);
         const messages = getMessages(repoRoot);
 
@@ -793,19 +786,14 @@ async function runUserConfigMenu(repoRoot: string | null): Promise<"back" | "exi
                 console.log(colors.muted(`\n${messages.config.back}`));
                 return "back";
             case "exit":
-                running = false;
                 console.log(colors.muted(`\n${messages.config.exit}\n`));
                 return "exit";
             default:
                 break;
         }
 
-        if (running) {
-            console.log();
-        }
+        console.log();
     }
-
-    return "exit";
 }
 
 /**
