@@ -22,7 +22,7 @@ const mockWriteFile = vi.mocked(writeFile);
 const FILE_NOT_FOUND = new Error("ENOENT");
 
 function makeConfig(overrides: Partial<MerlinConfig> = {}): Required<MerlinConfig> {
-    return { ...DEFAULT_CONFIG, ...overrides } as Required<MerlinConfig>;
+    return { ...DEFAULT_CONFIG, ...overrides };
 }
 
 const CUSTOM_TYPES: CommitType[] = [
@@ -117,7 +117,7 @@ describe("detectCommitlintConfig", () => {
         skipCandidates(4); // skip to .commitlintrc.js
         mockAccess.mockResolvedValue(undefined);
         mockReadFile.mockResolvedValue(
-            makeJsContent({ hasMarker: true, hasExtends: true, hasRules: true }) as never
+            makeJsContent({ hasMarker: true, hasExtends: true, hasRules: true })
         );
 
         const result = await detectCommitlintConfig("/repo");
@@ -129,7 +129,7 @@ describe("detectCommitlintConfig", () => {
         skipCandidates(4);
         mockAccess.mockResolvedValue(undefined);
         mockReadFile.mockResolvedValue(
-            makeJsContent({ hasExtends: true, hasRules: false }) as never
+            makeJsContent({ hasExtends: true, hasRules: false })
         );
 
         const result = await detectCommitlintConfig("/repo");
@@ -141,7 +141,7 @@ describe("detectCommitlintConfig", () => {
         skipCandidates(4);
         mockAccess.mockResolvedValue(undefined);
         mockReadFile.mockResolvedValue(
-            makeJsContent({ hasExtends: false, hasRules: true }) as never
+            makeJsContent({ hasExtends: false, hasRules: true })
         );
 
         const result = await detectCommitlintConfig("/repo");
@@ -153,7 +153,7 @@ describe("detectCommitlintConfig", () => {
         skipCandidates(4);
         mockAccess.mockResolvedValue(undefined);
         mockReadFile.mockResolvedValue(
-            "module.exports = { parserPreset: 'conventional-changelog-atom' };" as never
+            "module.exports = { parserPreset: 'conventional-changelog-atom' };"
         );
 
         const result = await detectCommitlintConfig("/repo");
@@ -165,7 +165,7 @@ describe("detectCommitlintConfig", () => {
         skipCandidates(7);
         mockAccess.mockResolvedValue(undefined);
         mockReadFile.mockResolvedValue(
-            makeJsContent({ hasMarker: true, hasExtends: true }) as never
+            makeJsContent({ hasMarker: true, hasExtends: true })
         );
 
         const result = await detectCommitlintConfig("/repo");
@@ -256,7 +256,7 @@ describe("syncToCommitlintConfig", () => {
     it("syncs to JSON config and returns success", async () => {
         mockAccess.mockResolvedValue(undefined);
         mockReadFile.mockResolvedValue(
-            JSON.stringify({ extends: ["@commitlint/config-conventional"] }) as never
+            JSON.stringify({ extends: ["@commitlint/config-conventional"] })
         );
 
         const result = await syncToCommitlintConfig(makeConfig(), "/repo");
@@ -268,7 +268,7 @@ describe("syncToCommitlintConfig", () => {
     it("JSON sync: reports all applied rule names", async () => {
         mockAccess.mockResolvedValue(undefined);
         mockReadFile.mockResolvedValue(
-            JSON.stringify({ extends: ["@commitlint/config-conventional"] }) as never
+            JSON.stringify({ extends: ["@commitlint/config-conventional"] })
         );
 
         const result = await syncToCommitlintConfig(makeConfig(), "/repo");
@@ -283,7 +283,7 @@ describe("syncToCommitlintConfig", () => {
             rules: { "header-max-length": [2, "always", 100] },
         });
         mockAccess.mockResolvedValue(undefined);
-        mockReadFile.mockResolvedValue(originalJson as never);
+        mockReadFile.mockResolvedValue(originalJson);
 
         await syncToCommitlintConfig(makeConfig(), "/repo");
 
@@ -298,7 +298,7 @@ describe("syncToCommitlintConfig", () => {
             extends: ["@commitlint/config-conventional"],
         });
         mockAccess.mockResolvedValue(undefined);
-        mockReadFile.mockResolvedValue(originalJson as never);
+        mockReadFile.mockResolvedValue(originalJson);
 
         await syncToCommitlintConfig(makeConfig(), "/repo");
 
@@ -313,7 +313,7 @@ describe("syncToCommitlintConfig", () => {
             rules: { "subject-max-length": [2, "always", 100] },
         });
         mockAccess.mockResolvedValue(undefined);
-        mockReadFile.mockResolvedValue(originalJson as never);
+        mockReadFile.mockResolvedValue(originalJson);
 
         await syncToCommitlintConfig(makeConfig({ maxSubjectLength: 50 }), "/repo");
 
@@ -326,7 +326,7 @@ describe("syncToCommitlintConfig", () => {
         skipCandidates(4);
         mockAccess.mockResolvedValue(undefined);
         mockReadFile.mockResolvedValue(
-            makeJsContent({ hasMarker: true, hasExtends: true }) as never
+            makeJsContent({ hasMarker: true, hasExtends: true })
         );
 
         const result = await syncToCommitlintConfig(makeConfig(), "/repo");
@@ -340,7 +340,7 @@ describe("syncToCommitlintConfig", () => {
         skipCandidates(4);
         mockAccess.mockResolvedValue(undefined);
         mockReadFile.mockResolvedValue(
-            makeJsContent({ hasMarker: true, hasExtends: true }) as never
+            makeJsContent({ hasMarker: true, hasExtends: true })
         );
 
         await syncToCommitlintConfig(makeConfig(), "/repo");
@@ -355,7 +355,7 @@ describe("syncToCommitlintConfig", () => {
         skipCandidates(4);
         mockAccess.mockResolvedValue(undefined);
         mockReadFile.mockResolvedValue(
-            makeJsContent({ hasMarker: true, hasExtends: true }) as never
+            makeJsContent({ hasMarker: true, hasExtends: true })
         );
 
         await syncToCommitlintConfig(makeConfig({ types: CUSTOM_TYPES }), "/repo");
@@ -404,7 +404,7 @@ describe("syncToCommitlintConfig", () => {
     it("js-custom: returns failure with manual instructions", async () => {
         skipCandidates(4);
         mockAccess.mockResolvedValue(undefined);
-        mockReadFile.mockResolvedValue(makeJsContent({ hasRules: true }) as never);
+        mockReadFile.mockResolvedValue(makeJsContent({ hasRules: true }));
 
         const result = await syncToCommitlintConfig(makeConfig(), "/repo");
 
@@ -416,7 +416,7 @@ describe("syncToCommitlintConfig", () => {
     it("type-enum appears in appliedRuleNames for JSON sync when types are custom", async () => {
         mockAccess.mockResolvedValue(undefined);
         mockReadFile.mockResolvedValue(
-            JSON.stringify({ extends: ["@commitlint/config-conventional"] }) as never
+            JSON.stringify({ extends: ["@commitlint/config-conventional"] })
         );
 
         const result = await syncToCommitlintConfig(
