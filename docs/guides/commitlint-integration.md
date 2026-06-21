@@ -14,11 +14,11 @@ When you trigger the sync, merlin:
 
 **Rules written:**
 
-| Config field | Commitlint rule |
-|---|---|
-| `maxSubjectLength` | `subject-max-length: [2, "always", <value>]` |
-| `maxScopeLength` | `scope-max-length: [2, "always", <value>]` |
-| `types` (only if custom) | `type-enum: [2, "always", [<values>]]` |
+| Config field             | Commitlint rule                              |
+| ------------------------ | -------------------------------------------- |
+| `maxSubjectLength`       | `subject-max-length: [2, "always", <value>]` |
+| `maxScopeLength`         | `scope-max-length: [2, "always", <value>]`   |
+| `types` (only if custom) | `type-enum: [2, "always", [<values>]]`       |
 
 `type-enum` is only written when you have defined custom types. When using the 11 default types, commitlint's `@commitlint/config-conventional` already covers conventional type validation.
 
@@ -41,12 +41,12 @@ Re-run sync whenever you change `maxSubjectLength`, `maxScopeLength`, or `types`
 
 Merlin detects the format of your existing commitlint config and handles each differently:
 
-| Format | File examples | Sync behavior |
-|---|---|---|
-| JSON | `.commitlintrc`, `.commitlintrc.json` | Merges rules directly into the JSON `rules` object |
-| JS (merlin-managed) | `commitlint.config.js` with `// @merlin-managed` | Regenerates the entire file |
-| JS (user-authored) | `commitlint.config.js` without the marker | Returns manual instructions - merlin does not overwrite custom JS |
-| YAML | `.commitlintrc.yaml`, `.commitlintrc.yml` | Returns manual instructions |
+| Format              | File examples                                    | Sync behavior                                                     |
+| ------------------- | ------------------------------------------------ | ----------------------------------------------------------------- |
+| JSON                | `.commitlintrc`, `.commitlintrc.json`            | Merges rules directly into the JSON `rules` object                |
+| JS (merlin-managed) | `commitlint.config.js` with `// @merlin-managed` | Regenerates the entire file                                       |
+| JS (user-authored)  | `commitlint.config.js` without the marker        | Returns manual instructions - merlin does not overwrite custom JS |
+| YAML                | `.commitlintrc.yaml`, `.commitlintrc.yml`        | Returns manual instructions                                       |
 
 The `// @merlin-managed` comment is how merlin identifies files it generated (or files you have explicitly marked as safe to regenerate).
 

@@ -2,12 +2,12 @@
 
 **Merlin Commit** is an interactive CLI for creating [Conventional Commits](https://www.conventionalcommits.org/). It guides you through each part of a commit message with a prompt sequence, validates your input in real time, and produces consistently formatted messages your whole team can rely on.
 
-| Property | Value                      |
-| -------- | -------------------------- |
+| Property | Value           |
+| -------- | --------------- |
 | Package  | `merlin-commit` |
-| Binary   | `merlin`                   |
-| Node.js  | >= 18.0.0                  |
-| License  | MIT                        |
+| Binary   | `merlin`        |
+| Node.js  | >= 18.0.0       |
+| License  | MIT             |
 
 ---
 
@@ -51,35 +51,35 @@ merlin --dry-run
 
 You want to create commits and understand what merlin-commit can do.
 
-| Document                                    | Description                                 |
-| ------------------------------------------- | ------------------------------------------- |
-| [Installation](getting-started/installation.md)             | Requirements, install methods, uninstalling |
-| [Quick Start](getting-started/quickstart.md)                | Your first commit, step by step             |
+| Document                                          | Description                                 |
+| ------------------------------------------------- | ------------------------------------------- |
+| [Installation](getting-started/installation.md)   | Requirements, install methods, uninstalling |
+| [Quick Start](getting-started/quickstart.md)      | Your first commit, step by step             |
 | [Commit Types](usage/commit-types.md)             | All 11 built-in types with usage guidance   |
 | [Themes](usage/themes.md)                         | Wizard (default) and standard themes        |
 | [Editor Integration](usage/editor-integration.md) | VS Code, Neovim, Emacs, Nano setup          |
 | [Auto-Add](usage/auto-add.md)                     | Interactive file staging before committing  |
-| [CLI Reference](reference/cli-reference.md)           | Every command, flag, and option             |
+| [CLI Reference](reference/cli-reference.md)       | Every command, flag, and option             |
 
 ### Team Leads
 
 You want to roll out merlin-commit across a repository with consistent standards.
 
-| Document                                            | Description                                |
-| --------------------------------------------------- | ------------------------------------------ |
+| Document                                                   | Description                                |
+| ---------------------------------------------------------- | ------------------------------------------ |
 | [Team Setup](guides/team-setup.md)                         | Step-by-step team rollout guide            |
-| [Configuration](reference/configuration.md)                   | Config files, merge strategy, common tasks |
+| [Configuration](reference/configuration.md)                | Config files, merge strategy, common tasks |
 | [Commitlint Integration](guides/commitlint-integration.md) | Syncing merlin rules to commitlint         |
-| [Config Schema]                   | Every config field documented              |
+| [Config Schema]                                            | Every config field documented              |
 
 ### Advanced Users
 
 You want to customize behavior beyond the defaults.
 
-| Document                                    | Description                                |
-| ------------------------------------------- | ------------------------------------------ |
-| [Config Schema]           | Custom types, all field details            |
-| [Configuration](reference/configuration.md)           | Three-tier merge, project overrides        |
+| Document                                          | Description                                |
+| ------------------------------------------------- | ------------------------------------------ |
+| [Config Schema]                                   | Custom types, all field details            |
+| [Configuration](reference/configuration.md)       | Three-tier merge, project overrides        |
 | [Editor Integration](usage/editor-integration.md) | Advanced editor configuration              |
 | [Themes](usage/themes.md)                         | Theme internals and terminal compatibility |
 
@@ -87,8 +87,8 @@ You want to customize behavior beyond the defaults.
 
 You want to contribute code or understand how the project is built.
 
-| Document                        | Description                              |
-| ------------------------------- | ---------------------------------------- |
+| Document                                    | Description                              |
+| ------------------------------------------- | ---------------------------------------- |
 | [Contributing](development/contributing.md) | Development setup, PR process            |
 | [Architecture](development/architecture.md) | Code layers, data flow, design decisions |
 | [Testing](development/testing.md)           | Test patterns, running tests, coverage   |
