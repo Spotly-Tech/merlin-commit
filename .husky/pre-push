@@ -1,4 +1,5 @@
 #!/bin/bash
 
+npm run knip
 npm run test
 npm run build
