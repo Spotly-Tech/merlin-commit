@@ -31,7 +31,7 @@ jobs:
         run: npm run lint
 
       - name: Format check
-        run: npx prettier --check "src/**/*.ts" "tests/**/*.ts"
+        run: npx prettier --check "src/**/*.ts" "tests/**/*.ts" "docs/**/*.md"
 
       - name: Type check
         run: npm run type-check

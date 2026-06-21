@@ -24,11 +24,11 @@ Comment lines (lines beginning with `#`) are stripped on read-back, just as git 
 
 ## Which Fields Use the Editor
 
-| Field | Prompt |
-|---|---|
-| Body | "Would you like to weave a detailed tale?" (wizard) / "Add a detailed description?" (standard) |
+| Field            | Prompt                                                                                               |
+| ---------------- | ---------------------------------------------------------------------------------------------------- |
+| Body             | "Would you like to weave a detailed tale?" (wizard) / "Add a detailed description?" (standard)       |
 | Breaking changes | "Does this spell shatter ancient contracts?" (wizard) / "Are there any breaking changes?" (standard) |
-| Issue references | "Does this resolve any quests?" (wizard) / "Reference any issues?" (standard) |
+| Issue references | "Does this resolve any quests?" (wizard) / "Reference any issues?" (standard)                        |
 
 Answer Yes (type `y` and press Enter) to open the editor for that field. Answer No or press Enter (the default for all three is No) to skip it.
 
@@ -105,6 +105,7 @@ Use `emacsclient` with the `--wait` flag to block until the buffer is closed:
 ```
 
 Start an Emacs server first if it is not already running:
+
 ```bash
 emacs --daemon
 ```
@@ -243,6 +244,7 @@ merlin config --show project
 ### `editor exited with error`
 
 The editor exited with a non-zero exit code. This can happen if:
+
 - The editor command is wrong or the binary is not installed
 - The editor was force-quit (e.g., `:q!` in Vim without saving discards changes but exits cleanly; closing the terminal mid-edit may exit non-zero)
 
