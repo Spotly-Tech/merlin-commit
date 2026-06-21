@@ -112,18 +112,18 @@ See [Architecture](architecture.md) for a detailed description of each layer's r
 
 ## Development Scripts
 
-| Script     | Command                 | When to use                                     |
-| ---------- | ----------------------- | ----------------------------------------------- |
-| Build      | `npm run build`         | Before testing locally, before committing       |
-| Watch      | `npm run dev`           | During active development                       |
-| Lint       | `npm run lint`          | Check code style (also runs in pre-commit hook) |
-| Format     | `npm run format`        | Auto-format with Prettier                       |
-| Type check | `npm run type-check`    | Verify TypeScript types without emitting        |
+| Script     | Command                 | When to use                                                                 |
+| ---------- | ----------------------- | --------------------------------------------------------------------------- |
+| Build      | `npm run build`         | Before testing locally, before committing                                   |
+| Watch      | `npm run dev`           | During active development                                                   |
+| Lint       | `npm run lint`          | Check code style (also runs in pre-commit hook)                             |
+| Format     | `npm run format`        | Auto-format with Prettier                                                   |
+| Type check | `npm run type-check`    | Verify TypeScript types without emitting                                    |
 | Knip       | `npm run knip`          | Detect unused files, exports, and dependencies (also runs in pre-push hook) |
-| Test       | `npm run test`          | Run full test suite once                        |
-| Test watch | `npm run test:watch`    | Run tests on file changes                       |
-| Coverage   | `npm run test:coverage` | Run tests with coverage report                  |
-| Clean      | `npm run clean`         | Delete `dist/`                                  |
+| Test       | `npm run test`          | Run full test suite once                                                    |
+| Test watch | `npm run test:watch`    | Run tests on file changes                                                   |
+| Coverage   | `npm run test:coverage` | Run tests with coverage report                                              |
+| Clean      | `npm run clean`         | Delete `dist/`                                                              |
 
 ---
 
