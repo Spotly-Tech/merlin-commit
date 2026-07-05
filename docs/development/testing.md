@@ -9,11 +9,13 @@ Testing guide for contributors. Covers the testing philosophy, how to write test
 **Plain tests over mocks.** Write real assertions against real logic first. Introduce mocks only when the code under test touches something external: the file system, git commands, or interactive prompts.
 
 **What to mock:**
+
 - `execa` - avoids creating real git commits during tests
 - `fs` - avoids reading/writing real config files
 - `@inquirer/prompts` - avoids requiring a real TTY
 
 **What not to mock:**
+
 - Pure utility functions - test them directly with inputs and expected outputs
 - Internal module logic - if you are mocking the code under test, you are not testing it
 
@@ -21,11 +23,11 @@ Testing guide for contributors. Covers the testing philosophy, how to write test
 
 ## Test Stack
 
-| Tool | Purpose |
-|---|---|
+| Tool                          | Purpose                          |
+| ----------------------------- | -------------------------------- |
 | [Vitest](https://vitest.dev/) | Test runner, assertions, mocking |
-| `vi.mock()` | Module-level mock injection |
-| `vi.fn()` | Spy and mock functions |
+| `vi.mock()`                   | Module-level mock injection      |
+| `vi.fn()`                     | Spy and mock functions           |
 
 Tests use Vitest's global API (`describe`, `it`, `expect`, `beforeEach`, `vi`) without explicit imports, configured in `vitest.config.ts` with `globals: true`.
 
@@ -33,14 +35,15 @@ Tests use Vitest's global API (`describe`, `it`, `expect`, `beforeEach`, `vi`) w
 
 ## Coverage Targets
 
-| Metric | Target |
-|---|---|
-| Lines | 80% |
-| Statements | 80% |
-| Functions | 80% |
-| Branches | 75% |
+| Metric     | Target |
+| ---------- | ------ |
+| Lines      | 80%    |
+| Statements | 80%    |
+| Functions  | 80%    |
+| Branches   | 75%    |
 
 Run coverage:
+
 ```bash
 npm run test:coverage
 ```
@@ -147,12 +150,12 @@ Mock external dependencies. Assert the right functions were called with the righ
 ### Mocking execa (git operations)
 
 ```typescript
-import { vi, beforeEach } from "vitest";
+import { execa } from "execa";
+import { beforeEach, vi } from "vitest";
+
 import { commit } from "../../src/lib/git.js";
 
 vi.mock("execa");
-
-import { execa } from "execa";
 
 describe("commit", () => {
     beforeEach(() => {
@@ -172,14 +175,20 @@ describe("commit", () => {
     });
 
     it("should pass --no-verify when noVerify is true", async () => {
-        vi.mocked(execa).mockResolvedValue({ stdout: "", stderr: "", exitCode: 0 } as any);
+        vi.mocked(execa).mockResolvedValue({
+            stdout: "",
+            stderr: "",
+            exitCode: 0,
+        } as any);
 
         await commit("feat: test", true);
 
-        expect(execa).toHaveBeenCalledWith(
-            "git",
-            ["commit", "-m", "feat: test", "--no-verify"]
-        );
+        expect(execa).toHaveBeenCalledWith("git", [
+            "commit",
+            "-m",
+            "feat: test",
+            "--no-verify",
+        ]);
     });
 });
 ```
@@ -187,12 +196,12 @@ describe("commit", () => {
 ### Mocking the file system (config I/O)
 
 ```typescript
-import { vi } from "vitest";
 import * as fs from "fs";
-
-vi.mock("fs");
+import { vi } from "vitest";
 
 import { loadUserConfig } from "../../src/lib/config-loader.js";
+
+vi.mock("fs");
 
 describe("loadUserConfig", () => {
     it("should return parsed config from ~/.merlinrc.json", () => {
@@ -221,20 +230,20 @@ describe("loadUserConfig", () => {
 Commands orchestrate workflows. Test the coordination logic - that the right lib functions are called in the right order with the right arguments.
 
 ```typescript
-import { vi, beforeEach } from "vitest";
+import { beforeEach, vi } from "vitest";
+
+import { commitCommand } from "../../src/commands/commit.js";
+import { getMessages, loadConfig } from "../../src/lib/config-loader.js";
+import { commit, hasStagedChanges, isGitRepo } from "../../src/lib/git.js";
+import { buildCommitMessage } from "../../src/lib/message.js";
+import { promptUser } from "../../src/lib/prompt.js";
+import { DEFAULT_CONFIG, WIZARD_MESSAGES } from "../../src/utils/constants.js";
 
 // Mock all dependencies before imports
 vi.mock("../../src/lib/git.js");
 vi.mock("../../src/lib/prompt.js");
 vi.mock("../../src/lib/message.js");
 vi.mock("../../src/lib/config-loader.js");
-
-import { isGitRepo, hasStagedChanges, commit } from "../../src/lib/git.js";
-import { promptUser } from "../../src/lib/prompt.js";
-import { buildCommitMessage } from "../../src/lib/message.js";
-import { loadConfig, getMessages } from "../../src/lib/config-loader.js";
-import { commitCommand } from "../../src/commands/commit.js";
-import { DEFAULT_CONFIG, WIZARD_MESSAGES } from "../../src/utils/constants.js";
 
 function setupHappyPath() {
     vi.mocked(isGitRepo).mockResolvedValue(true);
@@ -285,9 +294,9 @@ describe("commitCommand", () => {
 ### Mocking `@inquirer/prompts`
 
 ```typescript
-vi.mock("@inquirer/prompts");
-
 import { confirm, input, select } from "@inquirer/prompts";
+
+vi.mock("@inquirer/prompts");
 
 vi.mocked(confirm).mockResolvedValue(true);
 vi.mocked(input).mockResolvedValue("my input");
@@ -327,9 +336,9 @@ it("should resolve with result", () => {
 
 ```typescript
 it.each([
-    ["short",        "short",          72,  true],
-    ["exact limit",  "a".repeat(72),   72,  true],
-    ["one over",     "a".repeat(73),   72,  false],
+    ["short", "short", 72, true],
+    ["exact limit", "a".repeat(72), 72, true],
+    ["one over", "a".repeat(73), 72, false],
 ])("validateSubjectLength: %s", (_, input, max, expected) => {
     const validate = createMaxLengthValidator(max);
     const result = validate(input);

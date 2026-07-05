@@ -23,17 +23,17 @@ and examples from the codebase.
 
 ### Core Actions
 
-| Term         | Meaning                              | Usage                                           |
-| ------------ | ------------------------------------ | ----------------------------------------------- |
-| **cast**     | Create a commit                      | "Shall Merlin cast this spell?"                 |
-| **inscribe** | Write, save, or create a file/config | "Inscribing project enchantments"               |
-| **summon**   | Install or fetch (npm install)       | "Summoning dependencies from the npm realm"     |
-| **invoke**   | Run a command                        | "Invoke git init to create a sacred realm" |
-| **awaken**   | Initialize (a tool or service)       | "Awakening the husky guardian"                  |
-| **weave**    | Write detailed content (commit body) | "Would you like to weave a detailed tale?"      |
-| **shatter**  | Break (as in breaking changes)       | "Does this spell shatter ancient contracts?"    |
-| **peer**     | Preview or inspect                   | "Merlin peers into possible futures"            |
-| **bind**     | Create an alias                      | "Bind 'git merlin' to your spellbook"           |
+| Term         | Meaning                              | Usage                                        |
+| ------------ | ------------------------------------ | -------------------------------------------- |
+| **cast**     | Create a commit                      | "Shall Merlin cast this spell?"              |
+| **inscribe** | Write, save, or create a file/config | "Inscribing project enchantments"            |
+| **summon**   | Install or fetch (npm install)       | "Summoning dependencies from the npm realm"  |
+| **invoke**   | Run a command                        | "Invoke git init to create a sacred realm"   |
+| **awaken**   | Initialize (a tool or service)       | "Awakening the husky guardian"               |
+| **weave**    | Write detailed content (commit body) | "Would you like to weave a detailed tale?"   |
+| **shatter**  | Break (as in breaking changes)       | "Does this spell shatter ancient contracts?" |
+| **peer**     | Preview or inspect                   | "Merlin peers into possible futures"         |
+| **bind**     | Create an alias                      | "Bind 'git merlin' to your spellbook"        |
 
 ### Objects & Artifacts
 
@@ -64,7 +64,7 @@ and examples from the codebase.
 | --------------- | ----------------------------------------------- | -------------------------------------------------------------------- |
 | **ritual**      | The commit workflow/process                     | "The ritual has been cancelled"                                      |
 | **enchantment** | A configuration setting applied to a project    | "Realm enchantments inscribed", "Which realm enchantment to modify?" |
-| **blessing**    | An init/setup operation applied to a repository | "Your realm is now blessed!", "Existing blessings detected"     |
+| **blessing**    | An init/setup operation applied to a repository | "Your realm is now blessed!", "Existing blessings detected"          |
 | **binding**     | A git alias                                     | "A binding for 'git merlin' already exists"                          |
 | **quest**       | A GitHub/tracker issue                          | "Does this resolve any quests?"                                      |
 | **vision**      | A preview / dry run                             | "The vision fades - no spell was cast"                               |
@@ -74,7 +74,7 @@ and examples from the codebase.
 
 | Term          | Meaning                                 | Usage                                 |
 | ------------- | --------------------------------------- | ------------------------------------- |
-| **sacred**    | Important, protected (repository)       | "Verifying the sacred realm"     |
+| **sacred**    | Important, protected (repository)       | "Verifying the sacred realm"          |
 | **ancient**   | Established, existing (contracts/texts) | "The ancient texts demand this field" |
 | **woven**     | Committed, saved to history             | "Your spell is woven into history"    |
 | **forbidden** | Invalid, not allowed                    | "This spell contains forbidden runes" |
@@ -166,18 +166,18 @@ These emojis prefix wizard-themed messages to provide visual context.
 
 #### Config Menu (wizard theme)
 
-| Emoji | Context | Meaning                  |
-| ----- | ------- | ------------------------ |
-| 🎨    | Palette | Theme setting            |
-| 📏    | Ruler   | Max subject length       |
-| 🎯    | Target  | Max scope length         |
-| 📝    | Pencil  | Editor setting           |
-| 🔄    | Refresh | Auto-add setting         |
-| 🔢    | Numbers | Show character counter   |
-| 🔗    | Link    | Sync to commitlint       |
-| 👁️    | Eye     | Show config              |
-| 🗑️    | Trash   | Reset config             |
-| 👋    | Wave    | Exit                     |
+| Emoji | Context | Meaning                |
+| ----- | ------- | ---------------------- |
+| 🎨    | Palette | Theme setting          |
+| 📏    | Ruler   | Max subject length     |
+| 🎯    | Target  | Max scope length       |
+| 📝    | Pencil  | Editor setting         |
+| 🔄    | Refresh | Auto-add setting       |
+| 🔢    | Numbers | Show character counter |
+| 🔗    | Link    | Sync to commitlint     |
+| 👁️    | Eye     | Show config            |
+| 🗑️    | Trash   | Reset config           |
+| 👋    | Wave    | Exit                   |
 
 ---
 

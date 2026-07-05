@@ -112,17 +112,18 @@ See [Architecture](architecture.md) for a detailed description of each layer's r
 
 ## Development Scripts
 
-| Script     | Command                 | When to use                                     |
-| ---------- | ----------------------- | ----------------------------------------------- |
-| Build      | `npm run build`         | Before testing locally, before committing       |
-| Watch      | `npm run dev`           | During active development                       |
-| Lint       | `npm run lint`          | Check code style (also runs in pre-commit hook) |
-| Format     | `npm run format`        | Auto-format with Prettier                       |
-| Type check | `npm run type-check`    | Verify TypeScript types without emitting        |
-| Test       | `npm run test`          | Run full test suite once                        |
-| Test watch | `npm run test:watch`    | Run tests on file changes                       |
-| Coverage   | `npm run test:coverage` | Run tests with coverage report                  |
-| Clean      | `npm run clean`         | Delete `dist/`                                  |
+| Script     | Command                 | When to use                                                                 |
+| ---------- | ----------------------- | --------------------------------------------------------------------------- |
+| Build      | `npm run build`         | Before testing locally, before committing                                   |
+| Watch      | `npm run dev`           | During active development                                                   |
+| Lint       | `npm run lint`          | Check code style (also runs in pre-commit hook)                             |
+| Format     | `npm run format`        | Auto-format with Prettier                                                   |
+| Type check | `npm run type-check`    | Verify TypeScript types without emitting                                    |
+| Knip       | `npm run knip`          | Detect unused files, exports, and dependencies (also runs in pre-push hook) |
+| Test       | `npm run test`          | Run full test suite once                                                    |
+| Test watch | `npm run test:watch`    | Run tests on file changes                                                   |
+| Coverage   | `npm run test:coverage` | Run tests with coverage report                                              |
+| Clean      | `npm run clean`         | Delete `dist/`                                                              |
 
 ---
 
@@ -178,10 +179,10 @@ If you are unsure which doc to update, check `docs/index.md` - it links every gu
 Run the full quality check before opening a pull request:
 
 ```bash
-npm run lint && npm run format && npm run type-check && npm run test && npm run build
+npm run lint && npm run format && npm run type-check && npm run knip && npm run test && npm run build
 ```
 
-All five must pass.
+All six must pass.
 
 ---
 

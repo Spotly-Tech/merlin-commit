@@ -31,10 +31,13 @@ jobs:
         run: npm run lint
 
       - name: Format check
-        run: npx prettier --check "src/**/*.ts" "tests/**/*.ts"
+        run: npx prettier --check "src/**/*.ts" "tests/**/*.ts" "docs/**/*.md"
 
       - name: Type check
         run: npm run type-check
+
+      - name: Knip (unused code and dependencies)
+        run: npm run knip
 
       - name: Test
         run: npm test

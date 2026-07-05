@@ -51,13 +51,11 @@ const mainConfig = {
                 paths: [
                     {
                         name: "child_process",
-                        message:
-                            "Use execa instead for safe command execution.",
+                        message: "Use execa instead for safe command execution.",
                     },
                     {
                         name: "node:child_process",
-                        message:
-                            "Use execa instead for safe command execution.",
+                        message: "Use execa instead for safe command execution.",
                     },
                 ],
             },
@@ -146,14 +144,8 @@ const mainConfig = {
         "object-shorthand": ["error", "always"],
         "prefer-rest-params": "error",
         "prefer-spread": "error",
-        "prefer-destructuring": [
-            "error",
-            { object: true, array: false },
-        ],
-        "prefer-arrow-callback": [
-            "error",
-            { allowNamedFunctions: false },
-        ],
+        "prefer-destructuring": ["error", { object: true, array: false }],
+        "prefer-arrow-callback": ["error", { allowNamedFunctions: false }],
         "arrow-body-style": ["error", "as-needed"],
         "no-useless-rename": "error",
         "@typescript-eslint/no-useless-constructor": "error",
@@ -171,32 +163,17 @@ const mainConfig = {
                 fixStyle: "inline-type-imports",
             },
         ],
-        "@typescript-eslint/consistent-type-definitions": [
-            "error",
-            "type",
-        ],
+        "@typescript-eslint/consistent-type-definitions": ["error", "type"],
         "@typescript-eslint/prefer-nullish-coalescing": "warn",
         "@typescript-eslint/prefer-optional-chain": "warn",
-        "@typescript-eslint/no-unused-vars": [
-            "error",
-            { argsIgnorePattern: "^_" },
-        ],
+        "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
         "@typescript-eslint/explicit-function-return-type": "off",
 
         // ── Style (non-formatting) ─────────────────────────────
-        camelcase: [
-            "error",
-            { properties: "never", ignoreDestructuring: false },
-        ],
+        camelcase: ["error", { properties: "never", ignoreDestructuring: false }],
         "no-nested-ternary": "error",
-        "no-unneeded-ternary": [
-            "error",
-            { defaultAssignment: false },
-        ],
-        "new-cap": [
-            "error",
-            { newIsCap: true, capIsNew: false },
-        ],
+        "no-unneeded-ternary": ["error", { defaultAssignment: false }],
+        "new-cap": ["error", { newIsCap: true, capIsNew: false }],
         "one-var": ["error", "never"],
         "spaced-comment": ["error", "always"],
         "no-lonely-if": "error",
