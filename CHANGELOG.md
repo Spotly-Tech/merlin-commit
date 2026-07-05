@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2026-07-05
+
+### Fixed
+
+- Correct the LICENSE copyright holder to Maksym Bukator
+
+### Changed
+
+- Add knip unused-code detection to CI and the pre-push hook
+- Broaden the Prettier format check to cover docs and test files
+- Update development dependencies to resolve security advisories (vite, flatted, js-yaml)
+- Retarget Dependabot at the develop branch
+
 ## [1.0.0] - 2026-05-29
 
 ### Added
