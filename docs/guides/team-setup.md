@@ -6,7 +6,7 @@ This guide walks a team lead through setting up merlin-commit for a repository s
 
 ## Prerequisites
 
-- Node.js >= 18.0.0 on all developer machines
+- Node.js >= 22.0.0 on all developer machines
 - A git repository with a `package.json` (any Node.js project)
 - npm, yarn, or pnpm
 
