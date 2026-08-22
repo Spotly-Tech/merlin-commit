@@ -19,6 +19,13 @@ updates:
         dependency-type: development
       production-dependencies:
         dependency-type: production
+    ignore:
+      # typescript-eslint has no stable release supporting TypeScript 7 yet:
+      # @typescript-eslint/eslint-plugin@8.67.0 still peers on typescript <6.1.0.
+      # Without this, the whole dev-dependencies group PR fails npm ci on ERESOLVE.
+      # Remove once typescript-eslint ships TypeScript 7 support.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: /
