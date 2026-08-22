@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- Raise the minimum supported Node.js version to 22
+
+    The declared `engines.node` range of `>=18` was already inaccurate:
+    `commander@15` requires Node `>=22.12.0`, so v1.0.1 could not install or
+    run on Node 18 or 20 despite claiming support. This corrects the declared
+    range to match reality rather than removing working functionality. Node 18
+    and 20 are both past end-of-life.
+
+- Update production dependencies: `chalk` 5 to 6, `execa` 9 to 10,
+  `@inquirer/prompts` to 8.6.0, `ora` to 9.4.1
+
+    `@inquirer/prompts` 8.5.2 hardens temp-file handling in `external-editor`,
+    which backs the external editor flow. No merlin code changes were required:
+    only chalk colour helpers are used, and every `execa` call site uses the
+    `execa(file, argsArray)` form that both majors support.
+
+- Run CI and release workflows on Node 22 so the supported floor is actually exercised
+
 ## [1.0.1] - 2026-07-05
 
 ### Fixed

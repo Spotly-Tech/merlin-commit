@@ -6,7 +6,7 @@
 
 | Requirement | Version                          |
 | ----------- | -------------------------------- |
-| Node.js     | >= 18.0.0                        |
+| Node.js     | >= 22.0.0                        |
 | npm         | >= 9.0.0 (bundled with Node 18+) |
 | Git         | Any recent version               |
 
